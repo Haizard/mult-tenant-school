@@ -7,11 +7,13 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 
 const Card = ({ children, className = '', ...props }: CardProps) => {
   const cardClasses = `
-    bg-[rgba(255,255,255,0.4)] 
-    backdrop-blur-[10px] 
-    border border-[rgba(255,255,255,0.2)] 
-    rounded-[16px] 
-    shadow-[0_8px_32px_0_rgba(31,38,135,0.2)]
+    bg-slate-800/60 
+    backdrop-blur-xl 
+    border 
+    border-slate-700 
+    rounded-2xl 
+    shadow-2xl 
+    shadow-black/50
     p-6
     ${className}
   `;
