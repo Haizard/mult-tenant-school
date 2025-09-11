@@ -1,50 +1,41 @@
-# Blueprint: Multi-Tenant SaaS Application
+
+# Blueprint for School Management System UI Enhancement
 
 ## Overview
 
-This document outlines the plan and progress for building a multi-tenant SaaS application. The application will allow different tenants (organizations) to sign up and manage their own users, data, and resources in an isolated manner.
+This document outlines the plan to enhance the UI of the School Management System based on the provided design inspirations. The goal is to create a modern, visually appealing, and user-friendly interface with reusable components.
 
-## Application Features & Design
+## Design System
 
-### Implemented Features
+### Core Aesthetic
+- **Glassmorphism Design**: Translucent elements with backdrop blur effects.
+- **Color Palette**: A combination of light lavenders, deep purples, and vibrant accent colors.
+  - **Primary Background**: `#F8F6FF`
+  - **Secondary Background**: `#F0EDFF`
+  - **Sidebar Background**: `#E8E4FF`
+  - **Primary Purple**: `#6B46C1`
+  - **Accent Colors**: Pinks, oranges, and blues for charts and highlights.
+- **Typography**: `Inter` font family with a clear hierarchy.
+- **Animations**: Smooth, 200ms transitions with `ease-in-out` easing.
+- **Iconography**: `react-icons` will be used for a consistent and modern icon set.
 
-*   **Database Setup:** The project is configured to use SQLite for local development and PostgreSQL for production.
-*   **Tenant Model:** A `Tenant` model has been created with the following fields:
-    *   `id`: Unique identifier for the tenant.
-    *   `name`: The name of the tenant's organization.
-    *   `email`: The primary contact email for the tenant.
+### Components
+- **Sidebar**: A collapsible sidebar with navigation links and icons.
+- **DashboardStats**: Cards for displaying key metrics.
+- **Chart**: A flexible chart component for data visualization.
+- **InfoCard**: A versatile card for various content types.
 
-### Current Plan: Tenant Management UI
+## Implementation Plan
 
-The immediate goal is to build the user interface for creating and viewing tenants.
-
-#### Steps:
-
-1.  **Create Tenant Page:**
-    *   A new page will be created at the `/tenants` route.
-    *   This page will be a Server Component to allow for direct data fetching from the database.
-
-2.  **Tenant Creation Form:**
-    *   The page will feature a form with the following fields:
-        *   `Name`: A text input for the tenant's organization name.
-        *   `Email`: An email input for the tenant's contact email.
-    *   A "Create Tenant" button will submit the form.
-
-3.  **Server Action for Tenant Creation:**
-    *   A Server Action will be created to handle the form submission.
-    *   This action will:
-        *   Receive the form data.
-        *   Use Prisma Client to create a new `Tenant` record in the database.
-        *   Revalidate the `/tenants` page to reflect the new data immediately without a manual refresh.
-
-4.  **Display Tenant List:**
-    *   Below the form, the page will fetch and display a list of all existing tenants.
-    *   The list will show the `name` and `email` for each tenant.
-
-5.  **Styling and Design:**
-    *   The page will be styled using modern design principles to ensure a clean, intuitive, and visually appealing user experience.
-    *   This includes:
-        *   **Typography:** Clear and readable fonts with a strong visual hierarchy.
-        *   **Color Palette:** A professional and aesthetically pleasing color scheme.
-        *   **Layout:** A well-structured layout with ample spacing for clarity.
-        *   **Components:** Styled form inputs and buttons that provide good user feedback.
+1.  **Install Dependencies**: Install `framer-motion`, `recharts`, and `react-icons`.
+2.  **Create Component Files**: Create the necessary files for the new components in the `app/components` directory.
+3.  **Build Components**:
+    *   `Sidebar.tsx`
+    *   `DashboardStats.tsx`
+    *   `Chart.tsx`
+    *   `InfoCard.tsx`
+4.  **Update Layout and Styles**:
+    *   Update `app/layout.tsx` to include the new `Sidebar`.
+    *   Update `app/globals.css` with the new color palette and typography.
+    *   Update `app/page.tsx` to use the new dashboard components.
+5.  **Refine and Test**: Test the new design for responsiveness and functionality, and make any necessary adjustments.

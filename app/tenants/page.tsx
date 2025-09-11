@@ -1,5 +1,5 @@
 import { PrismaClient } from '@prisma/client'
-import { createTenant } from './actions'
+import { createTenant } from '../actions'
 
 const prisma = new PrismaClient()
 

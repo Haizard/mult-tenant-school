@@ -1,0 +1,38 @@
+{
+  "theme": {
+    "colors": {
+      "primary": "#6B46C1",
+      "secondary": "#F0EDFF",
+      "background": "#F8F6FF",
+      "text": "#1A202C",
+      "accent": {
+        "pink": "#D53F8C",
+        "orange": "#ED8936",
+        "blue": "#4299E1"
+      }
+    },
+    "typography": {
+      "fontFamily": "Inter, sans-serif",
+      "h1": {
+        "fontSize": "2.5rem",
+        "fontWeight": "700"
+      },
+      "h2": {
+        "fontSize": "1.5rem",
+        "fontWeight": "600"
+      },
+      "body": {
+        "fontSize": "1rem",
+        "fontWeight": "400"
+      }
+    },
+    "effects": {
+      "glassmorphism": {
+        "backgroundColor": "rgba(255, 255, 255, 0.25)",
+        "backdropFilter": "blur(10px)",
+        "border": "1px solid rgba(255, 255, 255, 0.18)",
+        "boxShadow": "0 8px 32px 0 rgba(31, 38, 135, 0.37)"
+      }
+    }
+  }
+}
