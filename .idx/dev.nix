@@ -9,6 +9,8 @@
     pkgs.yarn
     pkgs.nodePackages.pnpm
     pkgs.bun
+    pkgs.postgresql
+    pkgs.postgresql.bin
   ];
   # Sets environment variables in the workspace
   env = {};
@@ -32,6 +34,16 @@
         ];
       };
       # To run something each time the workspace is (re)started, use the `onStart` hook
+      onStart = {
+        start-postgres = ''
+          set -e
+          mkdir -p ~/.postgres
+          if [ ! -d ~/.postgres/data ]; then
+            initdb -D ~/.postgres/data
+          fi
+          pg_ctl -D ~/.postgres/data status || pg_ctl -D ~/.postgres/data -l ~/.postgres/logfile start
+        '';
+      };
     };
     # Enable previews and customize configuration
     previews = {

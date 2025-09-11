@@ -1,0 +1,57 @@
+{
+  "dashboard_design": {
+    "common_elements": [
+      "Navigation Menu (left/top)",
+      "User Profile/Settings",
+      "Search Bar",
+      "Notifications/Alerts"
+    ],
+    "dashboard_types": {
+      "Class_Dashboard": {
+        "key_metrics": [
+          "Number of Students",
+          "Average Grade",
+          "Attendance Rate"
+        ],
+        "sections": [
+          "Student List (with quick actions)",
+          "Grade Distribution Chart",
+          "Upcoming Assignments/Exams",
+          "Recent Activities/Announcements"
+        ]
+      },
+      "Education_Dashboard": {
+        "key_metrics": [
+          "Total Students",
+          "Total Teachers",
+          "Active Courses"
+        ],
+        "sections": [
+          "Overall Performance Trends",
+          "Enrollment Statistics",
+          "Teacher Activity Overview",
+          "School-wide Announcements"
+        ]
+      },
+      "Admin_Panel_Dashboard": {
+        "key_metrics": [
+          "New Registrations",
+          "System Health",
+          "Pending Approvals"
+        ],
+        "sections": [
+          "User Management Overview",
+          "System Configuration Shortcuts",
+          "Reporting & Analytics Access",
+          "Recent System Logs"
+        ]
+      }
+    },
+    "visual_style": {
+      "color_palette": "Professional, clean, and educational-themed colors",
+      "typography": "Legible and modern sans-serif fonts",
+      "iconography": "Clear and intuitive icons",
+      "layout": "Modular and responsive for various screen sizes"
+    }
+  }
+}
