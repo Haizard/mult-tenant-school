@@ -23,7 +23,7 @@ model Tenant {
   subscriptionPlan String @default("TRIAL") // TRIAL, BASIC, STANDARD, PREMIUM
   maxUsers Int @default(100)
   userCount Int @default(0)
-  features String[] // Array of feature strings
+  features String? // JSON string of features array
   timezone String @default("Africa/Dar_es_Salaam")
   language String @default("en")
   currency String @default("TZS")

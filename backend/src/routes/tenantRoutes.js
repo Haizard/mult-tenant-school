@@ -214,7 +214,7 @@ router.post('/', validateTenant, async (req, res) => {
           status: 'TRIAL',
           subscriptionPlan,
           maxUsers,
-          features: features || ['Basic Features'],
+          features: features ? JSON.stringify(features) : JSON.stringify(['Basic Features']),
           timezone,
           language,
           currency,
