@@ -83,6 +83,7 @@ const Sidebar = () => {
       { icon: <FaHome />, text: "Dashboard", href: "/", show: true },
     ];
 
+
     // Super Admin specific features
     if (hasRole('Super Admin')) {
       items.push(

@@ -3,9 +3,10 @@
 import React from 'react';
 
 interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive';
+  variant?: 'primary' | 'secondary' | 'ghost' | 'destructive' | 'outline';
   size?: 'sm' | 'md' | 'lg';
   children: React.ReactNode;
+  icon?: React.ComponentType<any>;
 }
 
 export default function Button({
@@ -13,6 +14,7 @@ export default function Button({
   size = 'md',
   children,
   className = '',
+  icon: Icon,
   ...props
 }: ButtonProps) {
   const baseClasses = 'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus:outline-none disabled:opacity-50 disabled:pointer-events-none';
@@ -22,6 +24,7 @@ export default function Button({
     secondary: 'bg-gray-200 text-gray-900 hover:bg-gray-300',
     ghost: 'bg-transparent hover:bg-gray-100 text-gray-700',
     destructive: 'bg-red-500 text-white hover:bg-red-600',
+    outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
   };
 
   const sizeClasses = {
@@ -34,6 +37,7 @@ export default function Button({
 
   return (
     <button className={combinedClasses} {...props}>
+      {Icon && <Icon className="mr-2 h-4 w-4" />}
       {children}
     </button>
   );

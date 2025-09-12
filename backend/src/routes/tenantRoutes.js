@@ -240,23 +240,33 @@ router.post('/', validateTenant, async (req, res) => {
         }
       });
 
-      // Get Tenant Admin role
-      const tenantAdminRole = await tx.role.findFirst({
+      // Get or create Tenant Admin role
+      let tenantAdminRole = await tx.role.findFirst({
         where: {
           tenantId: tenant.id,
           name: 'Tenant Admin'
         }
       });
 
-      if (tenantAdminRole) {
-        // Assign Tenant Admin role to user
-        await tx.userRole.create({
+      if (!tenantAdminRole) {
+        // Create Tenant Admin role if it doesn't exist
+        tenantAdminRole = await tx.role.create({
           data: {
-            userId: adminUser.id,
-            roleId: tenantAdminRole.id
+            tenantId: tenant.id,
+            name: 'Tenant Admin',
+            description: 'School administrator with full access to school management',
+            isSystem: true
           }
         });
       }
+
+      // Assign Tenant Admin role to user
+      await tx.userRole.create({
+        data: {
+          userId: adminUser.id,
+          roleId: tenantAdminRole.id
+        }
+      });
 
       return { tenant, adminUser };
     });

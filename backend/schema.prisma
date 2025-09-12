@@ -39,6 +39,9 @@ model Tenant {
   courses Course[]
   subjects Subject[]
   academicYears AcademicYear[]
+  examinations Examination[]
+  grades Grade[]
+  gradingScales GradingScale[]
 }
 
 enum TenantStatus {
@@ -75,6 +78,15 @@ model User {
   updatedSubjects Subject[] @relation("SubjectUpdatedBy")
   createdAcademicYears AcademicYear[] @relation("AcademicYearCreatedBy")
   updatedAcademicYears AcademicYear[] @relation("AcademicYearUpdatedBy")
+  
+  // Examination & Grading relationships
+  studentGrades Grade[] @relation("StudentGrades")
+  createdExaminations Examination[] @relation("ExaminationCreatedBy")
+  updatedExaminations Examination[] @relation("ExaminationUpdatedBy")
+  createdGrades Grade[] @relation("GradeCreatedBy")
+  updatedGrades Grade[] @relation("GradeUpdatedBy")
+  createdGradingScales GradingScale[] @relation("GradingScaleCreatedBy")
+  updatedGradingScales GradingScale[] @relation("GradingScaleUpdatedBy")
 
   @@unique([tenantId, email])
 }
@@ -187,6 +199,8 @@ model Subject {
   updatedByUser User @relation("SubjectUpdatedBy", fields: [updatedBy], references: [id])
   courseSubjects CourseSubject[]
   teacherSubjects TeacherSubject[]
+  examinations Examination[]
+  grades Grade[]
 
   @@unique([tenantId, subjectName, subjectLevel])
 }
@@ -241,8 +255,91 @@ model AcademicYear {
   tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdByUser User @relation("AcademicYearCreatedBy", fields: [createdBy], references: [id])
   updatedByUser User @relation("AcademicYearUpdatedBy", fields: [updatedBy], references: [id])
+  examinations Examination[]
 
   @@unique([tenantId, yearName])
+}
+
+// Examination & Grading Models for Story 4.1
+model Examination {
+  id          String @id @default(cuid())
+  tenantId    String
+  examName    String
+  examType    ExamType
+  examLevel   SubjectLevel
+  subjectId   String?
+  academicYearId String?
+  startDate   DateTime
+  endDate     DateTime?
+  maxMarks    Int     @default(100)
+  weight      Float   @default(1.0) // Weight for term calculation
+  status      ExamStatus @default(DRAFT)
+  description String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+  updatedBy String
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id])
+  academicYear AcademicYear? @relation(fields: [academicYearId], references: [id])
+  createdByUser User @relation("ExaminationCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User @relation("ExaminationUpdatedBy", fields: [updatedBy], references: [id])
+  grades Grade[]
+
+  @@unique([tenantId, examName, examType])
+}
+
+model Grade {
+  id            String @id @default(cuid())
+  tenantId      String
+  examinationId String
+  studentId     String
+  subjectId     String
+  rawMarks      Float
+  percentage    Float
+  grade         String? // A+, A, B+, B, C+, C, D, F
+  points        Float?  // For NECTA division calculation
+  status        GradeStatus @default(DRAFT)
+  comments      String?
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+  updatedBy String
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  examination Examination @relation(fields: [examinationId], references: [id], onDelete: Cascade)
+  student User @relation("StudentGrades", fields: [studentId], references: [id])
+  subject Subject @relation(fields: [subjectId], references: [id])
+  createdByUser User @relation("GradeCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User @relation("GradeUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@unique([tenantId, examinationId, studentId, subjectId])
+}
+
+model GradingScale {
+  id          String @id @default(cuid())
+  tenantId    String
+  scaleName   String
+  examLevel   SubjectLevel
+  gradeRanges Json   // JSON array of grade ranges: [{"grade": "A+", "min": 90, "max": 100, "points": 7}]
+  isDefault   Boolean @default(false)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+  updatedBy String
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdByUser User @relation("GradingScaleCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User @relation("GradingScaleUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@unique([tenantId, scaleName, examLevel])
 }
 
 // Enums
@@ -281,5 +378,32 @@ enum SubjectType {
 enum AcademicYearStatus {
   ACTIVE
   INACTIVE
+  ARCHIVED
+}
+
+enum ExamType {
+  QUIZ
+  MID_TERM
+  FINAL
+  MOCK
+  NECTA
+  ASSIGNMENT
+  PROJECT
+}
+
+enum ExamStatus {
+  DRAFT
+  SCHEDULED
+  ONGOING
+  COMPLETED
+  PUBLISHED
+  ARCHIVED
+}
+
+enum GradeStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  PUBLISHED
   ARCHIVED
 }
