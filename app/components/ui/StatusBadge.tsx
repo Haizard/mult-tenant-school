@@ -1,7 +1,7 @@
 import React from 'react';
 
 interface StatusBadgeProps {
-  status: 'active' | 'inactive' | 'pending' | 'completed' | 'cancelled' | 'expired' | 'warning';
+  status: 'active' | 'inactive' | 'pending' | 'completed' | 'cancelled' | 'expired' | 'warning' | 'success' | 'danger' | 'info' | 'default';
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   children?: React.ReactNode;
@@ -57,9 +57,33 @@ const StatusBadge = ({ status, size = 'md', showIcon = true, children }: StatusB
       icon: '⚠',
       glow: 'shadow-orange-glow',
     },
+    success: {
+      bg: 'bg-gradient-to-r from-accent-green to-accent-green-light',
+      text: 'text-white',
+      icon: '✓',
+      glow: 'shadow-green-glow',
+    },
+    danger: {
+      bg: 'bg-gradient-to-r from-status-danger to-red-400',
+      text: 'text-white',
+      icon: '✕',
+      glow: 'shadow-red-glow',
+    },
+    info: {
+      bg: 'bg-gradient-to-r from-accent-blue to-accent-blue-light',
+      text: 'text-white',
+      icon: 'ℹ',
+      glow: 'shadow-blue-glow',
+    },
+    default: {
+      bg: 'bg-gradient-to-r from-gray-400 to-gray-500',
+      text: 'text-white',
+      icon: '●',
+      glow: 'shadow-gray-400',
+    },
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.default;
 
   return (
     <span
