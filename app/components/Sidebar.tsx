@@ -15,12 +15,19 @@ import {
   FaChevronDown,
   FaRocket,
   FaGraduationCap,
-  FaBuilding
+  FaBuilding,
+  FaShieldAlt
 } from "react-icons/fa";
 import Link from "next/link";
 import { useAuth } from '../contexts/AuthContext';
 
-const NavItem = ({ icon, text, active = false, hasDropdown = false, href = "#" }) => (
+const NavItem = ({ icon, text, active = false, hasDropdown = false, href = "#" }: {
+  icon: React.ReactNode;
+  text: string;
+  active?: boolean;
+  hasDropdown?: boolean;
+  href?: string;
+}) => (
   <li className="mb-2">
     <Link
       href={href}
@@ -43,7 +50,7 @@ const UpgradeCard = () => (
         <div className="bg-white/20 backdrop-blur-md rounded-full w-16 h-16 mx-auto flex items-center justify-center border border-white/30">
             <FaRocket className="text-3xl animate-float" />
         </div>
-        <p className="font-semibold mt-4 text-shadow-glass">You're on the Free plan.</p>
+        <p className="font-semibold mt-4 text-shadow-glass">You&apos;re on the Free plan.</p>
         <p className="text-sm mb-4 opacity-90">Upgrade to go Pro</p>
         <button className="bg-white/20 backdrop-blur-md text-white font-bold py-2 px-4 rounded-xl w-full border border-white/30 hover:bg-white/30 transition-all duration-300 shadow-glass-light">
             Upgrade
@@ -66,7 +73,13 @@ const Sidebar = () => {
 
   // Define navigation items based on roles
   const getNavigationItems = () => {
-    const items = [
+    const items: Array<{
+      icon: React.ReactNode;
+      text: string;
+      href: string;
+      show: boolean;
+      hasDropdown?: boolean;
+    }> = [
       { icon: <FaHome />, text: "Dashboard", href: "/", show: true },
     ];
 
@@ -78,8 +91,8 @@ const Sidebar = () => {
       );
     }
 
-    // Teachers can see academic management (read-only)
-    if (hasAnyRole(['Super Admin', 'Tenant Admin', 'Teacher'])) {
+    // Academic management - different access levels
+    if (hasAnyRole(['Super Admin', 'Tenant Admin', 'Teacher', 'Student'])) {
       items.push(
         { icon: <FaBookOpen />, text: "Academic", href: "/academic", show: true, hasDropdown: true }
       );
@@ -96,6 +109,9 @@ const Sidebar = () => {
     // Only admins can see administrative features
     if (hasAnyRole(['Super Admin', 'Tenant Admin'])) {
       items.push(
+        { icon: <FaShieldAlt />, text: "Audit Logs", href: "/audit-logs", show: true },
+        { icon: <FaShieldAlt />, text: "NECTA Compliance", href: "/necta-compliance", show: true },
+        { icon: <FaShieldAlt />, text: "Tenant Isolation", href: "/tenant-isolation", show: true },
         { icon: <FaBook />, text: "Library", href: "/library", show: true },
         { icon: <FaBus />, text: "Transport", href: "/transport", show: true },
         { icon: <FaBed />, text: "Hostel", href: "/hostel", show: true },

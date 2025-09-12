@@ -4,10 +4,23 @@ import { useState } from 'react';
 import { FaBook, FaGraduationCap, FaUsers, FaCalendarAlt, FaChartBar, FaPlus } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
+import RoleGuard from '@/components/RoleGuard';
+import RoleBasedButton from '@/components/RoleBasedButton';
 import { useRouter } from 'next/navigation';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function AcademicPage() {
   const router = useRouter();
+  const { user } = useAuth();
+  
+  // Check user permissions
+  const canManageAcademic = user?.roles?.some(role => 
+    ['Super Admin', 'Tenant Admin'].includes(role.name)
+  ) || false;
+  
+  const canViewAcademic = user?.roles?.some(role => 
+    ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'].includes(role.name)
+  ) || false;
 
   const academicModules = [
     {
@@ -98,50 +111,56 @@ export default function AcademicPage() {
               <p className="text-text-secondary">Manage courses, subjects, classes, and academic schedules</p>
             </div>
             <div className="flex items-center space-x-3">
-              <Button
+              <RoleBasedButton
+                allowedRoles={['Super Admin', 'Tenant Admin']}
                 onClick={() => handleQuickAction('new-course')}
                 variant="primary"
                 className="flex items-center space-x-2"
               >
                 <FaPlus />
                 <span>New Course</span>
-              </Button>
+              </RoleBasedButton>
             </div>
           </div>
         </div>
 
         {/* Quick Actions */}
-        <Card className="mb-8">
-          <div className="p-6">
-            <h2 className="text-xl font-semibold text-text-primary mb-4">Quick Actions</h2>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <Button
-                onClick={() => handleQuickAction('new-course')}
-                variant="secondary"
-                className="flex items-center justify-center space-x-2 h-12"
-              >
-                <FaBook />
-                <span>Add New Course</span>
-              </Button>
-              <Button
-                onClick={() => handleQuickAction('new-subject')}
-                variant="secondary"
-                className="flex items-center justify-center space-x-2 h-12"
-              >
-                <FaGraduationCap />
-                <span>Add New Subject</span>
-              </Button>
-              <Button
-                onClick={() => handleQuickAction('new-class')}
-                variant="secondary"
-                className="flex items-center justify-center space-x-2 h-12"
-              >
-                <FaUsers />
-                <span>Create New Class</span>
-              </Button>
+        <RoleGuard allowedRoles={['Super Admin', 'Tenant Admin']}>
+          <Card className="mb-8">
+            <div className="p-6">
+              <h2 className="text-xl font-semibold text-text-primary mb-4">Quick Actions</h2>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <RoleBasedButton
+                  allowedRoles={['Super Admin', 'Tenant Admin']}
+                  onClick={() => handleQuickAction('new-course')}
+                  variant="secondary"
+                  className="flex items-center justify-center space-x-2 h-12"
+                >
+                  <FaBook />
+                  <span>Add New Course</span>
+                </RoleBasedButton>
+                <RoleBasedButton
+                  allowedRoles={['Super Admin', 'Tenant Admin']}
+                  onClick={() => handleQuickAction('new-subject')}
+                  variant="secondary"
+                  className="flex items-center justify-center space-x-2 h-12"
+                >
+                  <FaGraduationCap />
+                  <span>Add New Subject</span>
+                </RoleBasedButton>
+                <RoleBasedButton
+                  allowedRoles={['Super Admin', 'Tenant Admin']}
+                  onClick={() => handleQuickAction('new-class')}
+                  variant="secondary"
+                  className="flex items-center justify-center space-x-2 h-12"
+                >
+                  <FaUsers />
+                  <span>Create New Class</span>
+                </RoleBasedButton>
+              </div>
             </div>
-          </div>
-        </Card>
+          </Card>
+        </RoleGuard>
 
         {/* Academic Modules Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

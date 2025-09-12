@@ -9,6 +9,9 @@ import DataTable from '../../../components/ui/DataTable';
 import { useAuth } from '../../../contexts/AuthContext';
 import { academicService } from '../../../lib/academicService';
 import { notificationService } from '../../../lib/notifications';
+import RoleBasedButton from '../../../components/RoleBasedButton';
+import { useAuditLog } from '../../../hooks/useAuditLog';
+import { useAcademicFilters } from '../../../hooks/useAcademicFilters';
 
 // Sample subject data - replace with API calls
 const sampleSubjects = [
@@ -131,15 +134,12 @@ const formatDate = (dateString: string) => {
 
 export default function SubjectsPage() {
   const { user } = useAuth();
+  const auditLog = useAuditLog();
+  const academicFilters = useAcademicFilters();
   
   // Check if user has permission to manage subjects
-  const canManageSubjects = user?.roles?.some(role => 
-    ['Super Admin', 'Tenant Admin'].includes(role.name)
-  ) || false;
-  
-  const canViewSubjects = user?.roles?.some(role => 
-    ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'].includes(role.name)
-  ) || false;
+  const canManageSubjects = academicFilters.canManage('subjects');
+  const canViewSubjects = academicFilters.canView('subjects');
   const [subjects, setSubjects] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -200,12 +200,32 @@ export default function SubjectsPage() {
   const handleDeleteSubject = async (subjectId: string) => {
     if (confirm('Are you sure you want to delete this subject?')) {
       try {
+        // Get subject data before deletion for audit log
+        const subjectToDelete = subjects.find(s => s.id === subjectId);
+        
         await academicService.deleteSubject(subjectId);
+        
+        // Log the deletion
+        if (subjectToDelete) {
+          await auditLog.logSubjectDeletion(subjectId, {
+            subjectName: subjectToDelete.subjectName,
+            subjectCode: subjectToDelete.subjectCode,
+            subjectLevel: subjectToDelete.subjectLevel,
+            subjectType: subjectToDelete.subjectType,
+            description: subjectToDelete.description,
+            credits: subjectToDelete.credits,
+            status: subjectToDelete.status
+          });
+        }
+        
         notificationService.success('Subject deleted successfully');
         loadSubjects(); // Reload the list
       } catch (error) {
         console.error('Error deleting subject:', error);
         notificationService.error('Failed to delete subject');
+        
+        // Log failed deletion attempt
+        await auditLog.logAction('DELETE', 'SUBJECT', subjectId, {}, 'FAILURE', 'Failed to delete subject');
       }
     }
   };
@@ -315,20 +335,24 @@ export default function SubjectsPage() {
           >
             <FaEye className="text-sm" />
           </button>
-          <button
-            onClick={() => handleEditSubject(row.id)}
-            className="glass-button p-2 hover:bg-accent-green/10 hover:text-accent-green transition-colors"
-            title="Edit Subject"
-          >
-            <FaEdit className="text-sm" />
-          </button>
-          <button
-            onClick={() => handleDeleteSubject(row.id)}
-            className="glass-button p-2 hover:bg-red-500/10 hover:text-red-500 transition-colors"
-            title="Delete Subject"
-          >
-            <FaTrash className="text-sm" />
-          </button>
+          {canManageSubjects && (
+            <>
+              <button
+                onClick={() => handleEditSubject(row.id)}
+                className="glass-button p-2 hover:bg-accent-green/10 hover:text-accent-green transition-colors"
+                title="Edit Subject"
+              >
+                <FaEdit className="text-sm" />
+              </button>
+              <button
+                onClick={() => handleDeleteSubject(row.id)}
+                className="glass-button p-2 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                title="Delete Subject"
+              >
+                <FaTrash className="text-sm" />
+              </button>
+            </>
+          )}
         </div>
       )
     }
@@ -347,10 +371,15 @@ export default function SubjectsPage() {
             <StatusBadge status="success" size="lg">
               {subjects.filter(s => s.status === 'ACTIVE').length} Active Subjects
             </StatusBadge>
-            <Button variant="primary" size="md" onClick={handleCreateSubject}>
+            <RoleBasedButton
+              allowedRoles={['Super Admin', 'Tenant Admin']}
+              variant="primary" 
+              size="md" 
+              onClick={handleCreateSubject}
+            >
               <FaPlus className="mr-2" />
               Add Subject
-            </Button>
+            </RoleBasedButton>
           </div>
         </div>
       </div>
@@ -498,7 +527,6 @@ export default function SubjectsPage() {
           filterable={false} // We have our own filters
           pagination={true}
           pageSize={10}
-          loading={isLoading}
         />
       </Card>
     </div>

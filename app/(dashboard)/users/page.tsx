@@ -1,14 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { FaUsers, FaPlus, FaSearch, FaFilter, FaEdit, FaTrash, FaEye, FaUserShield, FaUserGraduate, FaChalkboardTeacher } from 'react-icons/fa';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import StatusBadge from '../../components/ui/StatusBadge';
 import DataTable from '../../components/ui/DataTable';
-import { userService, User, UserFilters } from '../../lib/userService';
+import { userService, UserFilters } from '../../lib/userService';
+import { User } from '../../lib/auth';
 import { notificationService } from '../../lib/notifications';
 import { errorHandler } from '../../lib/errorHandler';
+import { useAuditLog } from '../../hooks/useAuditLog';
 
 // Sample user data as fallback - will be replaced with API data
 const sampleUsers: User[] = [];
@@ -53,6 +55,7 @@ const formatDate = (dateString: string) => {
 };
 
 export default function UsersPage() {
+  const auditLog = useAuditLog();
   const [users, setUsers] = useState<User[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -66,7 +69,7 @@ export default function UsersPage() {
   });
 
   // Load users from API
-  const loadUsers = async (filters: UserFilters = {}) => {
+  const loadUsers = useCallback(async (filters: UserFilters = {}) => {
     setIsLoading(true);
     try {
       const response = await userService.getUsers({
@@ -92,12 +95,12 @@ export default function UsersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [pagination.page, pagination.limit]);
 
   // Load users on component mount
   useEffect(() => {
     loadUsers();
-  }, [pagination.page, pagination.limit]);
+  }, [pagination.page, pagination.limit, loadUsers]);
 
   // Handle search and filter changes
   useEffect(() => {
@@ -110,7 +113,7 @@ export default function UsersPage() {
     }, 500); // Debounce search
 
     return () => clearTimeout(timeoutId);
-  }, [searchTerm, statusFilter, roleFilter]);
+  }, [searchTerm, statusFilter, roleFilter, loadUsers]);
 
   // Filter users based on search and filters (client-side filtering for immediate feedback)
   const filteredUsers = users.filter(user => {
@@ -140,12 +143,30 @@ export default function UsersPage() {
       const toastId = notificationService.loading('Deleting user...');
       
       try {
+        // Get user data before deletion for audit log
+        const userToDelete = users.find(u => u.id === userId);
+        
         await userService.deleteUser(userId);
+        
+        // Log the deletion
+        if (userToDelete) {
+          await auditLog.logUserDeletion(userId, {
+            email: userToDelete.email,
+            firstName: userToDelete.firstName,
+            lastName: userToDelete.lastName,
+            roles: userToDelete.roles.map(r => r.name),
+            status: userToDelete.status
+          });
+        }
+        
         notificationService.updateToSuccess(toastId, 'User deleted successfully');
         loadUsers(); // Reload users list
       } catch (error) {
         notificationService.updateToError(toastId, 'Failed to delete user');
         errorHandler.handleApiError(error, 'Failed to delete user');
+        
+        // Log failed deletion attempt
+        await auditLog.logAction('DELETE', 'USER', userId, {}, 'FAILURE', 'Failed to delete user');
       }
     }
   };
@@ -394,7 +415,6 @@ export default function UsersPage() {
           filterable={false} // We have our own filters
           pagination={true}
           pageSize={10}
-          loading={isLoading}
         />
       </Card>
     </div>

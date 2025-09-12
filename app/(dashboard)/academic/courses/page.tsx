@@ -9,6 +9,9 @@ import DataTable from '@/components/ui/DataTable';
 import { useAuth } from '@/contexts/AuthContext';
 import { academicService } from '@/lib/academicService';
 import { notificationService } from '@/lib/notifications';
+import RoleBasedButton from '@/components/RoleBasedButton';
+import { useAuditLog } from '@/hooks/useAuditLog';
+import { useAcademicFilters } from '@/hooks/useAcademicFilters';
 
 // Sample course data - fallback
 const sampleCourses = [
@@ -68,15 +71,12 @@ const formatDate = (dateString: string) => {
 
 export default function CoursesPage() {
   const { user } = useAuth();
+  const auditLog = useAuditLog();
+  const academicFilters = useAcademicFilters();
   
   // Check if user has permission to manage courses
-  const canManageCourses = user?.roles?.some(role => 
-    ['Super Admin', 'Tenant Admin'].includes(role.name)
-  ) || false;
-  
-  const canViewCourses = user?.roles?.some(role => 
-    ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'].includes(role.name)
-  ) || false;
+  const canManageCourses = academicFilters.canManage('courses');
+  const canViewCourses = academicFilters.canView('courses');
   
   const [courses, setCourses] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
@@ -134,12 +134,30 @@ export default function CoursesPage() {
   const handleDeleteCourse = async (courseId: string) => {
     if (confirm('Are you sure you want to delete this course?')) {
       try {
+        // Get course data before deletion for audit log
+        const courseToDelete = courses.find(c => c.id === courseId);
+        
         await academicService.deleteCourse(courseId);
+        
+        // Log the deletion
+        if (courseToDelete) {
+          await auditLog.logCourseDeletion(courseId, {
+            courseCode: courseToDelete.courseCode,
+            courseName: courseToDelete.courseName,
+            description: courseToDelete.description,
+            credits: courseToDelete.credits,
+            status: courseToDelete.status
+          });
+        }
+        
         notificationService.success('Course deleted successfully');
         loadCourses(); // Reload the list
       } catch (error) {
         console.error('Error deleting course:', error);
         notificationService.error('Failed to delete course');
+        
+        // Log failed deletion attempt
+        await auditLog.logAction('DELETE', 'COURSE', courseId, {}, 'FAILURE', 'Failed to delete course');
       }
     }
   };
@@ -229,20 +247,24 @@ export default function CoursesPage() {
           >
             <FaEye className="text-sm" />
           </button>
-          <button
-            onClick={() => handleEditCourse(row.id)}
-            className="glass-button p-2 hover:bg-accent-green/10 hover:text-accent-green transition-colors"
-            title="Edit Course"
-          >
-            <FaEdit className="text-sm" />
-          </button>
-          <button
-            onClick={() => handleDeleteCourse(row.id)}
-            className="glass-button p-2 hover:bg-red-500/10 hover:text-red-500 transition-colors"
-            title="Delete Course"
-          >
-            <FaTrash className="text-sm" />
-          </button>
+          {canManageCourses && (
+            <>
+              <button
+                onClick={() => handleEditCourse(row.id)}
+                className="glass-button p-2 hover:bg-accent-green/10 hover:text-accent-green transition-colors"
+                title="Edit Course"
+              >
+                <FaEdit className="text-sm" />
+              </button>
+              <button
+                onClick={() => handleDeleteCourse(row.id)}
+                className="glass-button p-2 hover:bg-red-500/10 hover:text-red-500 transition-colors"
+                title="Delete Course"
+              >
+                <FaTrash className="text-sm" />
+              </button>
+            </>
+          )}
         </div>
       )
     }
@@ -261,10 +283,15 @@ export default function CoursesPage() {
             <StatusBadge status="success" size="lg">
               {courses.filter(c => c.status === 'ACTIVE').length} Active Courses
             </StatusBadge>
-            <Button variant="primary" size="md" onClick={handleCreateCourse}>
+            <RoleBasedButton
+              allowedRoles={['Super Admin', 'Tenant Admin']}
+              variant="primary" 
+              size="md" 
+              onClick={handleCreateCourse}
+            >
               <FaPlus className="mr-2" />
               Add Course
-            </Button>
+            </RoleBasedButton>
           </div>
         </div>
       </div>
@@ -387,7 +414,6 @@ export default function CoursesPage() {
           filterable={false} // We have our own filters
           pagination={true}
           pageSize={10}
-          loading={isLoading}
         />
       </Card>
     </div>

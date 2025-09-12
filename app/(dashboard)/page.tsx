@@ -4,6 +4,8 @@ import { useAuth } from '../contexts/AuthContext';
 import StudentDashboard from '../components/dashboard/StudentDashboard';
 import TeacherDashboard from '../components/dashboard/TeacherDashboard';
 import AdminDashboard from '../components/dashboard/AdminDashboard';
+import SuperAdminDashboard from '../components/dashboard/SuperAdminDashboard';
+import TenantAdminDashboard from '../components/dashboard/TenantAdminDashboard';
 import { FaUserGraduate, FaChalkboardTeacher, FaUserShield, FaSignOutAlt } from 'react-icons/fa';
 
 export default function Home() {
