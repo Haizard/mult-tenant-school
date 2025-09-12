@@ -10,6 +10,9 @@
 !.yarn/releases
 !.yarn/versions
 
+# backend dependencies
+backend/node_modules/
+
 # testing
 /coverage
 
@@ -32,6 +35,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+backend/.env*
 
 # vercel
 .vercel
@@ -40,4 +44,20 @@ yarn-error.log*
 *.tsbuildinfo
 next-env.d.ts
 
+# prisma
 /src/generated/prisma
+backend/prisma/migrations/
+
+# database files (development only)
+backend/dev.db
+backend/dev.db-journal
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+Thumbs.db

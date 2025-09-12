@@ -14,18 +14,20 @@ import {
   FaBed,
   FaChevronDown,
   FaRocket,
-  FaGraduationCap
+  FaGraduationCap,
+  FaBuilding
 } from "react-icons/fa";
 import Link from "next/link";
+import { useAuth } from '../contexts/AuthContext';
 
-const NavItem = ({ icon, text, active = false, hasDropdown = false }) => (
+const NavItem = ({ icon, text, active = false, hasDropdown = false, href = "#" }) => (
   <li className="mb-2">
     <Link
-      href="#"
-      className={`flex items-center justify-between p-3 rounded-lg transition-colors ${
+      href={href}
+      className={`flex items-center justify-between p-3 rounded-xl transition-all duration-300 ${
         active
-          ? "bg-accent-light-purple text-accent-purple"
-          : "text-text-secondary hover:bg-gray-100"
+          ? "bg-gradient-to-r from-accent-purple/20 to-accent-purple-light/20 text-accent-purple border border-accent-purple/30 shadow-purple-glow"
+          : "text-text-secondary hover:bg-glass-white hover:backdrop-blur-md hover:border hover:border-glass-border hover:shadow-glass-light"
       }`}>
       <div className="flex items-center">
         {icon}
@@ -37,40 +39,114 @@ const NavItem = ({ icon, text, active = false, hasDropdown = false }) => (
 );
 
 const UpgradeCard = () => (
-    <div className="mt-auto bg-accent-purple p-6 rounded-2xl text-white text-center">
-        <div className="bg-white/20 rounded-full w-16 h-16 mx-auto flex items-center justify-center">
-            <FaRocket className="text-3xl" />
+    <div className="mt-auto bg-gradient-to-br from-accent-purple to-accent-purple-light p-6 rounded-2xl text-white text-center shadow-purple-glow animate-glow">
+        <div className="bg-white/20 backdrop-blur-md rounded-full w-16 h-16 mx-auto flex items-center justify-center border border-white/30">
+            <FaRocket className="text-3xl animate-float" />
         </div>
-        <p className="font-semibold mt-4">You're on the Free plan.</p>
-        <p className="text-sm mb-4">Upgrade to go Pro</p>
-        <button className="bg-white text-accent-purple font-bold py-2 px-4 rounded-lg w-full">
+        <p className="font-semibold mt-4 text-shadow-glass">You're on the Free plan.</p>
+        <p className="text-sm mb-4 opacity-90">Upgrade to go Pro</p>
+        <button className="bg-white/20 backdrop-blur-md text-white font-bold py-2 px-4 rounded-xl w-full border border-white/30 hover:bg-white/30 transition-all duration-300 shadow-glass-light">
             Upgrade
         </button>
     </div>
 )
 
 const Sidebar = () => {
+  const { user } = useAuth();
+  
+  // Helper function to check if user has specific role
+  const hasRole = (roleName: string) => {
+    return user?.roles?.some(role => role.name === roleName) || false;
+  };
+
+  // Helper function to check if user has any of the specified roles
+  const hasAnyRole = (roleNames: string[]) => {
+    return user?.roles?.some(role => roleNames.includes(role.name)) || false;
+  };
+
+  // Define navigation items based on roles
+  const getNavigationItems = () => {
+    const items = [
+      { icon: <FaHome />, text: "Dashboard", href: "/", show: true },
+    ];
+
+    // Super Admin and Tenant Admin can manage users
+    if (hasAnyRole(['Super Admin', 'Tenant Admin'])) {
+      items.push(
+        { icon: <FaUsers />, text: "User Management", href: "/users", show: true },
+        { icon: <FaBuilding />, text: "Tenants", href: "/tenants", show: hasRole('Super Admin') }
+      );
+    }
+
+    // Teachers can see academic management (read-only)
+    if (hasAnyRole(['Super Admin', 'Tenant Admin', 'Teacher'])) {
+      items.push(
+        { icon: <FaBookOpen />, text: "Academic", href: "/academic", show: true, hasDropdown: true }
+      );
+    }
+
+    // All roles can see basic features
+    items.push(
+      { icon: <FaUserCircle />, text: "Account", href: "/account", show: true },
+      { icon: <FaCalendarAlt />, text: "Schedule", href: "/schedule", show: true },
+      { icon: <FaClipboardList />, text: "Attendance", href: "/attendance", show: true },
+      { icon: <FaBullhorn />, text: "Announcements", href: "/announcements", show: true }
+    );
+
+    // Only admins can see administrative features
+    if (hasAnyRole(['Super Admin', 'Tenant Admin'])) {
+      items.push(
+        { icon: <FaBook />, text: "Library", href: "/library", show: true },
+        { icon: <FaBus />, text: "Transport", href: "/transport", show: true },
+        { icon: <FaBed />, text: "Hostel", href: "/hostel", show: true },
+        { icon: <FaFileAlt />, text: "Reports", href: "/reports", show: true }
+      );
+    }
+
+    return items.filter(item => item.show);
+  };
+
   return (
-    <div className="w-72 bg-sidebar-bg h-screen p-6 flex flex-col">
+    <div className="w-72 glass-sidebar h-screen p-6 flex flex-col">
       <div className="flex items-center mb-10">
-        <FaGraduationCap className="text-4xl text-accent-purple" />
-        <h1 className="text-3xl font-bold text-text-primary ml-3">Schoooli</h1>
+        <div className="bg-gradient-to-br from-accent-purple to-accent-purple-light p-3 rounded-2xl shadow-purple-glow">
+          <FaGraduationCap className="text-4xl text-white" />
+        </div>
+        <h1 className="text-3xl font-bold gradient-text ml-3">Schoooli</h1>
       </div>
+      
+      {/* User Role Display */}
+      {user && (
+        <div className="glass-card p-4 mb-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
+          <div className="text-center">
+            <p className="text-sm text-text-secondary mb-1">Logged in as</p>
+            <p className="font-semibold text-text-primary">{user.firstName} {user.lastName}</p>
+            <div className="flex flex-wrap justify-center gap-1 mt-2">
+              {user.roles?.map((role, index) => (
+                <span 
+                  key={index}
+                  className="px-2 py-1 text-xs bg-accent-purple/20 text-accent-purple rounded-full border border-accent-purple/30"
+                >
+                  {role.name}
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <nav className="flex-grow">
         <ul>
-          <NavItem icon={<FaHome />} text="Dashboard" active />
-          <NavItem icon={<FaUsers />} text="Students" hasDropdown />
-          <NavItem icon={<FaUserTie />} text="Teachers" hasDropdown />
-          <NavItem icon={<FaBook />} text="Library" />
-          <NavItem icon={<FaUserCircle />} text="Account" />
-          <NavItem icon={<FaChalkboard />} text="Class" />
-          <NavItem icon={<FaBookOpen />} text="Subject" />
-          <NavItem icon={<FaCalendarAlt />} text="Routine" />
-          <NavItem icon={<FaClipboardList />} text="Attendance" />
-          <NavItem icon={<FaFileAlt />} text="Exam" hasDropdown />
-          <NavItem icon={<FaBullhorn />} text="Notice" />
-          <NavItem icon={<FaBus />} text="Transport" />
-          <NavItem icon={<FaBed />} text="Hostel" />
+          {getNavigationItems().map((item, index) => (
+            <NavItem 
+              key={index}
+              icon={item.icon} 
+              text={item.text} 
+              href={item.href}
+              hasDropdown={item.hasDropdown}
+              active={item.href === "/"}
+            />
+          ))}
         </ul>
       </nav>
       <UpgradeCard />
