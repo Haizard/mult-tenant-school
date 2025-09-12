@@ -192,3 +192,4 @@ const CalendarWidget = ({ events = [], onDateSelect, onEventClick, className = '
 
 export default CalendarWidget;
 
+

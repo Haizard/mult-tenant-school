@@ -106,7 +106,7 @@ class UserService {
 
   // Role Management
   public async getRoles(): Promise<Role[]> {
-    const response = await apiService.get<Role[]>('/roles');
+    const response = await apiService.get<Role[]>('/users/roles');
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to fetch roles');
@@ -170,7 +170,7 @@ class UserService {
 
   // Tenant Management
   public async getTenants(): Promise<Tenant[]> {
-    const response = await apiService.get<Tenant[]>('/tenants');
+    const response = await apiService.get<Tenant[]>('/users/tenants');
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to fetch tenants');

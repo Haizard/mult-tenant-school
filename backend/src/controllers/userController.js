@@ -22,8 +22,11 @@ const validateLogin = [
 // Register new user
 const register = async (req, res) => {
   try {
+    console.log('Registration request received:', req.body);
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
@@ -32,18 +35,19 @@ const register = async (req, res) => {
     }
 
     const { email, password, firstName, lastName, phone, address, tenantId, roleIds } = req.body;
+    console.log('Processing user creation for:', { email, tenantId, roleIds });
 
     // Check if user already exists
-    const existingUser = await prisma.user.findUnique({
+    console.log('Checking for existing user with email:', email, 'in tenant:', tenantId);
+    const existingUser = await prisma.user.findFirst({
       where: { 
-        tenantId_email: {
-          tenantId: tenantId,
-          email: email
-        }
+        tenantId: tenantId,
+        email: email
       }
     });
 
     if (existingUser) {
+      console.log('User already exists:', existingUser);
       return res.status(409).json({
         success: false,
         message: 'User with this email already exists in this tenant'
@@ -122,6 +126,11 @@ const register = async (req, res) => {
     });
   } catch (error) {
     console.error('Registration error:', error);
+    console.error('Error details:', {
+      message: error.message,
+      code: error.code,
+      stack: error.stack
+    });
     res.status(500).json({
       success: false,
       message: 'Registration failed',
@@ -483,6 +492,64 @@ const deleteUser = async (req, res) => {
   }
 };
 
+// Get all tenants (public route for user creation form)
+const getTenants = async (req, res) => {
+  try {
+    const tenants = await prisma.tenant.findMany({
+      select: {
+        id: true,
+        name: true,
+        email: true
+      },
+      orderBy: { name: 'asc' }
+    });
+
+    res.json({
+      success: true,
+      data: tenants
+    });
+  } catch (error) {
+    console.error('Get tenants error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get tenants',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Get all roles (public route for user creation form)
+const getRoles = async (req, res) => {
+  try {
+    const roles = await prisma.role.findMany({
+      select: {
+        id: true,
+        name: true,
+        description: true,
+        tenantId: true,
+        tenant: {
+          select: {
+            name: true
+          }
+        }
+      },
+      orderBy: { name: 'asc' }
+    });
+
+    res.json({
+      success: true,
+      data: roles
+    });
+  } catch (error) {
+    console.error('Get roles error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get roles',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -490,7 +557,10 @@ module.exports = {
   getUsers,
   updateUser,
   deleteUser,
+  getTenants,
+  getRoles,
   validateUser,
   validateLogin
 };
+
 

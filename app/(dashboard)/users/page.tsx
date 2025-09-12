@@ -10,61 +10,8 @@ import { userService, User, UserFilters } from '../../lib/userService';
 import { notificationService } from '../../lib/notifications';
 import { errorHandler } from '../../lib/errorHandler';
 
-// Sample user data - replace with API calls
-const sampleUsers = [
-  {
-    id: '1',
-    email: 'admin@schoolsystem.com',
-    firstName: 'Super',
-    lastName: 'Admin',
-    phone: '+255 123 456 789',
-    address: 'Dar es Salaam, Tanzania',
-    status: 'ACTIVE',
-    lastLogin: '2024-01-15T09:30:00Z',
-    createdAt: '2023-01-01T00:00:00Z',
-    tenant: { name: 'Default School' },
-    roles: [{ name: 'Super Admin', description: 'System administrator' }]
-  },
-  {
-    id: '2',
-    email: 'teacher1@schoolsystem.com',
-    firstName: 'John',
-    lastName: 'Smith',
-    phone: '+255 234 567 890',
-    address: 'Arusha, Tanzania',
-    status: 'ACTIVE',
-    lastLogin: '2024-01-15T08:15:00Z',
-    createdAt: '2023-02-15T00:00:00Z',
-    tenant: { name: 'Default School' },
-    roles: [{ name: 'Teacher', description: 'Academic staff' }]
-  },
-  {
-    id: '3',
-    email: 'student1@schoolsystem.com',
-    firstName: 'Sarah',
-    lastName: 'Johnson',
-    phone: '+255 345 678 901',
-    address: 'Mwanza, Tanzania',
-    status: 'ACTIVE',
-    lastLogin: '2024-01-14T16:45:00Z',
-    createdAt: '2023-03-01T00:00:00Z',
-    tenant: { name: 'Default School' },
-    roles: [{ name: 'Student', description: 'Student access' }]
-  },
-  {
-    id: '4',
-    email: 'teacher2@schoolsystem.com',
-    firstName: 'Michael',
-    lastName: 'Brown',
-    phone: '+255 456 789 012',
-    address: 'Dodoma, Tanzania',
-    status: 'INACTIVE',
-    lastLogin: '2024-01-10T14:20:00Z',
-    createdAt: '2023-04-15T00:00:00Z',
-    tenant: { name: 'Default School' },
-    roles: [{ name: 'Teacher', description: 'Academic staff' }]
-  }
-];
+// Sample user data as fallback - will be replaced with API data
+const sampleUsers: User[] = [];
 
 const getRoleIcon = (roleName: string) => {
   switch (roleName) {
@@ -134,10 +81,14 @@ export default function UsersPage() {
           setPagination(response.pagination);
         }
       } else {
-        throw new Error(response.message || 'Failed to load users');
+        // If no users found, set empty array
+        setUsers([]);
+        setPagination(prev => ({ ...prev, total: 0, pages: 0 }));
       }
     } catch (error) {
       errorHandler.handleApiError(error, 'Failed to load users');
+      // Set empty array on error to prevent UI issues
+      setUsers([]);
     } finally {
       setIsLoading(false);
     }

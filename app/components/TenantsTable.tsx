@@ -1,3 +1,5 @@
+'use client';
+
 import { useState } from 'react';
 import { FaSearch, FaPlus, FaBuilding, FaUsers, FaCrown, FaStar } from 'react-icons/fa';
 import Card from "./ui/Card";
