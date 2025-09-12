@@ -7,6 +7,8 @@ import Button from '../../../components/ui/Button';
 import StatusBadge from '../../../components/ui/StatusBadge';
 import DataTable from '../../../components/ui/DataTable';
 import { useAuth } from '../../../contexts/AuthContext';
+import { academicService } from '../../../lib/academicService';
+import { notificationService } from '../../../lib/notifications';
 
 // Sample subject data - replace with API calls
 const sampleSubjects = [
@@ -138,12 +140,40 @@ export default function SubjectsPage() {
   const canViewSubjects = user?.roles?.some(role => 
     ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'].includes(role.name)
   ) || false;
-  const [subjects, setSubjects] = useState(sampleSubjects);
+  const [subjects, setSubjects] = useState<any[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
   const [typeFilter, setTypeFilter] = useState('all');
   const [isLoading, setIsLoading] = useState(false);
+
+  // Load subjects from API
+  useEffect(() => {
+    loadSubjects();
+  }, []);
+
+  const loadSubjects = async () => {
+    try {
+      setIsLoading(true);
+      const response = await academicService.getSubjects();
+      
+      if (response.success && response.data) {
+        setSubjects(response.data);
+      } else {
+        console.error('Failed to load subjects:', response.message);
+        notificationService.error('Failed to load subjects');
+        // Fallback to sample data
+        setSubjects(sampleSubjects);
+      }
+    } catch (error) {
+      console.error('Error loading subjects:', error);
+      notificationService.error('Failed to load subjects');
+      // Fallback to sample data
+      setSubjects(sampleSubjects);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   // Filter subjects based on search and filters
   const filteredSubjects = subjects.filter(subject => {
@@ -160,23 +190,28 @@ export default function SubjectsPage() {
   });
 
   const handleCreateSubject = () => {
-    // Navigate to create subject page
-    console.log('Navigate to create subject');
+    window.location.href = '/academic/subjects/create';
   };
 
   const handleEditSubject = (subjectId: string) => {
-    // Navigate to edit subject page
-    console.log('Edit subject:', subjectId);
+    window.location.href = `/academic/subjects/${subjectId}/edit`;
   };
 
-  const handleDeleteSubject = (subjectId: string) => {
-    // Show confirmation and delete subject
-    console.log('Delete subject:', subjectId);
+  const handleDeleteSubject = async (subjectId: string) => {
+    if (confirm('Are you sure you want to delete this subject?')) {
+      try {
+        await academicService.deleteSubject(subjectId);
+        notificationService.success('Subject deleted successfully');
+        loadSubjects(); // Reload the list
+      } catch (error) {
+        console.error('Error deleting subject:', error);
+        notificationService.error('Failed to delete subject');
+      }
+    }
   };
 
   const handleViewSubject = (subjectId: string) => {
-    // Navigate to subject details page
-    console.log('View subject:', subjectId);
+    window.location.href = `/academic/subjects/${subjectId}`;
   };
 
   const columns = [
@@ -197,22 +232,22 @@ export default function SubjectsPage() {
       )
     },
     {
-      key: 'level',
+      key: 'subjectLevel',
       label: 'Level',
       sortable: true,
       render: (value: string) => (
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${getLevelColor(value)}`}>
-          {value.replace('_', '-')}
+        <span className={`text-xs px-2 py-1 rounded-full font-medium ${getLevelColor(value || '')}`}>
+          {(value || '').replace('_', '-')}
         </span>
       )
     },
     {
-      key: 'type',
+      key: 'subjectType',
       label: 'Type',
       sortable: true,
       render: (value: string) => (
-        <span className={`text-xs px-2 py-1 rounded-full font-medium ${getTypeColor(value)}`}>
-          {value}
+        <span className={`text-xs px-2 py-1 rounded-full font-medium ${getTypeColor(value || '')}`}>
+          {value || ''}
         </span>
       )
     },
@@ -221,7 +256,7 @@ export default function SubjectsPage() {
       label: 'Description',
       sortable: true,
       render: (value: string) => (
-        <p className="text-sm text-text-primary max-w-xs truncate">{value}</p>
+        <p className="text-sm text-text-primary max-w-xs truncate">{value || 'No description'}</p>
       )
     },
     {
@@ -229,7 +264,7 @@ export default function SubjectsPage() {
       label: 'Credits',
       sortable: true,
       render: (value: number) => (
-        <span className="text-sm font-medium text-text-primary">{value}</span>
+        <span className="text-sm font-medium text-text-primary">{value || 0}</span>
       )
     },
     {
@@ -238,20 +273,20 @@ export default function SubjectsPage() {
       sortable: false,
       render: (value: any, row: any) => (
         <div className="flex flex-wrap gap-1">
-          {row.teacherSubjects.slice(0, 2).map((ts: any, index: number) => (
+          {(row.teacherSubjects || []).slice(0, 2).map((ts: any, index: number) => (
             <span
               key={index}
               className="text-xs bg-accent-blue/10 text-accent-blue px-2 py-1 rounded-full"
             >
-              {ts.teacher.firstName} {ts.teacher.lastName}
+              {ts.teacher?.firstName} {ts.teacher?.lastName}
             </span>
           ))}
-          {row.teacherSubjects.length > 2 && (
+          {(row.teacherSubjects || []).length > 2 && (
             <span className="text-xs text-text-muted">
-              +{row.teacherSubjects.length - 2} more
+              +{(row.teacherSubjects || []).length - 2} more
             </span>
           )}
-          {row.teacherSubjects.length === 0 && (
+          {(row.teacherSubjects || []).length === 0 && (
             <span className="text-xs text-text-muted">No teachers assigned</span>
           )}
         </div>
@@ -262,8 +297,8 @@ export default function SubjectsPage() {
       label: 'Status',
       sortable: true,
       render: (value: string) => (
-        <StatusBadge status={getStatusColor(value) as any} size="sm">
-          {value}
+        <StatusBadge status={getStatusColor(value || 'INACTIVE') as any} size="sm">
+          {value || 'INACTIVE'}
         </StatusBadge>
       )
     },

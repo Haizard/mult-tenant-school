@@ -25,6 +25,13 @@ const validateTeacherSubject = [
   body('subjectId').notEmpty().withMessage('Subject ID is required'),
 ];
 
+const validateAcademicYear = [
+  body('yearName').notEmpty().withMessage('Year name is required'),
+  body('startDate').isISO8601().withMessage('Start date must be a valid date'),
+  body('endDate').isISO8601().withMessage('End date must be a valid date'),
+  body('isCurrent').optional().isBoolean(),
+];
+
 // Course Management
 const getCourses = async (req, res) => {
   try {
@@ -260,6 +267,62 @@ const updateCourse = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to update course',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+const getCourseById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const course = await prisma.course.findFirst({
+      where: { 
+        id: id,
+        tenantId: req.tenantId
+      },
+      include: {
+        tenant: true,
+        createdByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        updatedByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        courseSubjects: {
+          include: {
+            subject: true
+          }
+        }
+      }
+    });
+
+    if (!course) {
+      return res.status(404).json({
+        success: false,
+        message: 'Course not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: course
+    });
+  } catch (error) {
+    console.error('Get course by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get course',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
@@ -553,6 +616,69 @@ const updateSubject = async (req, res) => {
   }
 };
 
+const getSubjectById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const subject = await prisma.subject.findFirst({
+      where: { 
+        id: id,
+        tenantId: req.tenantId
+      },
+      include: {
+        tenant: true,
+        createdByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        updatedByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        teacherSubjects: {
+          include: {
+            teacher: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!subject) {
+      return res.status(404).json({
+        success: false,
+        message: 'Subject not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: subject
+    });
+  } catch (error) {
+    console.error('Get subject by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get subject',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 const deleteSubject = async (req, res) => {
   try {
     const { id } = req.params;
@@ -771,9 +897,218 @@ const removeTeacherFromSubject = async (req, res) => {
   }
 };
 
+// Academic Year Management
+const getAcademicYears = async (req, res) => {
+  try {
+    const academicYears = await prisma.academicYear.findMany({
+      where: {
+        tenantId: req.tenantId
+      },
+      include: {
+        tenant: true
+      },
+      orderBy: { startDate: 'desc' }
+    });
+
+    res.json({
+      success: true,
+      data: academicYears
+    });
+  } catch (error) {
+    console.error('Get academic years error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get academic years',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+const createAcademicYear = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { yearName, startDate, endDate, isCurrent } = req.body;
+
+    // Check if academic year with same name already exists in tenant
+    const existingYear = await prisma.academicYear.findFirst({
+      where: { 
+        tenantId: req.tenantId,
+        yearName: yearName
+      }
+    });
+
+    if (existingYear) {
+      return res.status(409).json({
+        success: false,
+        message: 'Academic year with this name already exists in this tenant'
+      });
+    }
+
+    // If this is set as current, unset other current years
+    if (isCurrent) {
+      await prisma.academicYear.updateMany({
+        where: {
+          tenantId: req.tenantId,
+          isCurrent: true
+        },
+        data: {
+          isCurrent: false
+        }
+      });
+    }
+
+    // Create academic year
+    const academicYear = await prisma.academicYear.create({
+      data: {
+        yearName,
+        startDate: new Date(startDate),
+        endDate: new Date(endDate),
+        isCurrent: isCurrent || false,
+        tenantId: req.tenantId
+      },
+      include: {
+        tenant: true
+      }
+    });
+
+    res.status(201).json({
+      success: true,
+      message: 'Academic year created successfully',
+      data: academicYear
+    });
+  } catch (error) {
+    console.error('Create academic year error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create academic year',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+const updateAcademicYear = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { yearName, startDate, endDate, isCurrent, status } = req.body;
+
+    // Check if academic year exists and belongs to tenant
+    const existingYear = await prisma.academicYear.findFirst({
+      where: { 
+        id: id,
+        tenantId: req.tenantId
+      }
+    });
+
+    if (!existingYear) {
+      return res.status(404).json({
+        success: false,
+        message: 'Academic year not found'
+      });
+    }
+
+    // If this is set as current, unset other current years
+    if (isCurrent) {
+      await prisma.academicYear.updateMany({
+        where: {
+          tenantId: req.tenantId,
+          isCurrent: true,
+          id: { not: id }
+        },
+        data: {
+          isCurrent: false
+        }
+      });
+    }
+
+    // Update academic year
+    const academicYear = await prisma.academicYear.update({
+      where: { id },
+      data: {
+        yearName,
+        startDate: startDate ? new Date(startDate) : undefined,
+        endDate: endDate ? new Date(endDate) : undefined,
+        isCurrent,
+        status
+      },
+      include: {
+        tenant: true
+      }
+    });
+
+    res.json({
+      success: true,
+      message: 'Academic year updated successfully',
+      data: academicYear
+    });
+  } catch (error) {
+    console.error('Update academic year error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update academic year',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+const deleteAcademicYear = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if academic year exists and belongs to tenant
+    const existingYear = await prisma.academicYear.findFirst({
+      where: { 
+        id: id,
+        tenantId: req.tenantId
+      }
+    });
+
+    if (!existingYear) {
+      return res.status(404).json({
+        success: false,
+        message: 'Academic year not found'
+      });
+    }
+
+    // Delete academic year
+    await prisma.academicYear.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Academic year deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete academic year error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete academic year',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   // Course management
   getCourses,
+  getCourseById,
   createCourse,
   updateCourse,
   deleteCourse,
@@ -781,6 +1116,7 @@ module.exports = {
   
   // Subject management
   getSubjects,
+  getSubjectById,
   createSubject,
   updateSubject,
   deleteSubject,
@@ -790,7 +1126,14 @@ module.exports = {
   getTeacherSubjects,
   assignTeacherToSubject,
   removeTeacherFromSubject,
-  validateTeacherSubject
+  validateTeacherSubject,
+  
+  // Academic Year management
+  getAcademicYears,
+  createAcademicYear,
+  updateAcademicYear,
+  deleteAcademicYear,
+  validateAcademicYear
 };
 
 

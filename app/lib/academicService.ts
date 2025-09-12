@@ -122,13 +122,13 @@ class AcademicService {
     if (filters.limit) params.append('limit', filters.limit.toString());
 
     const queryString = params.toString();
-    const endpoint = `/courses${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/academic/courses${queryString ? `?${queryString}` : ''}`;
     
     return apiService.get<Course[]>(endpoint);
   }
 
   public async getCourseById(courseId: string): Promise<Course> {
-    const response = await apiService.get<Course>(`/courses/${courseId}`);
+    const response = await apiService.get<Course>(`/academic/courses/${courseId}`);
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to fetch course');
@@ -144,7 +144,7 @@ class AcademicService {
     credits?: number;
     subjectIds?: string[];
   }): Promise<Course> {
-    const response = await apiService.post<Course>('/courses', courseData);
+    const response = await apiService.post<Course>('/academic/courses', courseData);
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to create course');
@@ -160,7 +160,7 @@ class AcademicService {
     credits?: number;
     status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
   }): Promise<Course> {
-    const response = await apiService.put<Course>(`/courses/${courseId}`, courseData);
+    const response = await apiService.put<Course>(`/academic/courses/${courseId}`, courseData);
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to update course');
@@ -170,7 +170,7 @@ class AcademicService {
   }
 
   public async deleteCourse(courseId: string): Promise<void> {
-    const response = await apiService.delete(`/courses/${courseId}`);
+    const response = await apiService.delete(`/academic/courses/${courseId}`);
     
     if (!response.success) {
       throw new Error(response.message || 'Failed to delete course');
@@ -189,13 +189,13 @@ class AcademicService {
     if (filters.limit) params.append('limit', filters.limit.toString());
 
     const queryString = params.toString();
-    const endpoint = `/subjects${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/academic/subjects${queryString ? `?${queryString}` : ''}`;
     
     return apiService.get<Subject[]>(endpoint);
   }
 
   public async getSubjectById(subjectId: string): Promise<Subject> {
-    const response = await apiService.get<Subject>(`/subjects/${subjectId}`);
+    const response = await apiService.get<Subject>(`/academic/subjects/${subjectId}`);
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to fetch subject');
@@ -212,7 +212,7 @@ class AcademicService {
     description?: string;
     credits?: number;
   }): Promise<Subject> {
-    const response = await apiService.post<Subject>('/subjects', subjectData);
+    const response = await apiService.post<Subject>('/academic/subjects', subjectData);
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to create subject');
@@ -230,7 +230,7 @@ class AcademicService {
     credits?: number;
     status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
   }): Promise<Subject> {
-    const response = await apiService.put<Subject>(`/subjects/${subjectId}`, subjectData);
+    const response = await apiService.put<Subject>(`/academic/subjects/${subjectId}`, subjectData);
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to update subject');
@@ -240,7 +240,7 @@ class AcademicService {
   }
 
   public async deleteSubject(subjectId: string): Promise<void> {
-    const response = await apiService.delete(`/subjects/${subjectId}`);
+    const response = await apiService.delete(`/academic/subjects/${subjectId}`);
     
     if (!response.success) {
       throw new Error(response.message || 'Failed to delete subject');
@@ -255,7 +255,7 @@ class AcademicService {
     if (filters.subjectId) params.append('subjectId', filters.subjectId);
 
     const queryString = params.toString();
-    const endpoint = `/teacher-subjects${queryString ? `?${queryString}` : ''}`;
+    const endpoint = `/academic/teacher-subjects${queryString ? `?${queryString}` : ''}`;
     
     const response = await apiService.get<TeacherSubject[]>(endpoint);
     
@@ -267,7 +267,7 @@ class AcademicService {
   }
 
   public async assignTeacherToSubject(teacherId: string, subjectId: string): Promise<TeacherSubject> {
-    const response = await apiService.post<TeacherSubject>('/teacher-subjects', {
+    const response = await apiService.post<TeacherSubject>('/academic/teacher-subjects', {
       teacherId,
       subjectId,
     });
@@ -280,7 +280,7 @@ class AcademicService {
   }
 
   public async removeTeacherFromSubject(assignmentId: string): Promise<void> {
-    const response = await apiService.delete(`/teacher-subjects/${assignmentId}`);
+    const response = await apiService.delete(`/academic/teacher-subjects/${assignmentId}`);
     
     if (!response.success) {
       throw new Error(response.message || 'Failed to remove teacher from subject');
@@ -289,7 +289,7 @@ class AcademicService {
 
   // Academic Year Management
   public async getAcademicYears(): Promise<AcademicYear[]> {
-    const response = await apiService.get<AcademicYear[]>('/academic-years');
+    const response = await apiService.get<AcademicYear[]>('/academic/academic-years');
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to fetch academic years');
@@ -304,7 +304,7 @@ class AcademicService {
     endDate: string;
     isCurrent?: boolean;
   }): Promise<AcademicYear> {
-    const response = await apiService.post<AcademicYear>('/academic-years', academicYearData);
+    const response = await apiService.post<AcademicYear>('/academic/academic-years', academicYearData);
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to create academic year');
@@ -320,7 +320,7 @@ class AcademicService {
     isCurrent?: boolean;
     status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
   }): Promise<AcademicYear> {
-    const response = await apiService.put<AcademicYear>(`/academic-years/${academicYearId}`, academicYearData);
+    const response = await apiService.put<AcademicYear>(`/academic/academic-years/${academicYearId}`, academicYearData);
     
     if (!response.success || !response.data) {
       throw new Error(response.message || 'Failed to update academic year');
@@ -330,7 +330,7 @@ class AcademicService {
   }
 
   public async deleteAcademicYear(academicYearId: string): Promise<void> {
-    const response = await apiService.delete(`/academic-years/${academicYearId}`);
+    const response = await apiService.delete(`/academic/academic-years/${academicYearId}`);
     
     if (!response.success) {
       throw new Error(response.message || 'Failed to delete academic year');

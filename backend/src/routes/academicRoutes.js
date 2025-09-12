@@ -27,6 +27,12 @@ router.put('/courses/:id',
   academicController.updateCourse
 );
 
+router.get('/courses/:id', 
+  authorize(['courses:read']), 
+  ensureTenantAccess, 
+  academicController.getCourseById
+);
+
 router.delete('/courses/:id', 
   authorize(['courses:delete']), 
   ensureTenantAccess, 
@@ -54,6 +60,12 @@ router.put('/subjects/:id',
   academicController.updateSubject
 );
 
+router.get('/subjects/:id', 
+  authorize(['subjects:read']), 
+  ensureTenantAccess, 
+  academicController.getSubjectById
+);
+
 router.delete('/subjects/:id', 
   authorize(['subjects:delete']), 
   ensureTenantAccess, 
@@ -78,6 +90,33 @@ router.delete('/teacher-subjects/:id',
   authorize(['subjects:update']), 
   ensureTenantAccess, 
   academicController.removeTeacherFromSubject
+);
+
+// Academic Year Management Routes
+router.get('/academic-years', 
+  authorize(['academic-years:read']), 
+  ensureTenantAccess, 
+  academicController.getAcademicYears
+);
+
+router.post('/academic-years', 
+  authorize(['academic-years:create']), 
+  ensureTenantAccess, 
+  academicController.validateAcademicYear, 
+  academicController.createAcademicYear
+);
+
+router.put('/academic-years/:id', 
+  authorize(['academic-years:update']), 
+  ensureTenantAccess, 
+  academicController.validateAcademicYear, 
+  academicController.updateAcademicYear
+);
+
+router.delete('/academic-years/:id', 
+  authorize(['academic-years:delete']), 
+  ensureTenantAccess, 
+  academicController.deleteAcademicYear
 );
 
 module.exports = router;
