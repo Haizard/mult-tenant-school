@@ -33,14 +33,14 @@ const DataTable = ({
 
   // Filter data based on search term
   const filteredData = data.filter((row) =>
-    Object.values(row).some((value) =>
+    row && Object.values(row).some((value) =>
       String(value).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
   // Sort data
   const sortedData = [...filteredData].sort((a, b) => {
-    if (!sortConfig) return 0;
+    if (!sortConfig || !a || !b) return 0;
 
     const aValue = a[sortConfig.key];
     const bValue = b[sortConfig.key];
@@ -137,8 +137,8 @@ const DataTable = ({
                 {columns.map((column) => (
                   <td key={column.key} className="py-4 px-4 text-text-secondary">
                     {column.render
-                      ? column.render(row[column.key], row, index)
-                      : row[column.key]}
+                      ? column.render(row, row, index)
+                      : row?.[column.key]}
                   </td>
                 ))}
               </tr>

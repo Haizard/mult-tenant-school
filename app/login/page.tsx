@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { FaSignInAlt, FaEye, FaEyeSlash, FaUser, FaLock } from 'react-icons/fa';
+import { FaSignInAlt, FaEye, FaEyeSlash, FaUser, FaLock, FaUserShield, FaGraduationCap, FaChalkboardTeacher, FaBuilding } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { notificationService } from '@/lib/notifications';
@@ -49,14 +49,39 @@ export default function LoginPage() {
       notificationService.info('Logging in...');
       
       // API call to login
-      await authService.login({
+      const result = await authService.login({
         email: formData.email,
         password: formData.password,
         rememberMe: formData.rememberMe
       });
       
       notificationService.success('Login successful!');
-      window.location.href = '/dashboard';
+      
+      // Redirect based on user role
+      const user = result.user;
+      if (user && user.roles) {
+        const roleNames = user.roles.map(role => role.name);
+        
+        if (roleNames.includes('Super Admin')) {
+          // Super Admin goes to system dashboard
+          window.location.href = '/';
+        } else if (roleNames.includes('Tenant Admin')) {
+          // Tenant Admin goes to school dashboard
+          window.location.href = '/';
+        } else if (roleNames.includes('Teacher')) {
+          // Teacher goes to teacher dashboard
+          window.location.href = '/';
+        } else if (roleNames.includes('Student')) {
+          // Student goes to student dashboard
+          window.location.href = '/';
+        } else {
+          // Default redirect
+          window.location.href = '/';
+        }
+      } else {
+        // Fallback redirect
+        window.location.href = '/';
+      }
       
     } catch (err) {
       console.error('Login error:', err);
@@ -154,6 +179,41 @@ export default function LoginPage() {
               <span>{loading ? 'Signing in...' : 'Sign In'}</span>
             </Button>
           </form>
+        </Card>
+
+        {/* Role Information */}
+        <Card variant="gradient" glow="blue">
+          <h3 className="text-lg font-semibold text-gray-900 mb-4">User Roles & Access</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="flex items-center p-3 bg-white rounded-lg">
+              <FaUserShield className="text-purple-500 mr-3 text-xl" />
+              <div>
+                <h4 className="font-medium text-gray-900">Super Admin</h4>
+                <p className="text-sm text-gray-600">System-wide management</p>
+              </div>
+            </div>
+            <div className="flex items-center p-3 bg-white rounded-lg">
+              <FaBuilding className="text-blue-500 mr-3 text-xl" />
+              <div>
+                <h4 className="font-medium text-gray-900">Tenant Admin</h4>
+                <p className="text-sm text-gray-600">School management</p>
+              </div>
+            </div>
+            <div className="flex items-center p-3 bg-white rounded-lg">
+              <FaChalkboardTeacher className="text-green-500 mr-3 text-xl" />
+              <div>
+                <h4 className="font-medium text-gray-900">Teacher</h4>
+                <p className="text-sm text-gray-600">Academic functions</p>
+              </div>
+            </div>
+            <div className="flex items-center p-3 bg-white rounded-lg">
+              <FaGraduationCap className="text-orange-500 mr-3 text-xl" />
+              <div>
+                <h4 className="font-medium text-gray-900">Student</h4>
+                <p className="text-sm text-gray-600">Student portal access</p>
+              </div>
+            </div>
+          </div>
         </Card>
 
         {/* Footer */}

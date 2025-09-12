@@ -83,11 +83,18 @@ const Sidebar = () => {
       { icon: <FaHome />, text: "Dashboard", href: "/", show: true },
     ];
 
-    // Super Admin and Tenant Admin can manage users
-    if (hasAnyRole(['Super Admin', 'Tenant Admin'])) {
+    // Super Admin specific features
+    if (hasRole('Super Admin')) {
       items.push(
-        { icon: <FaUsers />, text: "User Management", href: "/users", show: true },
-        { icon: <FaBuilding />, text: "Tenants", href: "/tenants", show: hasRole('Super Admin') }
+        { icon: <FaBuilding />, text: "Tenants", href: "/tenants", show: true },
+        { icon: <FaUsers />, text: "System Users", href: "/system-users", show: true }
+      );
+    }
+
+    // Tenant Admin specific features
+    if (hasRole('Tenant Admin')) {
+      items.push(
+        { icon: <FaUsers />, text: "School Users", href: "/users", show: true }
       );
     }
 
@@ -106,16 +113,24 @@ const Sidebar = () => {
       { icon: <FaBullhorn />, text: "Announcements", href: "/announcements", show: true }
     );
 
-    // Only admins can see administrative features
-    if (hasAnyRole(['Super Admin', 'Tenant Admin'])) {
+    // Super Admin specific administrative features
+    if (hasRole('Super Admin')) {
       items.push(
-        { icon: <FaShieldAlt />, text: "Audit Logs", href: "/audit-logs", show: true },
+        { icon: <FaShieldAlt />, text: "System Audit", href: "/audit-logs", show: true },
         { icon: <FaShieldAlt />, text: "NECTA Compliance", href: "/necta-compliance", show: true },
         { icon: <FaShieldAlt />, text: "Tenant Isolation", href: "/tenant-isolation", show: true },
+        { icon: <FaFileAlt />, text: "System Reports", href: "/reports", show: true }
+      );
+    }
+
+    // Tenant Admin specific administrative features
+    if (hasRole('Tenant Admin')) {
+      items.push(
+        { icon: <FaShieldAlt />, text: "School Audit", href: "/audit-logs", show: true },
         { icon: <FaBook />, text: "Library", href: "/library", show: true },
         { icon: <FaBus />, text: "Transport", href: "/transport", show: true },
         { icon: <FaBed />, text: "Hostel", href: "/hostel", show: true },
-        { icon: <FaFileAlt />, text: "Reports", href: "/reports", show: true }
+        { icon: <FaFileAlt />, text: "School Reports", href: "/reports", show: true }
       );
     }
 

@@ -1,5 +1,17 @@
 # Brainstorming: Multi-Tenant School Management System
 
+## 🚨 **IMPORTANT: Architecture Update**
+**This document has been updated with a new multi-tenant architecture. Please read the [ARCHITECTURE_UPDATE.md](./ARCHITECTURE_UPDATE.md) document first for the latest implementation details.**
+
+### **Key Changes:**
+- ✅ **Proper Multi-Tenant Hierarchy**: Super Admin → Creates Tenants → Tenant Admin → Manages School Users
+- ✅ **Role-Based Dashboards**: Each role has completely different interfaces
+- ✅ **Tenant Creation Flow**: Super Admin creates schools with admin users
+- ✅ **School User Management**: Tenant Admin creates teachers, students, staff
+- ✅ **NECTA Compliance**: Tanzanian education standards implementation
+- ✅ **Comprehensive Audit Logging**: All actions tracked and logged
+- ✅ **Multi-Tenant Isolation**: Proper data separation between schools
+
 ## Core Features:
 
 ### 1. User & Role Management (Multi-Tenant Aware)

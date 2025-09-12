@@ -67,7 +67,12 @@ const SuperAdminDashboard = () => {
 
   useEffect(() => {
     // Load tenants data
-    setTenants(sampleTenants);
+    setIsLoading(true);
+    // Simulate API call delay
+    setTimeout(() => {
+      setTenants(sampleTenants);
+      setIsLoading(false);
+    }, 100);
   }, []);
 
   const getStatusColor = (status: string) => {
@@ -135,96 +140,134 @@ const SuperAdminDashboard = () => {
       key: 'name',
       label: 'School Name',
       render: (tenant: Tenant) => (
-        <div className="flex items-center">
-          <FaBuilding className="text-blue-500 mr-2" />
-          <div>
-            <div className="font-medium text-gray-900">{tenant.name}</div>
-            <div className="text-sm text-gray-500">{tenant.domain}</div>
+        tenant ? (
+          <div className="flex items-center">
+            <FaBuilding className="text-blue-500 mr-2" />
+            <div>
+              <div className="font-medium text-gray-900">{tenant.name}</div>
+              <div className="text-sm text-gray-500">{tenant.domain}</div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center">
+            <FaBuilding className="text-gray-300 mr-2" />
+            <div>
+              <div className="font-medium text-gray-400">Loading...</div>
+              <div className="text-sm text-gray-300">Loading...</div>
+            </div>
+          </div>
+        )
       )
     },
     {
       key: 'adminName',
       label: 'Admin',
       render: (tenant: Tenant) => (
-        <div>
-          <div className="font-medium text-gray-900">{tenant.adminName}</div>
-          <div className="text-sm text-gray-500">{tenant.adminEmail}</div>
-        </div>
+        tenant ? (
+          <div>
+            <div className="font-medium text-gray-900">{tenant.adminName}</div>
+            <div className="text-sm text-gray-500">{tenant.adminEmail}</div>
+          </div>
+        ) : (
+          <div>
+            <div className="font-medium text-gray-400">Loading...</div>
+            <div className="text-sm text-gray-300">Loading...</div>
+          </div>
+        )
       )
     },
     {
       key: 'status',
       label: 'Status',
       render: (tenant: Tenant) => (
-        <StatusBadge status={getStatusColor(tenant.status) as any}>
-          {tenant.status}
-        </StatusBadge>
+        tenant ? (
+          <StatusBadge status={getStatusColor(tenant.status) as any}>
+            {tenant.status}
+          </StatusBadge>
+        ) : (
+          <StatusBadge status="default">Loading...</StatusBadge>
+        )
       )
     },
     {
       key: 'userCount',
       label: 'Users',
       render: (tenant: Tenant) => (
-        <div className="text-center">
-          <div className="font-medium text-gray-900">{tenant.userCount}</div>
-          <div className="text-sm text-gray-500">{tenant.subscriptionPlan}</div>
-        </div>
+        tenant ? (
+          <div className="text-center">
+            <div className="font-medium text-gray-900">{tenant.userCount}</div>
+            <div className="text-sm text-gray-500">{tenant.subscriptionPlan}</div>
+          </div>
+        ) : (
+          <div className="text-center">
+            <div className="font-medium text-gray-400">Loading...</div>
+            <div className="text-sm text-gray-300">Loading...</div>
+          </div>
+        )
       )
     },
     {
       key: 'lastActivity',
       label: 'Last Activity',
       render: (tenant: Tenant) => (
-        <div className="text-sm text-gray-600">
-          {new Date(tenant.lastActivity).toLocaleDateString()}
-        </div>
+        tenant ? (
+          <div className="text-sm text-gray-600">
+            {new Date(tenant.lastActivity).toLocaleDateString()}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-400">Loading...</div>
+        )
       )
     },
     {
       key: 'actions',
       label: 'Actions',
       render: (tenant: Tenant) => (
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleEditTenant(tenant.id)}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            <FaEye className="mr-1" />
-            View
-          </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleEditTenant(tenant.id)}
-            className="text-green-600 hover:text-green-800"
-          >
-            <FaEdit className="mr-1" />
-            Edit
-          </Button>
-          {tenant.status === 'ACTIVE' ? (
+        tenant ? (
+          <div className="flex space-x-2">
             <Button
               variant="ghost"
               size="sm"
-              onClick={() => handleSuspendTenant(tenant.id)}
-              className="text-yellow-600 hover:text-yellow-800"
+              onClick={() => handleEditTenant(tenant.id)}
+              className="text-blue-600 hover:text-blue-800"
             >
-              Suspend
+              <FaEye className="mr-1" />
+              View
             </Button>
-          ) : (
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleEditTenant(tenant.id)}
               className="text-green-600 hover:text-green-800"
             >
-              Activate
+              <FaEdit className="mr-1" />
+              Edit
             </Button>
-          )}
-        </div>
+            {tenant.status === 'ACTIVE' ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleSuspendTenant(tenant.id)}
+                className="text-yellow-600 hover:text-yellow-800"
+              >
+                Suspend
+              </Button>
+            ) : (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleEditTenant(tenant.id)}
+                className="text-green-600 hover:text-green-800"
+              >
+                Activate
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="flex space-x-2">
+            <div className="text-gray-400 text-sm">Loading...</div>
+          </div>
+        )
       )
     }
   ];
@@ -310,13 +353,19 @@ const SuperAdminDashboard = () => {
             </Button>
           </div>
         </div>
-        <DataTable
-          data={tenants}
-          columns={tenantColumns}
-          searchable={true}
-          sortable={true}
-          pagination={true}
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-gray-500">Loading tenants...</div>
+          </div>
+        ) : (
+          <DataTable
+            data={tenants}
+            columns={tenantColumns}
+            searchable={true}
+            sortable={true}
+            pagination={true}
+          />
+        )}
       </Card>
 
       {/* System Information */}

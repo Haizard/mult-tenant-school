@@ -1,40 +1,74 @@
 const express = require('express');
 const router = express.Router();
 const { body, validationResult } = require('express-validator');
+const { PrismaClient } = require('@prisma/client');
 
-// Mock data for now (will be replaced with database)
-let tenants = [
-  {
-    id: '1',
-    name: 'St. Mary\'s Primary School',
-    email: 'admin@stmarys.edu.tz',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: '2',
-    name: 'Kilimanjaro Secondary School',
-    email: 'admin@kilimanjaro.edu.tz',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-];
+const prisma = new PrismaClient();
 
 // Validation middleware
 const validateTenant = [
   body('name').notEmpty().withMessage('Tenant name is required'),
   body('email').isEmail().withMessage('Valid email is required'),
+  body('domain').notEmpty().withMessage('Domain is required'),
+  body('address').notEmpty().withMessage('Address is required'),
 ];
 
 // GET /api/tenants - Get all tenants
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   try {
+    const tenants = await prisma.tenant.findMany({
+      include: {
+        users: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            status: true
+          }
+        },
+        _count: {
+          select: {
+            users: true
+          }
+        }
+      },
+      orderBy: {
+        createdAt: 'desc'
+      }
+    });
+
+    // Transform the data to match frontend expectations
+    const transformedTenants = tenants.map(tenant => ({
+      id: tenant.id,
+      name: tenant.name,
+      domain: tenant.domain,
+      status: tenant.status,
+      adminEmail: tenant.email,
+      adminName: tenant.users.find(u => u.email === tenant.email)?.firstName + ' ' + tenant.users.find(u => u.email === tenant.email)?.lastName || 'N/A',
+      createdAt: tenant.createdAt.toISOString().split('T')[0],
+      userCount: tenant._count.users,
+      subscriptionPlan: tenant.subscriptionPlan,
+      lastActivity: tenant.lastActivity.toISOString().split('T')[0],
+      subscriptionExpiry: tenant.subscriptionExpiry?.toISOString().split('T')[0],
+      maxUsers: tenant.maxUsers,
+      features: tenant.features,
+      address: tenant.address,
+      phone: tenant.phone,
+      email: tenant.email,
+      type: tenant.type,
+      timezone: tenant.timezone,
+      language: tenant.language,
+      currency: tenant.currency
+    }));
+
     res.json({
       success: true,
-      data: tenants,
-      count: tenants.length
+      data: transformedTenants,
+      count: transformedTenants.length
     });
   } catch (error) {
+    console.error('Error fetching tenants:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch tenants',
@@ -44,9 +78,27 @@ router.get('/', (req, res) => {
 });
 
 // GET /api/tenants/:id - Get tenant by ID
-router.get('/:id', (req, res) => {
+router.get('/:id', async (req, res) => {
   try {
-    const tenant = tenants.find(t => t.id === req.params.id);
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: req.params.id },
+      include: {
+        users: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            status: true
+          }
+        },
+        _count: {
+          select: {
+            users: true
+          }
+        }
+      }
+    });
     
     if (!tenant) {
       return res.status(404).json({
@@ -55,11 +107,36 @@ router.get('/:id', (req, res) => {
       });
     }
 
+    // Transform the data to match frontend expectations
+    const transformedTenant = {
+      id: tenant.id,
+      name: tenant.name,
+      domain: tenant.domain,
+      status: tenant.status,
+      adminEmail: tenant.email,
+      adminName: tenant.users.find(u => u.email === tenant.email)?.firstName + ' ' + tenant.users.find(u => u.email === tenant.email)?.lastName || 'N/A',
+      createdAt: tenant.createdAt.toISOString().split('T')[0],
+      userCount: tenant._count.users,
+      subscriptionPlan: tenant.subscriptionPlan,
+      lastActivity: tenant.lastActivity.toISOString().split('T')[0],
+      subscriptionExpiry: tenant.subscriptionExpiry?.toISOString().split('T')[0],
+      maxUsers: tenant.maxUsers,
+      features: tenant.features,
+      address: tenant.address,
+      phone: tenant.phone,
+      email: tenant.email,
+      type: tenant.type,
+      timezone: tenant.timezone,
+      language: tenant.language,
+      currency: tenant.currency
+    };
+
     res.json({
       success: true,
-      data: tenant
+      data: transformedTenant
     });
   } catch (error) {
+    console.error('Error fetching tenant:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to fetch tenant',
@@ -68,8 +145,8 @@ router.get('/:id', (req, res) => {
   }
 });
 
-// POST /api/tenants - Create new tenant
-router.post('/', validateTenant, (req, res) => {
+// POST /api/tenants - Create new tenant with admin user
+router.post('/', validateTenant, async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -80,33 +157,141 @@ router.post('/', validateTenant, (req, res) => {
       });
     }
 
-    const { name, email } = req.body;
+    const { 
+      name, 
+      email, 
+      domain, 
+      address, 
+      phone, 
+      type, 
+      subscriptionPlan, 
+      maxUsers, 
+      features, 
+      timezone, 
+      language, 
+      currency,
+      // Admin user data
+      adminFirstName,
+      adminLastName,
+      adminEmail,
+      adminPhone,
+      adminPassword
+    } = req.body;
     
-    // Check if email already exists
-    const existingTenant = tenants.find(t => t.email === email);
+    // Check if email or domain already exists
+    const existingTenant = await prisma.tenant.findFirst({
+      where: {
+        OR: [
+          { email: email },
+          { domain: domain }
+        ]
+      }
+    });
+    
     if (existingTenant) {
       return res.status(409).json({
         success: false,
-        message: 'Tenant with this email already exists'
+        message: 'Tenant with this email or domain already exists'
       });
     }
 
-    const newTenant = {
-      id: (tenants.length + 1).toString(),
-      name,
-      email,
-      createdAt: new Date().toISOString(),
-      updatedAt: new Date().toISOString()
-    };
+    // Calculate subscription expiry
+    const subscriptionExpiry = subscriptionPlan === 'TRIAL' 
+      ? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) // 30 days
+      : new Date(Date.now() + 365 * 24 * 60 * 60 * 1000); // 1 year
 
-    tenants.push(newTenant);
+    // Create tenant and admin user in a transaction
+    const result = await prisma.$transaction(async (tx) => {
+      // Create tenant
+      const tenant = await tx.tenant.create({
+        data: {
+          name,
+          email,
+          domain,
+          address,
+          phone,
+          type,
+          status: 'TRIAL',
+          subscriptionPlan,
+          maxUsers,
+          features: features || ['Basic Features'],
+          timezone,
+          language,
+          currency,
+          subscriptionExpiry,
+          lastActivity: new Date()
+        }
+      });
+
+      // Hash admin password
+      const bcrypt = require('bcryptjs');
+      const hashedPassword = await bcrypt.hash(adminPassword, 12);
+
+      // Create admin user
+      const adminUser = await tx.user.create({
+        data: {
+          email: adminEmail,
+          password: hashedPassword,
+          firstName: adminFirstName,
+          lastName: adminLastName,
+          phone: adminPhone,
+          tenantId: tenant.id,
+          status: 'ACTIVE'
+        }
+      });
+
+      // Get Tenant Admin role
+      const tenantAdminRole = await tx.role.findFirst({
+        where: {
+          tenantId: tenant.id,
+          name: 'Tenant Admin'
+        }
+      });
+
+      if (tenantAdminRole) {
+        // Assign Tenant Admin role to user
+        await tx.userRole.create({
+          data: {
+            userId: adminUser.id,
+            roleId: tenantAdminRole.id
+          }
+        });
+      }
+
+      return { tenant, adminUser };
+    });
+
+    // Transform the response
+    const transformedTenant = {
+      id: result.tenant.id,
+      name: result.tenant.name,
+      domain: result.tenant.domain,
+      status: result.tenant.status,
+      adminEmail: result.adminUser.email,
+      adminName: `${result.adminUser.firstName} ${result.adminUser.lastName}`,
+      createdAt: result.tenant.createdAt.toISOString().split('T')[0],
+      userCount: 1,
+      subscriptionPlan: result.tenant.subscriptionPlan,
+      lastActivity: result.tenant.lastActivity.toISOString().split('T')[0],
+      subscriptionExpiry: result.tenant.subscriptionExpiry?.toISOString().split('T')[0],
+      maxUsers: result.tenant.maxUsers,
+      features: result.tenant.features,
+      address: result.tenant.address,
+      phone: result.tenant.phone,
+      email: result.tenant.email,
+      type: result.tenant.type,
+      timezone: result.tenant.timezone,
+      language: result.tenant.language,
+      currency: result.tenant.currency
+    };
 
     res.status(201).json({
       success: true,
       message: 'Tenant created successfully',
-      data: newTenant
+      data: transformedTenant
     });
   } catch (error) {
+    console.error('Error creating tenant:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to create tenant',
@@ -116,7 +301,7 @@ router.post('/', validateTenant, (req, res) => {
 });
 
 // PUT /api/tenants/:id - Update tenant
-router.put('/:id', validateTenant, (req, res) => {
+router.put('/:id', async (req, res) => {
   try {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -127,39 +312,109 @@ router.put('/:id', validateTenant, (req, res) => {
       });
     }
 
-    const tenantIndex = tenants.findIndex(t => t.id === req.params.id);
+    const { 
+      name, 
+      email, 
+      domain, 
+      address, 
+      phone, 
+      type, 
+      subscriptionPlan, 
+      maxUsers, 
+      features, 
+      timezone, 
+      language, 
+      currency 
+    } = req.body;
     
-    if (tenantIndex === -1) {
-      return res.status(404).json({
-        success: false,
-        message: 'Tenant not found'
-      });
-    }
-
-    const { name, email } = req.body;
+    // Check if email or domain already exists (excluding current tenant)
+    const existingTenant = await prisma.tenant.findFirst({
+      where: {
+        AND: [
+          { id: { not: req.params.id } },
+          {
+            OR: [
+              { email: email },
+              { domain: domain }
+            ]
+          }
+        ]
+      }
+    });
     
-    // Check if email already exists (excluding current tenant)
-    const existingTenant = tenants.find(t => t.email === email && t.id !== req.params.id);
     if (existingTenant) {
       return res.status(409).json({
         success: false,
-        message: 'Tenant with this email already exists'
+        message: 'Tenant with this email or domain already exists'
       });
     }
 
-    tenants[tenantIndex] = {
-      ...tenants[tenantIndex],
-      name,
-      email,
-      updatedAt: new Date().toISOString()
+    const updatedTenant = await prisma.tenant.update({
+      where: { id: req.params.id },
+      data: {
+        name,
+        email,
+        domain,
+        address,
+        phone,
+        type,
+        subscriptionPlan,
+        maxUsers,
+        features: features || ['Basic Features'],
+        timezone,
+        language,
+        currency,
+        lastActivity: new Date()
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            status: true
+          }
+        },
+        _count: {
+          select: {
+            users: true
+          }
+        }
+      }
+    });
+
+    // Transform the response
+    const transformedTenant = {
+      id: updatedTenant.id,
+      name: updatedTenant.name,
+      domain: updatedTenant.domain,
+      status: updatedTenant.status,
+      adminEmail: updatedTenant.email,
+      adminName: updatedTenant.users.find(u => u.email === updatedTenant.email)?.firstName + ' ' + updatedTenant.users.find(u => u.email === updatedTenant.email)?.lastName || 'N/A',
+      createdAt: updatedTenant.createdAt.toISOString().split('T')[0],
+      userCount: updatedTenant._count.users,
+      subscriptionPlan: updatedTenant.subscriptionPlan,
+      lastActivity: updatedTenant.lastActivity.toISOString().split('T')[0],
+      subscriptionExpiry: updatedTenant.subscriptionExpiry?.toISOString().split('T')[0],
+      maxUsers: updatedTenant.maxUsers,
+      features: updatedTenant.features,
+      address: updatedTenant.address,
+      phone: updatedTenant.phone,
+      email: updatedTenant.email,
+      type: updatedTenant.type,
+      timezone: updatedTenant.timezone,
+      language: updatedTenant.language,
+      currency: updatedTenant.currency
     };
 
     res.json({
       success: true,
       message: 'Tenant updated successfully',
-      data: tenants[tenantIndex]
+      data: transformedTenant
     });
   } catch (error) {
+    console.error('Error updating tenant:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to update tenant',
@@ -168,26 +423,107 @@ router.put('/:id', validateTenant, (req, res) => {
   }
 });
 
-// DELETE /api/tenants/:id - Delete tenant
-router.delete('/:id', (req, res) => {
+// PUT /api/tenants/:id/status - Update tenant status
+router.put('/:id/status', async (req, res) => {
   try {
-    const tenantIndex = tenants.findIndex(t => t.id === req.params.id);
+    const { status } = req.body;
     
-    if (tenantIndex === -1) {
+    if (!['ACTIVE', 'INACTIVE', 'SUSPENDED', 'TRIAL'].includes(status)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Invalid status'
+      });
+    }
+
+    const updatedTenant = await prisma.tenant.update({
+      where: { id: req.params.id },
+      data: {
+        status,
+        lastActivity: new Date()
+      },
+      include: {
+        users: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true,
+            status: true
+          }
+        },
+        _count: {
+          select: {
+            users: true
+          }
+        }
+      }
+    });
+
+    // Transform the response
+    const transformedTenant = {
+      id: updatedTenant.id,
+      name: updatedTenant.name,
+      domain: updatedTenant.domain,
+      status: updatedTenant.status,
+      adminEmail: updatedTenant.email,
+      adminName: updatedTenant.users.find(u => u.email === updatedTenant.email)?.firstName + ' ' + updatedTenant.users.find(u => u.email === updatedTenant.email)?.lastName || 'N/A',
+      createdAt: updatedTenant.createdAt.toISOString().split('T')[0],
+      userCount: updatedTenant._count.users,
+      subscriptionPlan: updatedTenant.subscriptionPlan,
+      lastActivity: updatedTenant.lastActivity.toISOString().split('T')[0],
+      subscriptionExpiry: updatedTenant.subscriptionExpiry?.toISOString().split('T')[0],
+      maxUsers: updatedTenant.maxUsers,
+      features: updatedTenant.features,
+      address: updatedTenant.address,
+      phone: updatedTenant.phone,
+      email: updatedTenant.email,
+      type: updatedTenant.type,
+      timezone: updatedTenant.timezone,
+      language: updatedTenant.language,
+      currency: updatedTenant.currency
+    };
+
+    res.json({
+      success: true,
+      message: 'Tenant status updated successfully',
+      data: transformedTenant
+    });
+  } catch (error) {
+    console.error('Error updating tenant status:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update tenant status',
+      error: error.message
+    });
+  }
+});
+
+// DELETE /api/tenants/:id - Delete tenant
+router.delete('/:id', async (req, res) => {
+  try {
+    // Check if tenant exists
+    const tenant = await prisma.tenant.findUnique({
+      where: { id: req.params.id }
+    });
+    
+    if (!tenant) {
       return res.status(404).json({
         success: false,
         message: 'Tenant not found'
       });
     }
 
-    const deletedTenant = tenants.splice(tenantIndex, 1)[0];
+    // Delete tenant (cascade will handle related records)
+    await prisma.tenant.delete({
+      where: { id: req.params.id }
+    });
 
     res.json({
       success: true,
-      message: 'Tenant deleted successfully',
-      data: deletedTenant
+      message: 'Tenant deleted successfully'
     });
   } catch (error) {
+    console.error('Error deleting tenant:', error);
     res.status(500).json({
       success: false,
       message: 'Failed to delete tenant',

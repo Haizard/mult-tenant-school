@@ -15,6 +15,20 @@ model Tenant {
   id    String @id @default(cuid())
   name  String
   email String @unique
+  domain String @unique
+  address String?
+  phone String?
+  type String? // PRIMARY, SECONDARY, COLLEGE, UNIVERSITY
+  status TenantStatus @default(TRIAL)
+  subscriptionPlan String @default("TRIAL") // TRIAL, BASIC, STANDARD, PREMIUM
+  maxUsers Int @default(100)
+  userCount Int @default(0)
+  features String[] // Array of feature strings
+  timezone String @default("Africa/Dar_es_Salaam")
+  language String @default("en")
+  currency String @default("TZS")
+  subscriptionExpiry DateTime?
+  lastActivity DateTime @default(now())
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -25,6 +39,13 @@ model Tenant {
   courses Course[]
   subjects Subject[]
   academicYears AcademicYear[]
+}
+
+enum TenantStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  TRIAL
 }
 
 model User {

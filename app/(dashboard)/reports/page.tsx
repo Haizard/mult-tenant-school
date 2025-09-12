@@ -1,7 +1,8 @@
 'use client';
 
+// Fixed useEffect dependency array issue
 import { useState, useEffect } from 'react';
-import { FaFileAlt, FaDownload, FaChartBar, FaGraduationCap, FaBookOpen, FaUsers, FaShieldAlt, FaCalendarCheck, FaClipboardList, FaChartLine, FaFilter, FaEye } from 'react-icons/fa';
+import { FaFileAlt, FaDownload, FaChartBar, FaGraduationCap, FaBookOpen, FaBook, FaChalkboardTeacher, FaUserGraduate, FaUsers, FaShieldAlt, FaCalendarCheck, FaClipboardList, FaChartLine, FaFilter, FaEye } from 'react-icons/fa';
 import Card from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import StatusBadge from '../../components/ui/StatusBadge';
@@ -74,7 +75,7 @@ export default function ReportsPage() {
         userRole: user.roles?.[0]?.name || 'Unknown'
       });
     }
-  }, [user, auditLog]);
+  }, [user]); // Fixed: Removed auditLog from dependencies to prevent infinite loop
 
   // Filter templates by category
   const filteredTemplates = reportTemplates.filter(template => 

@@ -19,8 +19,8 @@ export default function Home() {
     const roleNames = user.roles.map(role => role.name);
     
     // Priority order: Super Admin > Tenant Admin > Teacher > Student
-    if (roleNames.includes('Super Admin')) return 'admin';
-    if (roleNames.includes('Tenant Admin')) return 'admin';
+    if (roleNames.includes('Super Admin')) return 'super-admin';
+    if (roleNames.includes('Tenant Admin')) return 'tenant-admin';
     if (roleNames.includes('Teacher')) return 'teacher';
     if (roleNames.includes('Student')) return 'student';
     
@@ -35,8 +35,10 @@ export default function Home() {
         return <StudentDashboard />;
       case 'teacher':
         return <TeacherDashboard />;
-      case 'admin':
-        return <AdminDashboard />;
+      case 'super-admin':
+        return <SuperAdminDashboard />;
+      case 'tenant-admin':
+        return <TenantAdminDashboard />;
       default:
         return <StudentDashboard />;
     }
