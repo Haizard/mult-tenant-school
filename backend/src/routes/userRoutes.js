@@ -14,6 +14,9 @@ router.post('/', userController.validateUser, userController.register);
 router.get('/tenants', userController.getTenants);
 router.get('/roles', userController.getRoles);
 
+// Public route for getting user by ID (needed for user detail/edit pages)
+router.get('/:id', userController.getUserById);
+
 // Protected routes (authentication required)
 router.use(authenticateToken);
 

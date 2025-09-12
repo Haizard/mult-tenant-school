@@ -13,9 +13,11 @@ export interface UserFilters {
 export interface UserUpdateData {
   firstName?: string;
   lastName?: string;
+  email?: string;
   phone?: string;
   address?: string;
   status?: 'ACTIVE' | 'INACTIVE' | 'SUSPENDED' | 'PENDING';
+  tenantId?: string;
   roleIds?: string[];
 }
 
