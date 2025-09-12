@@ -32,6 +32,16 @@ const validateAcademicYear = [
   body('isCurrent').optional().isBoolean(),
 ];
 
+const validateClass = [
+  body('className').notEmpty().withMessage('Class name is required'),
+  body('classCode').notEmpty().withMessage('Class code is required'),
+  body('academicLevel').isIn(['PRIMARY', 'O_LEVEL', 'A_LEVEL', 'UNIVERSITY']).withMessage('Invalid academic level'),
+  body('academicYearId').notEmpty().withMessage('Academic year is required'),
+  body('capacity').isInt({ min: 1, max: 100 }).withMessage('Capacity must be between 1 and 100'),
+  body('teacherId').notEmpty().withMessage('Class teacher is required'),
+  body('subjectIds').isArray({ min: 1 }).withMessage('At least one subject is required'),
+];
+
 // Course Management
 const getCourses = async (req, res) => {
   try {
@@ -1105,6 +1115,442 @@ const deleteAcademicYear = async (req, res) => {
   }
 };
 
+// Class Management
+const getClasses = async (req, res) => {
+  try {
+    const { page = 1, limit = 10, search, status, academicLevel, academicYearId } = req.query;
+    const skip = (page - 1) * limit;
+
+    const where = {
+      tenantId: req.tenantId
+    };
+
+    if (search) {
+      where.OR = [
+        { className: { contains: search, mode: 'insensitive' } },
+        { classCode: { contains: search, mode: 'insensitive' } },
+        { description: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    if (status) {
+      where.status = status;
+    }
+
+    if (academicLevel) {
+      where.academicLevel = academicLevel;
+    }
+
+    if (academicYearId) {
+      where.academicYearId = academicYearId;
+    }
+
+    const [classes, total] = await Promise.all([
+      prisma.class.findMany({
+        where,
+        skip: parseInt(skip),
+        take: parseInt(limit),
+        include: {
+          tenant: true,
+          academicYear: true,
+          teacher: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          },
+          createdByUser: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          },
+          updatedByUser: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true
+            }
+          },
+          classSubjects: {
+            include: {
+              subject: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
+      prisma.class.count({ where })
+    ]);
+
+    res.json({
+      success: true,
+      data: classes,
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get classes error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get classes',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+const getClassById = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    const classData = await prisma.class.findFirst({
+      where: { 
+        id: id,
+        tenantId: req.tenantId
+      },
+      include: {
+        tenant: true,
+        academicYear: true,
+        teacher: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        updatedByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        classSubjects: {
+          include: {
+            subject: true
+          }
+        }
+      }
+    });
+
+    if (!classData) {
+      return res.status(404).json({
+        success: false,
+        message: 'Class not found'
+      });
+    }
+
+    res.json({
+      success: true,
+      data: classData
+    });
+  } catch (error) {
+    console.error('Get class by ID error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get class',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+const createClass = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { className, classCode, academicLevel, academicYearId, capacity, teacherId, subjectIds, description } = req.body;
+
+    // Check if class code already exists in tenant
+    const existingClass = await prisma.class.findFirst({
+      where: { 
+        tenantId: req.tenantId,
+        classCode: classCode
+      }
+    });
+
+    if (existingClass) {
+      return res.status(409).json({
+        success: false,
+        message: 'Class with this code already exists in this tenant'
+      });
+    }
+
+    // Check if academic year exists
+    const academicYear = await prisma.academicYear.findFirst({
+      where: {
+        id: academicYearId,
+        tenantId: req.tenantId
+      }
+    });
+
+    if (!academicYear) {
+      return res.status(404).json({
+        success: false,
+        message: 'Academic year not found'
+      });
+    }
+
+    // Check if teacher exists
+    const teacher = await prisma.user.findFirst({
+      where: {
+        id: teacherId,
+        tenantId: req.tenantId
+      }
+    });
+
+    if (!teacher) {
+      return res.status(404).json({
+        success: false,
+        message: 'Teacher not found'
+      });
+    }
+
+    // Create class
+    const classData = await prisma.class.create({
+      data: {
+        className,
+        classCode,
+        academicLevel,
+        academicYearId,
+        capacity,
+        teacherId,
+        description,
+        tenantId: req.tenantId,
+        createdBy: req.user.id,
+        updatedBy: req.user.id
+      },
+      include: {
+        tenant: true,
+        academicYear: true,
+        teacher: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        createdByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    // Add subjects to class if provided
+    if (subjectIds && subjectIds.length > 0) {
+      await prisma.classSubject.createMany({
+        data: subjectIds.map(subjectId => ({
+          classId: classData.id,
+          subjectId: subjectId,
+          tenantId: req.tenantId
+        }))
+      });
+    }
+
+    res.status(201).json({
+      success: true,
+      message: 'Class created successfully',
+      data: classData
+    });
+  } catch (error) {
+    console.error('Create class error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to create class',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+const updateClass = async (req, res) => {
+  try {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({
+        success: false,
+        message: 'Validation failed',
+        errors: errors.array()
+      });
+    }
+
+    const { id } = req.params;
+    const { className, classCode, academicLevel, academicYearId, capacity, teacherId, subjectIds, description, status } = req.body;
+
+    // Check if class exists and belongs to tenant
+    const existingClass = await prisma.class.findFirst({
+      where: { 
+        id: id,
+        tenantId: req.tenantId
+      }
+    });
+
+    if (!existingClass) {
+      return res.status(404).json({
+        success: false,
+        message: 'Class not found'
+      });
+    }
+
+    // Check if new class code conflicts
+    if (classCode !== existingClass.classCode) {
+      const codeConflict = await prisma.class.findFirst({
+        where: { 
+          tenantId: req.tenantId,
+          classCode: classCode,
+          id: { not: id }
+        }
+      });
+
+      if (codeConflict) {
+        return res.status(409).json({
+          success: false,
+          message: 'Class with this code already exists in this tenant'
+        });
+      }
+    }
+
+    // Update class
+    const classData = await prisma.class.update({
+      where: { id },
+      data: {
+        className,
+        classCode,
+        academicLevel,
+        academicYearId,
+        capacity,
+        teacherId,
+        description,
+        status,
+        updatedBy: req.user.id
+      },
+      include: {
+        tenant: true,
+        academicYear: true,
+        teacher: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        },
+        updatedByUser: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
+      }
+    });
+
+    // Update subjects if provided
+    if (subjectIds) {
+      // Remove existing subjects
+      await prisma.classSubject.deleteMany({
+        where: {
+          classId: id,
+          tenantId: req.tenantId
+        }
+      });
+
+      // Add new subjects
+      if (subjectIds.length > 0) {
+        await prisma.classSubject.createMany({
+          data: subjectIds.map(subjectId => ({
+            classId: id,
+            subjectId: subjectId,
+            tenantId: req.tenantId
+          }))
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Class updated successfully',
+      data: classData
+    });
+  } catch (error) {
+    console.error('Update class error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to update class',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+const deleteClass = async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Check if class exists and belongs to tenant
+    const existingClass = await prisma.class.findFirst({
+      where: { 
+        id: id,
+        tenantId: req.tenantId
+      }
+    });
+
+    if (!existingClass) {
+      return res.status(404).json({
+        success: false,
+        message: 'Class not found'
+      });
+    }
+
+    // Delete class (cascade will handle related records)
+    await prisma.class.delete({
+      where: { id }
+    });
+
+    res.json({
+      success: true,
+      message: 'Class deleted successfully'
+    });
+  } catch (error) {
+    console.error('Delete class error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to delete class',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   // Course management
   getCourses,
@@ -1133,7 +1579,15 @@ module.exports = {
   createAcademicYear,
   updateAcademicYear,
   deleteAcademicYear,
-  validateAcademicYear
+  validateAcademicYear,
+  
+  // Class management
+  getClasses,
+  getClassById,
+  createClass,
+  updateClass,
+  deleteClass,
+  validateClass
 };
 
 

@@ -119,6 +119,39 @@ router.delete('/academic-years/:id',
   academicController.deleteAcademicYear
 );
 
+// Class Management Routes
+router.get('/classes', 
+  authorize(['classes:read']), 
+  ensureTenantAccess, 
+  academicController.getClasses
+);
+
+router.post('/classes', 
+  authorize(['classes:create']), 
+  ensureTenantAccess, 
+  academicController.validateClass, 
+  academicController.createClass
+);
+
+router.put('/classes/:id', 
+  authorize(['classes:update']), 
+  ensureTenantAccess, 
+  academicController.validateClass, 
+  academicController.updateClass
+);
+
+router.get('/classes/:id', 
+  authorize(['classes:read']), 
+  ensureTenantAccess, 
+  academicController.getClassById
+);
+
+router.delete('/classes/:id', 
+  authorize(['classes:delete']), 
+  ensureTenantAccess, 
+  academicController.deleteClass
+);
+
 module.exports = router;
 
 

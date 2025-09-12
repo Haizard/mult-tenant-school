@@ -90,6 +90,47 @@ export interface AcademicYear {
   };
 }
 
+export interface Class {
+  id: string;
+  className: string;
+  classCode: string;
+  academicLevel: 'PRIMARY' | 'O_LEVEL' | 'A_LEVEL' | 'UNIVERSITY';
+  academicYearId: string;
+  capacity: number;
+  teacherId: string;
+  description?: string;
+  status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  createdAt: string;
+  updatedAt: string;
+  tenant: {
+    id: string;
+    name: string;
+  };
+  academicYear: AcademicYear;
+  teacher: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  createdByUser: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  updatedByUser?: {
+    id: string;
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
+  classSubjects: Array<{
+    id: string;
+    subject: Subject;
+  }>;
+}
+
 export interface CourseFilters {
   search?: string;
   status?: string;
@@ -109,6 +150,15 @@ export interface SubjectFilters {
 export interface TeacherSubjectFilters {
   teacherId?: string;
   subjectId?: string;
+}
+
+export interface ClassFilters {
+  search?: string;
+  status?: string;
+  academicLevel?: string;
+  academicYearId?: string;
+  page?: number;
+  limit?: number;
 }
 
 class AcademicService {
@@ -334,6 +384,80 @@ class AcademicService {
     
     if (!response.success) {
       throw new Error(response.message || 'Failed to delete academic year');
+    }
+  }
+
+  // Class Management
+  public async getClasses(filters: ClassFilters = {}): Promise<PaginatedResponse<Class[]>> {
+    const params = new URLSearchParams();
+    
+    if (filters.search) params.append('search', filters.search);
+    if (filters.status) params.append('status', filters.status);
+    if (filters.academicLevel) params.append('academicLevel', filters.academicLevel);
+    if (filters.academicYearId) params.append('academicYearId', filters.academicYearId);
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+
+    const queryString = params.toString();
+    const endpoint = `/academic/classes${queryString ? `?${queryString}` : ''}`;
+    
+    return apiService.get<Class[]>(endpoint);
+  }
+
+  public async getClassById(classId: string): Promise<Class> {
+    const response = await apiService.get<Class>(`/academic/classes/${classId}`);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to fetch class');
+    }
+    
+    return response.data;
+  }
+
+  public async createClass(classData: {
+    className: string;
+    classCode: string;
+    academicLevel: 'PRIMARY' | 'O_LEVEL' | 'A_LEVEL' | 'UNIVERSITY';
+    academicYearId: string;
+    capacity: number;
+    teacherId: string;
+    subjectIds: string[];
+    description?: string;
+  }): Promise<Class> {
+    const response = await apiService.post<Class>('/academic/classes', classData);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to create class');
+    }
+    
+    return response.data;
+  }
+
+  public async updateClass(classId: string, classData: {
+    className?: string;
+    classCode?: string;
+    academicLevel?: 'PRIMARY' | 'O_LEVEL' | 'A_LEVEL' | 'UNIVERSITY';
+    academicYearId?: string;
+    capacity?: number;
+    teacherId?: string;
+    subjectIds?: string[];
+    description?: string;
+    status?: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  }): Promise<Class> {
+    const response = await apiService.put<Class>(`/academic/classes/${classId}`, classData);
+    
+    if (!response.success || !response.data) {
+      throw new Error(response.message || 'Failed to update class');
+    }
+    
+    return response.data;
+  }
+
+  public async deleteClass(classId: string): Promise<void> {
+    const response = await apiService.delete(`/academic/classes/${classId}`);
+    
+    if (!response.success) {
+      throw new Error(response.message || 'Failed to delete class');
     }
   }
 

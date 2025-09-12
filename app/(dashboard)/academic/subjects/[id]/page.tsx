@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { FaArrowLeft, FaEdit, FaTrash, FaBookOpen, FaGraduationCap, FaChalkboardTeacher, FaCalendarAlt, FaUser } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -42,10 +42,13 @@ interface Subject {
   }>;
 }
 
-export default function SubjectViewPage({ params }: { params: { id: string } }) {
+export default function SubjectViewPage({ params }: { params: Promise<{ id: string }> }) {
   const { user } = useAuth();
   const [subject, setSubject] = useState<Subject | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Unwrap params using React.use()
+  const resolvedParams = use(params);
 
   // Check permissions
   const canEdit = user?.roles?.some(role => 
@@ -58,12 +61,12 @@ export default function SubjectViewPage({ params }: { params: { id: string } }) 
 
   useEffect(() => {
     loadSubject();
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   const loadSubject = async () => {
     try {
       setLoading(true);
-      const response = await academicService.getSubjectById(params.id);
+      const response = await academicService.getSubjectById(resolvedParams.id);
       setSubject(response);
     } catch (error) {
       console.error('Error loading subject:', error);
@@ -74,13 +77,13 @@ export default function SubjectViewPage({ params }: { params: { id: string } }) 
   };
 
   const handleEdit = () => {
-    window.location.href = `/academic/subjects/${params.id}/edit`;
+    window.location.href = `/academic/subjects/${resolvedParams.id}/edit`;
   };
 
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this subject? This action cannot be undone.')) {
       try {
-        await academicService.deleteSubject(params.id);
+        await academicService.deleteSubject(resolvedParams.id);
         notificationService.success('Subject deleted successfully');
         window.location.href = '/academic/subjects';
       } catch (error) {

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { FaArrowLeft, FaSave, FaGraduationCap, FaBook } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -18,7 +18,7 @@ interface FormData {
   status: 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
 }
 
-export default function EditSubjectPage({ params }: { params: { id: string } }) {
+export default function EditSubjectPage({ params }: { params: Promise<{ id: string }> }) {
   const [formData, setFormData] = useState<FormData>({
     subjectName: '',
     subjectCode: '',
@@ -30,10 +30,13 @@ export default function EditSubjectPage({ params }: { params: { id: string } }) 
   });
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
+  
+  // Unwrap params using React.use()
+  const resolvedParams = use(params);
 
   useEffect(() => {
     loadSubject();
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   const loadSubject = async () => {
     try {
@@ -47,7 +50,7 @@ export default function EditSubjectPage({ params }: { params: { id: string } }) 
         return;
       }
       
-      const subject = await academicService.getSubjectById(params.id);
+      const subject = await academicService.getSubjectById(resolvedParams.id);
       
       setFormData({
         subjectName: subject.subjectName,
@@ -122,10 +125,10 @@ export default function EditSubjectPage({ params }: { params: { id: string } }) 
       console.log('Updating subject with data:', subjectData);
       
       // Update subject via API
-      await academicService.updateSubject(params.id, subjectData);
+      await academicService.updateSubject(resolvedParams.id, subjectData);
       
       notificationService.success('Subject updated successfully!');
-      window.location.href = `/academic/subjects/${params.id}`;
+      window.location.href = `/academic/subjects/${resolvedParams.id}`;
       
     } catch (err) {
       console.error('Error updating subject:', err);
@@ -142,7 +145,7 @@ export default function EditSubjectPage({ params }: { params: { id: string } }) 
   };
 
   const handleBack = () => {
-    window.location.href = `/academic/subjects/${params.id}`;
+    window.location.href = `/academic/subjects/${resolvedParams.id}`;
   };
 
   if (loadingData) {

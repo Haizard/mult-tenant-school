@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { FaArrowLeft, FaEdit, FaTrash, FaBookOpen, FaGraduationCap, FaUsers, FaCalendarAlt, FaUser } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -41,10 +41,13 @@ interface Course {
   }>;
 }
 
-export default function CourseViewPage({ params }: { params: { id: string } }) {
+export default function CourseViewPage({ params }: { params: Promise<{ id: string }> }) {
   const { user } = useAuth();
   const [course, setCourse] = useState<Course | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  // Unwrap params using React.use()
+  const resolvedParams = use(params);
 
   // Check permissions
   const canEdit = user?.roles?.some(role => 
@@ -57,12 +60,12 @@ export default function CourseViewPage({ params }: { params: { id: string } }) {
 
   useEffect(() => {
     loadCourse();
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   const loadCourse = async () => {
     try {
       setLoading(true);
-      const response = await academicService.getCourseById(params.id);
+      const response = await academicService.getCourseById(resolvedParams.id);
       setCourse(response);
     } catch (error) {
       console.error('Error loading course:', error);
@@ -73,13 +76,13 @@ export default function CourseViewPage({ params }: { params: { id: string } }) {
   };
 
   const handleEdit = () => {
-    window.location.href = `/academic/courses/${params.id}/edit`;
+    window.location.href = `/academic/courses/${resolvedParams.id}/edit`;
   };
 
   const handleDelete = async () => {
     if (confirm('Are you sure you want to delete this course? This action cannot be undone.')) {
       try {
-        await academicService.deleteCourse(params.id);
+        await academicService.deleteCourse(resolvedParams.id);
         notificationService.success('Course deleted successfully');
         window.location.href = '/academic/courses';
       } catch (error) {

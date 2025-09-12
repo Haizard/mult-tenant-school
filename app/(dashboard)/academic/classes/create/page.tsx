@@ -242,11 +242,22 @@ export default function CreateClassPage() {
 
       notificationService.info('Creating class...');
       
-      // API call to create class
-      console.log('Creating class with data:', formData);
+      // Transform data for API
+      const classData = {
+        className: formData.className,
+        classCode: formData.classCode,
+        academicLevel: formData.academicLevel.replace('-', '_').toUpperCase(),
+        academicYearId: formData.academicYear,
+        capacity: formData.capacity,
+        teacherId: formData.teacherId,
+        subjectIds: formData.subjectIds,
+        description: formData.description
+      };
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      console.log('Creating class with data:', classData);
+      
+      // API call to create class
+      await academicService.createClass(classData);
       
       notificationService.success('Class created successfully!');
       window.location.href = '/academic/classes';

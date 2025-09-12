@@ -7,6 +7,7 @@ import Button from '@/components/ui/Button';
 import StatusBadge from '@/components/ui/StatusBadge';
 import { notificationService } from '@/lib/notifications';
 import { academicService } from '@/lib/academicService';
+import { authService } from '@/lib/auth';
 
 interface Class {
   id: string;
@@ -45,8 +46,65 @@ export default function ClassesPage() {
     try {
       setLoading(true);
       
-      // Note: Classes API endpoint doesn't exist yet in backend
-      // For now, we'll use mock data until the backend is updated
+      // Check if user is authenticated
+      const currentUser = authService.getCurrentUserSync();
+      if (!currentUser) {
+        notificationService.error('Please log in to access this page');
+        window.location.href = '/login';
+        return;
+      }
+      
+      console.log('Loading classes from API...');
+      const response = await academicService.getClasses();
+      
+      if (!response.success || !response.data) {
+        throw new Error(response.message || 'Failed to load classes');
+      }
+      
+      // Transform API data to match our interface
+      const transformedClasses: Class[] = response.data.map((cls: any) => ({
+        id: cls.id,
+        className: cls.className,
+        classCode: cls.classCode,
+        academicLevel: cls.academicLevel.replace('_', '-') as 'Primary' | 'O-Level' | 'A-Level' | 'University',
+        academicYear: cls.academicYear?.yearName || 'Unknown',
+        capacity: cls.capacity,
+        currentEnrollment: 0, // TODO: Add enrollment tracking
+        status: cls.status,
+        teacher: cls.teacher ? {
+          id: cls.teacher.id,
+          firstName: cls.teacher.firstName,
+          lastName: cls.teacher.lastName
+        } : undefined,
+        subjects: cls.classSubjects?.map((cs: any) => ({
+          id: cs.subject.id,
+          name: cs.subject.subjectName,
+          code: cs.subject.subjectCode || ''
+        })) || [],
+        createdAt: cls.createdAt
+      }));
+      
+      setClasses(transformedClasses);
+      console.log('Classes loaded successfully:', transformedClasses.length);
+      
+    } catch (error) {
+      console.error('Error loading classes:', error);
+      
+      // Check if it's an authentication error
+      if (error instanceof Error && (
+        error.message.includes('401') || 
+        error.message.includes('Unauthorized') ||
+        error.message.includes('authentication') ||
+        error.message.includes('token')
+      )) {
+        notificationService.error('Authentication required. Please log in again.');
+        window.location.href = '/login';
+        return;
+      }
+      
+      notificationService.error(`Failed to load classes: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Fallback to mock data if API fails
       const mockClasses: Class[] = [
         {
           id: '1',
@@ -68,60 +126,10 @@ export default function ClassesPage() {
             { id: '3', name: 'Physics', code: 'PHY' }
           ],
           createdAt: '2024-01-15T10:00:00Z'
-        },
-        {
-          id: '2',
-          className: 'Form 2B',
-          classCode: 'F2B',
-          academicLevel: 'O-Level',
-          academicYear: '2024/2025',
-          capacity: 40,
-          currentEnrollment: 40,
-          status: 'FULL',
-          teacher: {
-            id: '2',
-            firstName: 'Jane',
-            lastName: 'Smith'
-          },
-          subjects: [
-            { id: '4', name: 'Chemistry', code: 'CHEM' },
-            { id: '5', name: 'Biology', code: 'BIO' },
-            { id: '6', name: 'History', code: 'HIST' }
-          ],
-          createdAt: '2024-01-20T10:00:00Z'
-        },
-        {
-          id: '3',
-          className: 'Form 5A',
-          classCode: 'F5A',
-          academicLevel: 'A-Level',
-          academicYear: '2024/2025',
-          capacity: 30,
-          currentEnrollment: 25,
-          status: 'ACTIVE',
-          teacher: {
-            id: '3',
-            firstName: 'Michael',
-            lastName: 'Johnson'
-          },
-          subjects: [
-            { id: '7', name: 'Advanced Mathematics', code: 'AMATH' },
-            { id: '8', name: 'Physics', code: 'PHY' },
-            { id: '9', name: 'Chemistry', code: 'CHEM' }
-          ],
-          createdAt: '2024-01-25T10:00:00Z'
         }
       ];
       
       setClasses(mockClasses);
-      
-      // TODO: Replace with real API call when backend classes endpoint is ready
-      // const response = await academicService.getClasses();
-      // setClasses(response.data);
-      
-    } catch (error) {
-      console.error('Error loading classes:', error);
-      notificationService.error('Failed to load classes');
     } finally {
       setLoading(false);
     }
@@ -142,11 +150,12 @@ export default function ClassesPage() {
   const handleDeleteClass = async (classId: string) => {
     if (window.confirm('Are you sure you want to delete this class? This action cannot be undone.')) {
       try {
-        // API call to delete class
+        await academicService.deleteClass(classId);
         notificationService.success('Class deleted successfully');
         loadClasses(); // Reload classes
       } catch (error) {
-        notificationService.error('Failed to delete class');
+        console.error('Error deleting class:', error);
+        notificationService.error(`Failed to delete class: ${error instanceof Error ? error.message : 'Unknown error'}`);
       }
     }
   };

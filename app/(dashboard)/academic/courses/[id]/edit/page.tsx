@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, use } from 'react';
 import { FaArrowLeft, FaSave, FaBook, FaGraduationCap } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -25,7 +25,7 @@ interface Subject {
   credits: number;
 }
 
-export default function EditCoursePage({ params }: { params: { id: string } }) {
+export default function EditCoursePage({ params }: { params: Promise<{ id: string }> }) {
   const [formData, setFormData] = useState<FormData>({
     courseCode: '',
     courseName: '',
@@ -37,10 +37,13 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
   const [loadingData, setLoadingData] = useState(true);
+  
+  // Unwrap params using React.use()
+  const resolvedParams = use(params);
 
   useEffect(() => {
     loadCourseAndSubjects();
-  }, [params.id]);
+  }, [resolvedParams.id]);
 
   const loadCourseAndSubjects = async () => {
     try {
@@ -56,7 +59,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
       
       // Load course and subjects in parallel
       const [courseResponse, subjectsResponse] = await Promise.all([
-        academicService.getCourseById(params.id),
+        academicService.getCourseById(resolvedParams.id),
         academicService.getSubjects()
       ]);
       
@@ -155,10 +158,10 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
       console.log('Updating course with data:', courseData);
       
       // Update course via API
-      await academicService.updateCourse(params.id, courseData);
+      await academicService.updateCourse(resolvedParams.id, courseData);
       
       notificationService.success('Course updated successfully!');
-      window.location.href = `/academic/courses/${params.id}`;
+      window.location.href = `/academic/courses/${resolvedParams.id}`;
       
     } catch (err) {
       console.error('Error updating course:', err);
@@ -175,7 +178,7 @@ export default function EditCoursePage({ params }: { params: { id: string } }) {
   };
 
   const handleBack = () => {
-    window.location.href = `/academic/courses/${params.id}`;
+    window.location.href = `/academic/courses/${resolvedParams.id}`;
   };
 
   if (loadingData) {
