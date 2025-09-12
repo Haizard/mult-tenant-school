@@ -13,13 +13,13 @@ export default function AcademicPage() {
   const router = useRouter();
   const { user } = useAuth();
   
-  // Check user permissions
+  // Check user permissions - Academic features are Tenant Admin only
   const canManageAcademic = user?.roles?.some(role => 
-    ['Super Admin', 'Tenant Admin'].includes(role.name)
+    role.name === 'Tenant Admin'
   ) || false;
   
   const canViewAcademic = user?.roles?.some(role => 
-    ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'].includes(role.name)
+    ['Tenant Admin', 'Teacher', 'Student'].includes(role.name)
   ) || false;
 
   const academicModules = [
@@ -112,7 +112,7 @@ export default function AcademicPage() {
             </div>
             <div className="flex items-center space-x-3">
               <RoleBasedButton
-                allowedRoles={['Super Admin', 'Tenant Admin']}
+                allowedRoles={['Tenant Admin']}
                 onClick={() => handleQuickAction('new-course')}
                 variant="primary"
                 className="flex items-center space-x-2"
@@ -125,13 +125,13 @@ export default function AcademicPage() {
         </div>
 
         {/* Quick Actions */}
-        <RoleGuard allowedRoles={['Super Admin', 'Tenant Admin']}>
+        <RoleGuard allowedRoles={['Tenant Admin']}>
           <Card className="mb-8">
             <div className="p-6">
               <h2 className="text-xl font-semibold text-text-primary mb-4">Quick Actions</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <RoleBasedButton
-                  allowedRoles={['Super Admin', 'Tenant Admin']}
+                  allowedRoles={['Tenant Admin']}
                   onClick={() => handleQuickAction('new-course')}
                   variant="secondary"
                   className="flex items-center justify-center space-x-2 h-12"
@@ -140,7 +140,7 @@ export default function AcademicPage() {
                   <span>Add New Course</span>
                 </RoleBasedButton>
                 <RoleBasedButton
-                  allowedRoles={['Super Admin', 'Tenant Admin']}
+                  allowedRoles={['Tenant Admin']}
                   onClick={() => handleQuickAction('new-subject')}
                   variant="secondary"
                   className="flex items-center justify-center space-x-2 h-12"
@@ -149,7 +149,7 @@ export default function AcademicPage() {
                   <span>Add New Subject</span>
                 </RoleBasedButton>
                 <RoleBasedButton
-                  allowedRoles={['Super Admin', 'Tenant Admin']}
+                  allowedRoles={['Tenant Admin']}
                   onClick={() => handleQuickAction('new-class')}
                   variant="secondary"
                   className="flex items-center justify-center space-x-2 h-12"
@@ -214,7 +214,7 @@ export default function AcademicPage() {
                   <FaBook className="text-blue-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-text-primary font-medium">New course "Advanced Mathematics" created</p>
+                  <p className="text-text-primary font-medium">New course &quot;Advanced Mathematics&quot; created</p>
                   <p className="text-sm text-text-secondary">2 hours ago</p>
                 </div>
               </div>
@@ -223,7 +223,7 @@ export default function AcademicPage() {
                   <FaGraduationCap className="text-green-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-text-primary font-medium">Subject "Physics" updated with new curriculum</p>
+                  <p className="text-text-primary font-medium">Subject &quot;Physics&quot; updated with new curriculum</p>
                   <p className="text-sm text-text-secondary">4 hours ago</p>
                 </div>
               </div>
@@ -232,7 +232,7 @@ export default function AcademicPage() {
                   <FaUsers className="text-purple-600" />
                 </div>
                 <div className="flex-1">
-                  <p className="text-text-primary font-medium">Class "Grade 10A" schedule modified</p>
+                  <p className="text-text-primary font-medium">Class &quot;Grade 10A&quot; schedule modified</p>
                   <p className="text-sm text-text-secondary">6 hours ago</p>
                 </div>
               </div>

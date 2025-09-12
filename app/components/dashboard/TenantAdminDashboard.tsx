@@ -223,7 +223,10 @@ const TenantAdminDashboard = () => {
           <h1 className="text-3xl font-bold text-gray-900">School Administration</h1>
           <p className="text-gray-600 mt-1">Manage your school's users and academic programs</p>
         </div>
-        <Button onClick={handleCreateUser} className="flex items-center">
+        <Button 
+          onClick={() => window.location.href = '/users/create'} 
+          className="flex items-center"
+        >
           <FaPlus className="mr-2" />
           Add New User
         </Button>
@@ -251,19 +254,35 @@ const TenantAdminDashboard = () => {
       <Card>
         <h2 className="text-xl font-semibold text-gray-900 mb-4">Quick Actions</h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Button variant="secondary" className="flex flex-col items-center p-4 h-auto">
+          <Button 
+            variant="secondary" 
+            className="flex flex-col items-center p-4 h-auto"
+            onClick={() => window.location.href = '/users'}
+          >
             <FaUsers className="text-2xl mb-2 text-blue-600" />
             <span className="text-sm">User Management</span>
           </Button>
-          <Button variant="secondary" className="flex flex-col items-center p-4 h-auto">
+          <Button 
+            variant="secondary" 
+            className="flex flex-col items-center p-4 h-auto"
+            onClick={() => window.location.href = '/academic'}
+          >
             <FaBook className="text-2xl mb-2 text-green-600" />
             <span className="text-sm">Academic Programs</span>
           </Button>
-          <Button variant="secondary" className="flex flex-col items-center p-4 h-auto">
+          <Button 
+            variant="secondary" 
+            className="flex flex-col items-center p-4 h-auto"
+            onClick={() => window.location.href = '/schedule'}
+          >
             <FaCalendarAlt className="text-2xl mb-2 text-purple-600" />
             <span className="text-sm">Schedule Management</span>
           </Button>
-          <Button variant="secondary" className="flex flex-col items-center p-4 h-auto">
+          <Button 
+            variant="secondary" 
+            className="flex flex-col items-center p-4 h-auto"
+            onClick={() => window.location.href = '/reports'}
+          >
             <FaChartLine className="text-2xl mb-2 text-orange-600" />
             <span className="text-sm">Reports & Analytics</span>
           </Button>

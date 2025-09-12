@@ -98,20 +98,26 @@ const Sidebar = () => {
       );
     }
 
-    // Academic management - different access levels
-    if (hasAnyRole(['Super Admin', 'Tenant Admin', 'Teacher', 'Student'])) {
+    // Academic management - Tenant Admin, Teacher, and Student only
+    if (hasAnyRole(['Tenant Admin', 'Teacher', 'Student'])) {
       items.push(
         { icon: <FaBookOpen />, text: "Academic", href: "/academic", show: true, hasDropdown: true }
       );
     }
 
-    // All roles can see basic features
+    // Basic features - all authenticated users
     items.push(
-      { icon: <FaUserCircle />, text: "Account", href: "/account", show: true },
-      { icon: <FaCalendarAlt />, text: "Schedule", href: "/schedule", show: true },
-      { icon: <FaClipboardList />, text: "Attendance", href: "/attendance", show: true },
-      { icon: <FaBullhorn />, text: "Announcements", href: "/announcements", show: true }
+      { icon: <FaUserCircle />, text: "Account", href: "/account", show: true }
     );
+
+    // School-specific features - Tenant Admin, Teacher, Student only
+    if (hasAnyRole(['Tenant Admin', 'Teacher', 'Student'])) {
+      items.push(
+        { icon: <FaCalendarAlt />, text: "Schedule", href: "/schedule", show: true },
+        { icon: <FaClipboardList />, text: "Attendance", href: "/attendance", show: true },
+        { icon: <FaBullhorn />, text: "Announcements", href: "/announcements", show: true }
+      );
+    }
 
     // Super Admin specific administrative features
     if (hasRole('Super Admin')) {
@@ -127,9 +133,6 @@ const Sidebar = () => {
     if (hasRole('Tenant Admin')) {
       items.push(
         { icon: <FaShieldAlt />, text: "School Audit", href: "/audit-logs", show: true },
-        { icon: <FaBook />, text: "Library", href: "/library", show: true },
-        { icon: <FaBus />, text: "Transport", href: "/transport", show: true },
-        { icon: <FaBed />, text: "Hostel", href: "/hostel", show: true },
         { icon: <FaFileAlt />, text: "School Reports", href: "/reports", show: true }
       );
     }

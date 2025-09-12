@@ -200,7 +200,8 @@ export default function ReportsPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <RoleGuard allowedRoles={['Super Admin', 'Tenant Admin']}>
+      <div className="space-y-6">
       {/* Header Section */}
       <div className="glass-card p-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
         <div className="flex items-center justify-between">
@@ -396,5 +397,6 @@ export default function ReportsPage() {
         </Card>
       </div>
     </div>
+    </RoleGuard>
   );
 }

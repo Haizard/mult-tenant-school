@@ -600,6 +600,67 @@ const getRoles = async (req, res) => {
   }
 };
 
+// Get all system users (Super Admin only)
+const getSystemUsers = async (req, res) => {
+  try {
+    console.log('Getting system users...');
+    
+    const users = await prisma.user.findMany({
+      include: {
+        tenant: {
+          select: {
+            id: true,
+            name: true,
+            domain: true
+          }
+        },
+        userRoles: {
+          include: {
+            role: {
+              select: {
+                id: true,
+                name: true,
+                description: true
+              }
+            }
+          }
+        }
+      },
+      orderBy: [
+        { tenant: { name: 'asc' } },
+        { firstName: 'asc' }
+      ]
+    });
+
+    // Transform the data to match frontend expectations
+    const transformedUsers = users.map(user => ({
+      id: user.id,
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      phone: user.phone,
+      status: user.status,
+      lastLogin: user.lastLogin?.toISOString(),
+      tenant: user.tenant,
+      roles: user.userRoles.map(ur => ur.role),
+      createdAt: user.createdAt.toISOString().split('T')[0]
+    }));
+
+    res.json({
+      success: true,
+      users: transformedUsers,
+      count: transformedUsers.length
+    });
+  } catch (error) {
+    console.error('Get system users error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get system users',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -610,6 +671,7 @@ module.exports = {
   deleteUser,
   getTenants,
   getRoles,
+  getSystemUsers,
   validateUser,
   validateLogin
 };

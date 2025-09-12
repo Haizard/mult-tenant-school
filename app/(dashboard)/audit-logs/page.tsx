@@ -259,8 +259,15 @@ export default function AuditLogsPage() {
         <div className="glass-card p-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-text-primary mb-2">Audit Logs</h1>
-              <p className="text-text-secondary">Monitor user actions and system security</p>
+              <h1 className="text-3xl font-bold text-text-primary mb-2">
+                {user?.roles?.some(role => role.name === 'Super Admin') ? 'System Audit Logs' : 'School Audit Logs'}
+              </h1>
+              <p className="text-text-secondary">
+                {user?.roles?.some(role => role.name === 'Super Admin') 
+                  ? 'Monitor all user actions across the entire system' 
+                  : 'Monitor user actions within your school'
+                }
+              </p>
             </div>
             <div className="flex items-center gap-4">
               <StatusBadge status="info" size="lg">

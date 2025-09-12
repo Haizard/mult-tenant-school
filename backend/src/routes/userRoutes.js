@@ -14,11 +14,17 @@ router.post('/', userController.validateUser, userController.register);
 router.get('/tenants', userController.getTenants);
 router.get('/roles', userController.getRoles);
 
-// Public route for getting user by ID (needed for user detail/edit pages)
-router.get('/:id', userController.getUserById);
-
 // Protected routes (authentication required)
 router.use(authenticateToken);
+
+// System users route (Super Admin only) - must be before /:id route
+router.get('/system', 
+  authorize(['users:read']), 
+  userController.getSystemUsers
+);
+
+// Public route for getting user by ID (needed for user detail/edit pages)
+router.get('/:id', userController.getUserById);
 
 // User profile routes
 router.get('/profile', userController.getProfile);
