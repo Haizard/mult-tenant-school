@@ -380,17 +380,16 @@ class ExaminationService {
 
   async exportGrades(format: 'csv' | 'excel' = 'csv'): Promise<{ success: boolean; data?: Blob; message?: string }> {
     try {
-      // For blob responses, we need to use fetch directly
+      // For blob responses, we need to use fetch directly with full URL
       const token = apiService.getToken();
-      const headers: HeadersInit = {
-        'Content-Type': 'application/json',
-      };
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const headers: HeadersInit = {};
       
       if (token) {
         headers.Authorization = `Bearer ${token}`;
       }
       
-      const response = await fetch(`/api/examinations/export/grades?format=${format}`, {
+      const response = await fetch(`${baseURL}/examinations/export/grades?format=${format}`, {
         method: 'GET',
         headers,
       });
