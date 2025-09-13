@@ -6,7 +6,7 @@ import Button from './ui/Button';
 import { createPermissionChecker } from '../lib/rolePermissions';
 
 interface RoleBasedButtonProps {
-  children: React.ReactNode;
+  children?: React.ReactNode;
   allowedRoles?: string[];
   permissions?: string[];
   onClick?: () => void;

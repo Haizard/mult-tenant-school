@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { useParams, useRouter } from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { FaArrowLeft, FaSave, FaTimes } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -24,8 +24,7 @@ interface ExaminationFormData {
   description: string;
 }
 
-export default function EditExaminationPage() {
-  const params = useParams();
+export default function CreateExaminationPage() {
   const router = useRouter();
   const { user } = useAuth();
   const auditLog = useAuditLog();
@@ -44,49 +43,24 @@ export default function EditExaminationPage() {
   });
   
   const [subjects, setSubjects] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    if (params.id) {
-      loadExamination(params.id as string);
-      loadSubjects();
-    }
-  }, [params.id]);
-
-  const loadExamination = async (id: string) => {
-    try {
-      const response = await examinationService.getExaminationById(id);
-      if (response.success && response.data) {
-        const exam = response.data;
-        setFormData({
-          examName: exam.examName,
-          examType: exam.examType,
-          examLevel: exam.examLevel,
-          subjectId: exam.subject?.id || '',
-          maxMarks: exam.maxMarks,
-          weight: exam.weight,
-          startDate: exam.startDate.split('T')[0], // Convert to date input format
-          endDate: exam.endDate ? exam.endDate.split('T')[0] : '',
-          status: exam.status,
-          description: exam.description || ''
-        });
-      }
-    } catch (error) {
-      console.error('Error loading examination:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
+    loadSubjects();
+  }, []);
 
   const loadSubjects = async () => {
     try {
+      setIsLoading(true);
       const response = await academicService.getSubjects();
       if (response.success && response.data) {
         setSubjects(response.data);
       }
     } catch (error) {
       console.error('Error loading subjects:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -108,7 +82,7 @@ export default function EditExaminationPage() {
 
     setIsSubmitting(true);
     try {
-      const updateData = {
+      const createData = {
         examName: formData.examName,
         examType: formData.examType,
         examLevel: formData.examLevel,
@@ -121,36 +95,28 @@ export default function EditExaminationPage() {
         ...(formData.description && { description: formData.description })
       };
 
-      const response = await examinationService.updateExamination(params.id as string, updateData);
+      const response = await examinationService.createExamination(createData);
       if (response.success) {
-        await auditLog.logAction('update', 'examination', params.id as string, { message: `Updated examination: ${formData.examName}` });
-        router.push(`/academic/examinations/${params.id}`);
+        await auditLog.logAction('create', 'examination', response.data.id, { message: `Created examination: ${formData.examName}` });
+        router.push('/academic/grades');
       } else {
-        console.error('Failed to update examination:', response.message);
-        alert('Failed to update examination: ' + response.message);
+        console.error('Failed to create examination:', response.message);
+        alert('Failed to create examination: ' + response.message);
       }
     } catch (error) {
-      console.error('Error updating examination:', error);
-      alert('Error updating examination');
+      console.error('Error creating examination:', error);
+      alert('Error creating examination');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    router.push(`/academic/examinations/${params.id}`);
+    router.push('/academic/grades');
   };
 
-  if (isLoading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-      </div>
-    );
-  }
-
   return (
-    <RoleGuard permissions={['examinations:update']}>
+    <RoleGuard permissions={['examinations:create']}>
       <div className="space-y-6">
         {/* Header */}
         <div className="flex justify-between items-center">
@@ -163,8 +129,8 @@ export default function EditExaminationPage() {
               Back
             </Button>
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Edit Examination</h1>
-              <p className="text-gray-600">Update examination details</p>
+              <h1 className="text-2xl font-bold text-gray-900">Create Examination</h1>
+              <p className="text-gray-600">Create a new examination for students</p>
             </div>
           </div>
         </div>
@@ -184,6 +150,7 @@ export default function EditExaminationPage() {
                   value={formData.examName}
                   onChange={handleInputChange}
                   required
+                  placeholder="e.g., Mid-Term Mathematics Test"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
               </div>
@@ -245,6 +212,7 @@ export default function EditExaminationPage() {
                     </option>
                   ))}
                 </select>
+                {isLoading && <p className="text-sm text-gray-500 mt-1">Loading subjects...</p>}
               </div>
 
               <div>
@@ -276,6 +244,7 @@ export default function EditExaminationPage() {
                   step="0.1"
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                <p className="text-sm text-gray-500 mt-1">Weight for term calculation</p>
               </div>
 
               <div>
@@ -305,6 +274,7 @@ export default function EditExaminationPage() {
                   onChange={handleInputChange}
                   className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
+                <p className="text-sm text-gray-500 mt-1">Optional end date for multi-day examinations</p>
               </div>
 
               <div>
@@ -357,7 +327,7 @@ export default function EditExaminationPage() {
                 disabled={isSubmitting}
                 icon={FaSave}
               >
-                {isSubmitting ? 'Updating...' : 'Update Examination'}
+                {isSubmitting ? 'Creating...' : 'Create Examination'}
               </Button>
             </div>
           </form>

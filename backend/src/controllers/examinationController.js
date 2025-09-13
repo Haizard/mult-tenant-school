@@ -79,6 +79,12 @@ const validateGrade = [
   body('comments').optional().isString(),
 ];
 
+const validateGradeUpdate = [
+  body('rawMarks').isFloat({ min: 0 }).withMessage('Raw marks must be a non-negative number'),
+  body('comments').optional().isString(),
+  body('status').optional().isIn(['DRAFT', 'SUBMITTED', 'APPROVED', 'PUBLISHED', 'ARCHIVED']).withMessage('Invalid status'),
+];
+
 const validateGradingScale = [
   body('scaleName').notEmpty().withMessage('Scale name is required'),
   body('examLevel').isIn(['PRIMARY', 'O_LEVEL', 'A_LEVEL', 'UNIVERSITY']).withMessage('Invalid exam level'),
@@ -204,6 +210,11 @@ const getExaminationById = async (req, res) => {
                 subjectCode: true,
               }
             }
+          }
+        },
+        _count: {
+          select: {
+            grades: true
           }
         }
       }
@@ -1036,6 +1047,7 @@ module.exports = {
   updateGrade,
   deleteGrade,
   validateGrade,
+  validateGradeUpdate,
   
   // Grading scale management
   getGradingScales,

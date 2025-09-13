@@ -313,7 +313,7 @@ export default function GradesPage() {
       try {
         const response = await examinationService.deleteExamination(id);
         if (response.success) {
-          await auditLog.logAction('examination', 'delete', id, 'Examination deleted');
+          await auditLog.logAction('delete', 'examination', id, { message: 'Examination deleted' });
           loadExaminations();
         } else {
           console.error('Failed to delete examination:', response.message);
@@ -329,7 +329,7 @@ export default function GradesPage() {
       try {
         const response = await examinationService.deleteGrade(id);
         if (response.success) {
-          await auditLog.logAction('grade', 'delete', id, 'Grade deleted');
+          await auditLog.logAction('delete', 'grade', id, { message: 'Grade deleted' });
           loadGrades();
         } else {
           console.error('Failed to delete grade:', response.message);

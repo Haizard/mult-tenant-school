@@ -17,6 +17,7 @@ const {
   updateGrade,
   deleteGrade,
   validateGrade,
+  validateGradeUpdate,
   
   // Grading scale management
   getGradingScales,
@@ -38,7 +39,7 @@ router.delete('/examinations/:id', authorize(['examinations:delete']), deleteExa
 router.get('/grades', authorize(['grades:read']), getGrades);
 router.get('/grades/:id', authorize(['grades:read']), getGradeById);
 router.post('/grades', authorize(['grades:create']), validateGrade, createGrade);
-router.put('/grades/:id', authorize(['grades:update']), validateGrade, updateGrade);
+router.put('/grades/:id', authorize(['grades:update']), validateGradeUpdate, updateGrade);
 router.delete('/grades/:id', authorize(['grades:delete']), deleteGrade);
 
 // Grading Scale Routes

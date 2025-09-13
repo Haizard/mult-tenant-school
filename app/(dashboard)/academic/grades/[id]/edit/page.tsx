@@ -139,17 +139,14 @@ export default function EditGradePage() {
 
       const updateData = {
         rawMarks: formData.rawMarks,
-        percentage: Math.round(percentage * 100) / 100,
-        grade: letterGrade,
-        points,
-        comments: formData.comments.trim() || null,
-        status: formData.status
+        status: formData.status,
+        ...(formData.comments.trim() && { comments: formData.comments.trim() })
       };
 
       const response = await examinationService.updateGrade(params.id as string, updateData);
       if (response.success) {
-        await auditLog.logAction('grade', 'update', params.id as string, 
-          `Updated grade for ${grade.student.firstName} ${grade.student.lastName}: ${formData.rawMarks}/${grade.examination.maxMarks}`);
+        await auditLog.logAction('update', 'grade', params.id as string, 
+          { message: `Updated grade for ${grade.student.firstName} ${grade.student.lastName}: ${formData.rawMarks}/${grade.examination.maxMarks}` });
         router.push(`/academic/grades/${params.id}`);
       } else {
         console.error('Failed to update grade:', response.message);

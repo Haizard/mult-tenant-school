@@ -157,21 +157,27 @@ export default function CreateGradePage() {
 
     setIsSubmitting(true);
     try {
-      const promises = validEntries.map(entry =>
-        examinationService.createGrade({
+      const promises = validEntries.map(entry => {
+        const gradeData = {
           examinationId,
           studentId: entry.studentId,
           subjectId,
-          rawMarks: entry.rawMarks,
-          comments: entry.comments
-        })
-      );
+          rawMarks: entry.rawMarks
+        };
+        
+        // Only include comments if they exist and are not empty
+        if (entry.comments && entry.comments.trim()) {
+          gradeData.comments = entry.comments.trim();
+        }
+        
+        return examinationService.createGrade(gradeData);
+      });
 
       const results = await Promise.all(promises);
       const successCount = results.filter(result => result.success).length;
       
       if (successCount > 0) {
-        await auditLog.logAction('grade', 'create', examinationId, `Created ${successCount} grades`);
+        await auditLog.logAction('create', 'grade', examinationId, { message: `Created ${successCount} grades` });
         alert(`Successfully created ${successCount} grades`);
         router.push('/academic/grades');
       } else {

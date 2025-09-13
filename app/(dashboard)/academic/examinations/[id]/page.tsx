@@ -101,7 +101,7 @@ export default function ExaminationDetailsPage() {
       try {
         const response = await examinationService.deleteExamination(examination.id);
         if (response.success) {
-          await auditLog.logAction('examination', 'delete', examination.id, `Deleted examination: ${examination.examName}`);
+          await auditLog.logAction('delete', 'examination', examination.id, { message: `Deleted examination: ${examination.examName}` });
           router.push('/academic/grades');
         } else {
           console.error('Failed to delete examination:', response.message);
@@ -151,7 +151,7 @@ export default function ExaminationDetailsPage() {
     );
   }
 
-  if (!examination) {
+  if (!examination || !examination.id) {
     return (
       <div className="text-center py-12">
         <h2 className="text-2xl font-bold text-gray-900 mb-4">Examination Not Found</h2>
@@ -254,7 +254,7 @@ export default function ExaminationDetailsPage() {
             </Card>
 
             {/* Grades List */}
-            {examination.grades && examination.grades.length > 0 && (
+            {examination && examination.grades && examination.grades.length > 0 && (
               <Card>
                 <div className="p-6">
                   <h3 className="text-lg font-semibold text-gray-900 mb-4">Student Grades</h3>
@@ -280,7 +280,7 @@ export default function ExaminationDetailsPage() {
                         </tr>
                       </thead>
                       <tbody className="bg-white divide-y divide-gray-200">
-                        {examination.grades.map((grade) => (
+                        {examination.grades?.map((grade) => (
                           <tr key={grade.id} className="hover:bg-gray-50">
                             <td className="px-6 py-4 whitespace-nowrap">
                               <div>
@@ -368,26 +368,32 @@ export default function ExaminationDetailsPage() {
                 <div className="space-y-2">
                   <div className="flex justify-between">
                     <span className="text-sm text-gray-700">Total Grades:</span>
-                    <span className="text-sm font-medium text-gray-900">{examination._count.grades}</span>
+                    <span className="text-sm font-medium text-gray-900">{examination._count?.grades || 0}</span>
                   </div>
                   {examination.grades && examination.grades.length > 0 && (
                     <>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-700">Average Marks:</span>
                         <span className="text-sm font-medium text-gray-900">
-                          {(examination.grades.reduce((sum, grade) => sum + grade.rawMarks, 0) / examination.grades.length).toFixed(1)}
+                          {examination.grades && examination.grades.length > 0 
+                            ? (examination.grades.reduce((sum, grade) => sum + grade.rawMarks, 0) / examination.grades.length).toFixed(1)
+                            : '0'}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-700">Highest Marks:</span>
                         <span className="text-sm font-medium text-gray-900">
-                          {Math.max(...examination.grades.map(grade => grade.rawMarks))}
+                          {examination.grades && examination.grades.length > 0 
+                            ? Math.max(...examination.grades.map(grade => grade.rawMarks))
+                            : '0'}
                         </span>
                       </div>
                       <div className="flex justify-between">
                         <span className="text-sm text-gray-700">Lowest Marks:</span>
                         <span className="text-sm font-medium text-gray-900">
-                          {Math.min(...examination.grades.map(grade => grade.rawMarks))}
+                          {examination.grades && examination.grades.length > 0 
+                            ? Math.min(...examination.grades.map(grade => grade.rawMarks))
+                            : '0'}
                         </span>
                       </div>
                     </>

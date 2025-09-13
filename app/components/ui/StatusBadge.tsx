@@ -84,15 +84,32 @@ const StatusBadge = ({ status, color, size = 'md', showIcon = true, children }: 
     },
   };
 
-  const config = statusConfig[status] || statusConfig.default;
+  // Use predefined config if status matches, otherwise use color-based system
+  const config = statusConfig[status.toLowerCase()] || null;
+  
+  // Color-based system for custom statuses (like grades)
+  const getColorClasses = (colorName: string) => {
+    const colorMap = {
+      green: { bg: 'bg-green-500', text: 'text-white', glow: 'shadow-green-400', icon: '●' },
+      blue: { bg: 'bg-blue-500', text: 'text-white', glow: 'shadow-blue-400', icon: '●' },
+      yellow: { bg: 'bg-yellow-500', text: 'text-white', glow: 'shadow-yellow-400', icon: '●' },
+      orange: { bg: 'bg-orange-500', text: 'text-white', glow: 'shadow-orange-400', icon: '●' },
+      red: { bg: 'bg-red-500', text: 'text-white', glow: 'shadow-red-400', icon: '●' },
+      purple: { bg: 'bg-purple-500', text: 'text-white', glow: 'shadow-purple-400', icon: '●' },
+      gray: { bg: 'bg-gray-500', text: 'text-white', glow: 'shadow-gray-400', icon: '●' },
+    };
+    return colorMap[colorName] || colorMap.gray;
+  };
+
+  const finalConfig = config || (color ? getColorClasses(color) : getColorClasses('gray'));
 
   return (
     <span
       className={`
         ${sizeClasses[size]}
-        ${config.bg}
-        ${config.text}
-        ${config.glow}
+        ${finalConfig.bg}
+        ${finalConfig.text}
+        ${finalConfig.glow}
         rounded-full
         font-medium
         inline-flex
@@ -109,7 +126,7 @@ const StatusBadge = ({ status, color, size = 'md', showIcon = true, children }: 
     >
       {showIcon && (
         <span className="text-xs animate-pulse">
-          {config.icon}
+          {finalConfig.icon}
         </span>
       )}
       {children || status.charAt(0).toUpperCase() + status.slice(1)}

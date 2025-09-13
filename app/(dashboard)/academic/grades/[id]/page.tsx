@@ -96,7 +96,7 @@ export default function GradeDetailsPage() {
       try {
         const response = await examinationService.deleteGrade(grade.id);
         if (response.success) {
-          await auditLog.logAction('grade', 'delete', grade.id, `Deleted grade for ${grade.student.firstName} ${grade.student.lastName}`);
+          await auditLog.logAction('delete', 'grade', grade.id, { message: `Deleted grade for ${grade.student.firstName} ${grade.student.lastName}` });
           router.push('/academic/grades');
         } else {
           console.error('Failed to delete grade:', response.message);
