@@ -137,7 +137,7 @@ const DataTable = ({
                 {columns.map((column) => (
                   <td key={column.key} className="py-4 px-4 text-text-secondary">
                     {column.render
-                      ? column.render(row, row, index)
+                      ? column.render(row[column.key], row, index)
                       : row?.[column.key]}
                   </td>
                 ))}

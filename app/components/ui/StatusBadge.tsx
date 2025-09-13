@@ -76,6 +76,37 @@ const StatusBadge = ({ status, color, size = 'md', showIcon = true, children }: 
       icon: 'ℹ',
       glow: 'shadow-blue-glow',
     },
+    // Schedule-specific statuses
+    class: {
+      bg: 'bg-gradient-to-r from-blue-500 to-blue-600',
+      text: 'text-white',
+      icon: '📚',
+      glow: 'shadow-blue-glow',
+    },
+    exam: {
+      bg: 'bg-gradient-to-r from-red-500 to-red-600',
+      text: 'text-white',
+      icon: '📝',
+      glow: 'shadow-red-glow',
+    },
+    event: {
+      bg: 'bg-gradient-to-r from-purple-500 to-purple-600',
+      text: 'text-white',
+      icon: '🎉',
+      glow: 'shadow-purple-glow',
+    },
+    meeting: {
+      bg: 'bg-gradient-to-r from-orange-500 to-orange-600',
+      text: 'text-white',
+      icon: '👥',
+      glow: 'shadow-orange-glow',
+    },
+    draft: {
+      bg: 'bg-gradient-to-r from-yellow-500 to-yellow-600',
+      text: 'text-white',
+      icon: '📝',
+      glow: 'shadow-yellow-glow',
+    },
     default: {
       bg: 'bg-gradient-to-r from-gray-400 to-gray-500',
       text: 'text-white',
@@ -84,8 +115,9 @@ const StatusBadge = ({ status, color, size = 'md', showIcon = true, children }: 
     },
   };
 
-  // Use predefined config if status matches, otherwise use color-based system
-  const config = statusConfig[status.toLowerCase()] || null;
+  // Ensure status is a string and use predefined config if status matches, otherwise use color-based system
+  const statusStr = String(status || '').toLowerCase();
+  const config = statusConfig[statusStr] || null;
   
   // Color-based system for custom statuses (like grades)
   const getColorClasses = (colorName: string) => {
@@ -129,7 +161,7 @@ const StatusBadge = ({ status, color, size = 'md', showIcon = true, children }: 
           {finalConfig.icon}
         </span>
       )}
-      {children || status.charAt(0).toUpperCase() + status.slice(1)}
+      {children || (statusStr.charAt(0).toUpperCase() + statusStr.slice(1))}
     </span>
   );
 };

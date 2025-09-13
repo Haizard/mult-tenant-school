@@ -42,6 +42,7 @@ model Tenant {
   examinations Examination[]
   grades Grade[]
   gradingScales GradingScale[]
+  schedules Schedule[]
 }
 
 enum TenantStatus {
@@ -87,6 +88,11 @@ model User {
   updatedGrades Grade[] @relation("GradeUpdatedBy")
   createdGradingScales GradingScale[] @relation("GradingScaleCreatedBy")
   updatedGradingScales GradingScale[] @relation("GradingScaleUpdatedBy")
+  
+  // Schedule relationships
+  teacherSchedules Schedule[] @relation("ScheduleTeacher")
+  createdSchedules Schedule[] @relation("ScheduleCreatedBy")
+  updatedSchedules Schedule[] @relation("ScheduleUpdatedBy")
 
   @@unique([tenantId, email])
 }
@@ -201,6 +207,7 @@ model Subject {
   teacherSubjects TeacherSubject[]
   examinations Examination[]
   grades Grade[]
+  schedules Schedule[]
 
   @@unique([tenantId, subjectName, subjectLevel])
 }
@@ -406,4 +413,59 @@ enum GradeStatus {
   APPROVED
   PUBLISHED
   ARCHIVED
+}
+
+enum ScheduleType {
+  CLASS
+  EXAM
+  EVENT
+  MEETING
+}
+
+enum ScheduleStatus {
+  ACTIVE
+  CANCELLED
+  COMPLETED
+  DRAFT
+}
+
+// Schedule Management Model for Academic Calendar
+model Schedule {
+  id          String @id @default(cuid())
+  tenantId    String
+  title       String
+  type        ScheduleType
+  subjectId   String?
+  teacherId   String?
+  classId     String?
+  startTime   DateTime
+  endTime     DateTime
+  date        DateTime
+  location    String?
+  status      ScheduleStatus @default(ACTIVE)
+  description String?
+  recurring   Boolean @default(false)
+  
+  // Recurrence settings
+  recurrenceType String? // DAILY, WEEKLY, MONTHLY
+  recurrenceEnd  DateTime?
+  recurrencePattern Json? // For complex recurrence patterns
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+  updatedBy String
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  subject Subject? @relation(fields: [subjectId], references: [id])
+  teacher User? @relation("ScheduleTeacher", fields: [teacherId], references: [id])
+  class Class? @relation(fields: [classId], references: [id])
+  createdByUser User @relation("ScheduleCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User @relation("ScheduleUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@unique([tenantId, title, date, startTime])
+  @@index([tenantId, date])
+  @@index([tenantId, type])
+  @@index([tenantId, status])
 }

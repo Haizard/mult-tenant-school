@@ -43,6 +43,7 @@ app.use('/api/auth', require('./routes/userRoutes')); // Keep auth routes for lo
 app.use('/api', require('./routes/roleRoutes'));
 app.use('/api/academic', require('./routes/academicRoutes'));
 app.use('/api/examinations', require('./routes/examinationRoutes'));
+app.use('/api/schedules', require('./routes/scheduleRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

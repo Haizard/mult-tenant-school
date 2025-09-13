@@ -287,6 +287,10 @@ router.post('/', validateTenant, async (req, res) => {
           { name: 'academic-years:create', description: 'Create academic years', resource: 'academic-years', action: 'create' },
           { name: 'academic-years:update', description: 'Update academic years', resource: 'academic-years', action: 'update' },
           { name: 'academic-years:delete', description: 'Delete academic years', resource: 'academic-years', action: 'delete' },
+          { name: 'schedules:read', description: 'View schedules', resource: 'schedules', action: 'read' },
+          { name: 'schedules:create', description: 'Create schedules', resource: 'schedules', action: 'create' },
+          { name: 'schedules:update', description: 'Update schedules', resource: 'schedules', action: 'update' },
+          { name: 'schedules:delete', description: 'Delete schedules', resource: 'schedules', action: 'delete' },
           { name: 'reports:read', description: 'View reports', resource: 'reports', action: 'read' },
           { name: 'analytics:read', description: 'View analytics', resource: 'analytics', action: 'read' }
         ];
