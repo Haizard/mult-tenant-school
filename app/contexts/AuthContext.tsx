@@ -32,6 +32,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const initializeAuth = async () => {
       try {
         const currentUser = await authService.getCurrentUser();
+        console.log('Auth initialized with user:', currentUser);
         setUser(currentUser);
       } catch (error) {
         console.error('Auth initialization error:', error);

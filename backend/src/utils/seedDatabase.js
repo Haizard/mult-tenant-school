@@ -35,6 +35,42 @@ async function seedDatabase() {
       { name: 'subjects:update', description: 'Update subjects', resource: 'subjects', action: 'update' },
       { name: 'subjects:delete', description: 'Delete subjects', resource: 'subjects', action: 'delete' },
       
+      // Class permissions
+      { name: 'classes:create', description: 'Create classes', resource: 'classes', action: 'create' },
+      { name: 'classes:read', description: 'Read classes', resource: 'classes', action: 'read' },
+      { name: 'classes:update', description: 'Update classes', resource: 'classes', action: 'update' },
+      { name: 'classes:delete', description: 'Delete classes', resource: 'classes', action: 'delete' },
+      
+      // Examination permissions
+      { name: 'examinations:create', description: 'Create examinations', resource: 'examinations', action: 'create' },
+      { name: 'examinations:read', description: 'Read examinations', resource: 'examinations', action: 'read' },
+      { name: 'examinations:update', description: 'Update examinations', resource: 'examinations', action: 'update' },
+      { name: 'examinations:delete', description: 'Delete examinations', resource: 'examinations', action: 'delete' },
+      
+      // Grade permissions
+      { name: 'grades:create', description: 'Create grades', resource: 'grades', action: 'create' },
+      { name: 'grades:read', description: 'Read grades', resource: 'grades', action: 'read' },
+      { name: 'grades:update', description: 'Update grades', resource: 'grades', action: 'update' },
+      { name: 'grades:delete', description: 'Delete grades', resource: 'grades', action: 'delete' },
+      
+      // Grading scale permissions
+      { name: 'grading-scales:create', description: 'Create grading scales', resource: 'grading-scales', action: 'create' },
+      { name: 'grading-scales:read', description: 'Read grading scales', resource: 'grading-scales', action: 'read' },
+      { name: 'grading-scales:update', description: 'Update grading scales', resource: 'grading-scales', action: 'update' },
+      { name: 'grading-scales:delete', description: 'Delete grading scales', resource: 'grading-scales', action: 'delete' },
+      
+      // Academic year permissions
+      { name: 'academic-years:create', description: 'Create academic years', resource: 'academic-years', action: 'create' },
+      { name: 'academic-years:read', description: 'Read academic years', resource: 'academic-years', action: 'read' },
+      { name: 'academic-years:update', description: 'Update academic years', resource: 'academic-years', action: 'update' },
+      { name: 'academic-years:delete', description: 'Delete academic years', resource: 'academic-years', action: 'delete' },
+      
+      // Schedule permissions
+      { name: 'schedules:create', description: 'Create schedules', resource: 'schedules', action: 'create' },
+      { name: 'schedules:read', description: 'Read schedules', resource: 'schedules', action: 'read' },
+      { name: 'schedules:update', description: 'Update schedules', resource: 'schedules', action: 'update' },
+      { name: 'schedules:delete', description: 'Delete schedules', resource: 'schedules', action: 'delete' },
+      
       // Tenant permissions
       { name: 'tenants:create', description: 'Create tenants', resource: 'tenants', action: 'create' },
       { name: 'tenants:read', description: 'Read tenants', resource: 'tenants', action: 'read' },
@@ -58,7 +94,8 @@ async function seedDatabase() {
       update: {},
       create: {
         name: 'Default School',
-        email: 'admin@schoolsystem.com'
+        email: 'admin@schoolsystem.com',
+        domain: 'default-school.system.com'
       }
     });
 
@@ -157,7 +194,13 @@ async function seedDatabase() {
           { resource: 'users' },
           { resource: 'roles' },
           { resource: 'courses' },
-          { resource: 'subjects' }
+          { resource: 'subjects' },
+          { resource: 'classes' },
+          { resource: 'examinations' },
+          { resource: 'grades' },
+          { resource: 'grading-scales' },
+          { resource: 'academic-years' },
+          { resource: 'schedules' }
         ]
       }
     });
@@ -178,12 +221,18 @@ async function seedDatabase() {
       });
     }
 
-    // Teacher gets read access to courses and subjects
+    // Teacher gets read access to academic data
     const teacherPermissions = await prisma.permission.findMany({
       where: {
         OR: [
           { name: 'courses:read' },
-          { name: 'subjects:read' }
+          { name: 'subjects:read' },
+          { name: 'classes:read' },
+          { name: 'examinations:read' },
+          { name: 'grades:read' },
+          { name: 'grading-scales:read' },
+          { name: 'academic-years:read' },
+          { name: 'schedules:read' }
         ]
       }
     });
@@ -199,6 +248,36 @@ async function seedDatabase() {
         update: {},
         create: {
           roleId: teacherRole.id,
+          permissionId: permission.id
+        }
+      });
+    }
+
+    // Student gets read access to personal academic data
+    const studentPermissions = await prisma.permission.findMany({
+      where: {
+        OR: [
+          { name: 'courses:read' },
+          { name: 'subjects:read' },
+          { name: 'classes:read' },
+          { name: 'examinations:read' },
+          { name: 'grades:read' },
+          { name: 'schedules:read' }
+        ]
+      }
+    });
+
+    for (const permission of studentPermissions) {
+      await prisma.rolePermission.upsert({
+        where: {
+          roleId_permissionId: {
+            roleId: studentRole.id,
+            permissionId: permission.id
+          }
+        },
+        update: {},
+        create: {
+          roleId: studentRole.id,
           permissionId: permission.id
         }
       });

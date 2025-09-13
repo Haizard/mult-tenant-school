@@ -39,7 +39,7 @@ app.get('/health', (req, res) => {
 // API Routes
 app.use('/api/tenants', require('./routes/tenantRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/auth', require('./routes/userRoutes')); // Keep auth routes for login/register
+app.use('/api/auth', require('./routes/authRoutes')); // Auth routes
 app.use('/api', require('./routes/roleRoutes'));
 app.use('/api/academic', require('./routes/academicRoutes'));
 app.use('/api/examinations', require('./routes/examinationRoutes'));

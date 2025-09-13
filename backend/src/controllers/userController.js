@@ -661,6 +661,234 @@ const getSystemUsers = async (req, res) => {
   }
 };
 
+// Logout user
+const logout = async (req, res) => {
+  try {
+    // In a real app, you might want to blacklist the token
+    // For now, we'll just return a success response
+    res.json({
+      success: true,
+      message: 'Logout successful'
+    });
+  } catch (error) {
+    console.error('Logout error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Logout failed',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Refresh token
+const refreshToken = async (req, res) => {
+  try {
+    const { token } = req.body;
+    
+    if (!token) {
+      return res.status(401).json({
+        success: false,
+        message: 'Refresh token required'
+      });
+    }
+
+    // Verify the token
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    
+    // Get user with roles and permissions
+    const user = await prisma.user.findUnique({
+      where: { id: decoded.userId },
+      include: {
+        tenant: true,
+        userRoles: {
+          include: {
+            role: {
+              include: {
+                rolePermissions: {
+                  include: {
+                    permission: true
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    });
+
+    if (!user || user.status !== 'ACTIVE') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token or user not active'
+      });
+    }
+
+    // Generate new JWT token
+    const newToken = jwt.sign(
+      {
+        userId: user.id,
+        tenantId: user.tenantId,
+        email: user.email
+      },
+      process.env.JWT_SECRET,
+      { expiresIn: process.env.JWT_EXPIRES_IN || '7d' }
+    );
+
+    res.json({
+      success: true,
+      message: 'Token refreshed successfully',
+      data: {
+        token: newToken
+      }
+    });
+  } catch (error) {
+    console.error('Token refresh error:', error);
+    res.status(401).json({
+      success: false,
+      message: 'Invalid or expired refresh token'
+    });
+  }
+};
+
+// Forgot password
+const forgotPassword = async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({
+        success: false,
+        message: 'Email is required'
+      });
+    }
+
+    // Find user by email
+    const user = await prisma.user.findFirst({
+      where: { email }
+    });
+
+    if (!user) {
+      // Don't reveal that the user doesn't exist
+      return res.json({
+        success: true,
+        message: 'If your email is registered, you will receive a password reset link'
+      });
+    }
+
+    // In a real app, you would generate a reset token and send an email
+    // For now, we'll just return a success message
+    res.json({
+      success: true,
+      message: 'If your email is registered, you will receive a password reset link'
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to process forgot password request',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Reset password
+const resetPassword = async (req, res) => {
+  try {
+    const { token, newPassword } = req.body;
+
+    if (!token || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Token and new password are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'Password must be at least 6 characters'
+      });
+    }
+
+    // In a real app, you would verify the reset token
+    // For now, we'll just return a success message
+    res.json({
+      success: true,
+      message: 'Password reset successfully'
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to reset password',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Change password
+const changePassword = async (req, res) => {
+  try {
+    const { currentPassword, newPassword } = req.body;
+
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password and new password are required'
+      });
+    }
+
+    if (newPassword.length < 6) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be at least 6 characters'
+      });
+    }
+
+    // Get user with password
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.id }
+    });
+
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found'
+      });
+    }
+
+    // Verify current password
+    const isPasswordValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isPasswordValid) {
+      return res.status(401).json({
+        success: false,
+        message: 'Current password is incorrect'
+      });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+
+    // Update password
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword }
+    });
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully'
+    });
+  } catch (error) {
+    console.error('Change password error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to change password',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   register,
   login,
@@ -673,7 +901,12 @@ module.exports = {
   getRoles,
   getSystemUsers,
   validateUser,
-  validateLogin
+  validateLogin,
+  logout,
+  refreshToken,
+  forgotPassword,
+  resetPassword,
+  changePassword
 };
 
 

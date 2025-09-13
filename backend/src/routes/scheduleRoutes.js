@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticateToken: authenticate, authorize } = require('../middleware/auth');
+const { authenticateToken, authorize } = require('../middleware/auth');
 const {
   getSchedules,
   getScheduleById,
@@ -15,7 +15,7 @@ const {
 const router = express.Router();
 
 // Apply authentication to all routes
-router.use(authenticate);
+router.use(authenticateToken);
 
 // Schedule CRUD routes
 router.get('/', authorize(['schedules:read']), getSchedules);

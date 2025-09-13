@@ -23,6 +23,17 @@ const SchedulesPage = () => {
 
   useEffect(() => {
     const loadSchedules = async () => {
+      if (!user) {
+        console.error('User not authenticated');
+        setSchedules([]);
+        setLoading(false);
+        return;
+      }
+
+      // Debug: Log user permissions and roles
+      console.log('User permissions:', user.permissions);
+      console.log('User roles:', user.roles);
+
       setLoading(true);
       try {
         const response = await scheduleService.getSchedules({
@@ -46,7 +57,7 @@ const SchedulesPage = () => {
     };
 
     loadSchedules();
-  }, []);
+  }, [user]);
 
 
   const handleCreateSchedule = () => {

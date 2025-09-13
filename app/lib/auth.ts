@@ -136,17 +136,30 @@ class AuthService {
   }
 
   public async getCurrentUser(): Promise<User | null> {
-    if (!this.currentUser && apiService.getToken()) {
+    const token = apiService.getToken();
+    console.log('Getting current user, token available:', !!token);
+    
+    if (!this.currentUser && token) {
       try {
+        console.log('Fetching user profile from /auth/profile');
         const response = await apiService.get<User>('/auth/profile');
+        console.log('Profile API response:', response);
+        
         if (response.success && response.data) {
+          console.log('Current user data:', response.data);
+          console.log('User permissions:', response.data.permissions);
           this.saveUserData(response.data);
           return response.data;
+        } else {
+          console.error('Failed to get user profile:', response.message);
+          this.logout();
         }
       } catch (error) {
         console.error('Error fetching current user:', error);
         this.logout();
       }
+    } else {
+      console.log('Using cached current user:', this.currentUser);
     }
     return this.currentUser;
   }

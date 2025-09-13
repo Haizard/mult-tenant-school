@@ -7,6 +7,8 @@ export interface ApiResponse<T = any> {
   data?: T;
   error?: string;
   errors?: Array<{ field: string; message: string }>;
+  pagination?: PaginationInfo;
+  responseText?: string;
 }
 
 export interface PaginationInfo {
@@ -37,17 +39,31 @@ class ApiService {
   }
 
   public setToken(token: string | null): void {
+    console.log('Setting auth token:', !!token);
     this.token = token;
     if (typeof window !== 'undefined') {
       if (token) {
         localStorage.setItem('auth_token', token);
+        console.log('Token saved to localStorage');
       } else {
         localStorage.removeItem('auth_token');
+        console.log('Token removed from localStorage');
       }
     }
   }
 
   public getToken(): string | null {
+    if (!this.token) {
+      // Try to get token from localStorage as a fallback
+      if (typeof window !== 'undefined') {
+        const storedToken = localStorage.getItem('auth_token');
+        if (storedToken) {
+          console.log('Retrieved token from localStorage');
+          this.token = storedToken;
+        }
+      }
+    }
+    console.log('Getting auth token:', !!this.token);
     return this.token;
   }
 
@@ -57,14 +73,24 @@ class ApiService {
   ): Promise<ApiResponse<T>> {
     const url = `${this.baseURL}${endpoint}`;
     
-    const headers: HeadersInit = {
+    const headers: Record<string, string> = {
       'Content-Type': 'application/json',
-      ...options.headers,
+      ...options.headers as Record<string, string>,
     };
 
     if (this.token) {
-      headers.Authorization = `Bearer ${this.token}`;
+      headers['Authorization'] = `Bearer ${this.token}`;
     }
+
+    console.log('API Request:', {
+      url,
+      method: options.method || 'GET',
+      headers: {
+        ...headers,
+        Authorization: headers['Authorization'] ? '[REDACTED]' : undefined
+      },
+      body: options.body
+    });
 
     try {
       const response = await fetch(url, {
@@ -72,14 +98,49 @@ class ApiService {
         headers,
       });
 
-      const data = await response.json();
+      console.log('API Response:', {
+        url,
+        status: response.status,
+        statusText: response.statusText,
+        headers: Object.fromEntries(response.headers.entries())
+      });
 
-      if (!response.ok) {
+      let data;
+      let responseText;
+      try {
+        responseText = await response.text();
+        console.log('Response body:', responseText);
+        
+        if (responseText) {
+          data = JSON.parse(responseText);
+        } else {
+          data = {};
+        }
+      } catch (jsonError) {
+        console.error('Failed to parse JSON response:', jsonError);
+        console.error('Response text:', responseText);
         return {
           success: false,
-          message: data.message || 'An error occurred',
-          error: data.error,
-          errors: data.errors,
+          message: 'Invalid response from server',
+          error: 'JSON_PARSE_ERROR',
+          responseText: responseText
+        };
+      }
+
+      if (!response.ok) {
+        console.error('API Error:', {
+          url,
+          status: response.status,
+          statusText: response.statusText,
+          data,
+          headers: headers
+        });
+        return {
+          success: false,
+          message: data?.message || `HTTP ${response.status}: ${response.statusText}`,
+          error: data?.error || 'HTTP_ERROR',
+          errors: data?.errors,
+          responseText: responseText
         };
       }
 

@@ -3,10 +3,6 @@ const router = express.Router();
 const userController = require('../controllers/userController');
 const { authenticateToken, authorize, ensureTenantAccess } = require('../middleware/auth');
 
-// Public routes (no authentication required)
-router.post('/register', userController.validateUser, userController.register);
-router.post('/login', userController.validateLogin, userController.login);
-
 // Allow user creation without authentication for initial setup
 router.post('/', userController.validateUser, userController.register);
 
@@ -25,9 +21,6 @@ router.get('/system',
 
 // Public route for getting user by ID (needed for user detail/edit pages)
 router.get('/:id', userController.getUserById);
-
-// User profile routes
-router.get('/profile', userController.getProfile);
 
 // User management routes (require user management permissions)
 router.get('/', 

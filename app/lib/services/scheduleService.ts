@@ -110,7 +110,12 @@ class ScheduleService {
         }
       });
 
-      const response = await apiService.get(`/schedules?${queryParams.toString()}`);
+      const endpoint = `/schedules?${queryParams.toString()}`;
+      console.log('Fetching schedules from:', endpoint);
+      console.log('Auth token available:', !!apiService.getToken());
+      
+      const response = await apiService.get<Schedule[]>(endpoint);
+      console.log('Schedules API response:', response);
       return response;
     } catch (error) {
       console.error('Error fetching schedules:', error);
@@ -124,7 +129,7 @@ class ScheduleService {
   // Get schedule by ID
   async getScheduleById(id: string): Promise<{ success: boolean; data?: Schedule; message?: string }> {
     try {
-      const response = await apiService.get(`/schedules/${id}`);
+      const response = await apiService.get<Schedule>(`/schedules/${id}`);
       return response;
     } catch (error) {
       console.error('Error fetching schedule:', error);
@@ -138,7 +143,7 @@ class ScheduleService {
   // Create new schedule
   async createSchedule(scheduleData: ScheduleFormData): Promise<{ success: boolean; data?: Schedule; message?: string }> {
     try {
-      const response = await apiService.post('/schedules', scheduleData);
+      const response = await apiService.post<Schedule>('/schedules', scheduleData);
       return response;
     } catch (error) {
       console.error('Error creating schedule:', error);
@@ -152,7 +157,7 @@ class ScheduleService {
   // Update schedule
   async updateSchedule(id: string, scheduleData: Partial<ScheduleFormData>): Promise<{ success: boolean; data?: Schedule; message?: string }> {
     try {
-      const response = await apiService.put(`/schedules/${id}`, scheduleData);
+      const response = await apiService.put<Schedule>(`/schedules/${id}`, scheduleData);
       return response;
     } catch (error) {
       console.error('Error updating schedule:', error);
@@ -184,7 +189,7 @@ class ScheduleService {
       if (startDate) queryParams.append('startDate', startDate);
       if (endDate) queryParams.append('endDate', endDate);
 
-      const response = await apiService.get(`/schedules/stats?${queryParams.toString()}`);
+      const response = await apiService.get<ScheduleStats>(`/schedules/stats?${queryParams.toString()}`);
       return response;
     } catch (error) {
       console.error('Error fetching schedule stats:', error);
