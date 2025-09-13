@@ -1,13 +1,14 @@
 import React from 'react';
 
 interface StatusBadgeProps {
-  status: 'active' | 'inactive' | 'pending' | 'completed' | 'cancelled' | 'expired' | 'warning' | 'success' | 'danger' | 'info' | 'default';
+  status: string;
+  color?: string;
   size?: 'sm' | 'md' | 'lg';
   showIcon?: boolean;
   children?: React.ReactNode;
 }
 
-const StatusBadge = ({ status, size = 'md', showIcon = true, children }: StatusBadgeProps) => {
+const StatusBadge = ({ status, color, size = 'md', showIcon = true, children }: StatusBadgeProps) => {
   const sizeClasses = {
     sm: 'px-2 py-1 text-xs',
     md: 'px-3 py-1.5 text-sm',

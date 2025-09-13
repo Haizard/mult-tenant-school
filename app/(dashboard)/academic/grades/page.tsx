@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { FaChartBar, FaPlus, FaEdit, FaTrash, FaEye, FaFilter, FaDownload } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -202,6 +203,7 @@ const getGradeColor = (grade: string) => {
 };
 
 export default function GradesPage() {
+  const router = useRouter();
   const { user } = useAuth();
   const auditLog = useAuditLog();
   const academicFilters = useAcademicFilters();
@@ -291,8 +293,7 @@ export default function GradesPage() {
   });
 
   const handleCreateExamination = () => {
-    // TODO: Navigate to create examination page
-    console.log('Create examination');
+    router.push('/academic/examinations/create');
   };
 
   const handleCreateGrade = () => {
@@ -300,13 +301,11 @@ export default function GradesPage() {
   };
 
   const handleEditExamination = (id: string) => {
-    // TODO: Navigate to edit examination page
-    console.log('Edit examination:', id);
+    router.push(`/academic/examinations/${id}/edit`);
   };
 
   const handleEditGrade = (id: string) => {
-    // TODO: Navigate to edit grade page
-    console.log('Edit grade:', id);
+    router.push(`/academic/grades/${id}/edit`);
   };
 
   const handleDeleteExamination = async (id: string) => {
@@ -342,13 +341,11 @@ export default function GradesPage() {
   };
 
   const handleViewExamination = (id: string) => {
-    // TODO: Navigate to examination details page
-    console.log('View examination:', id);
+    router.push(`/academic/examinations/${id}`);
   };
 
   const handleViewGrade = (id: string) => {
-    // TODO: Navigate to grade details page
-    console.log('View grade:', id);
+    router.push(`/academic/grades/${id}`);
   };
 
   const handleExportGrades = async () => {

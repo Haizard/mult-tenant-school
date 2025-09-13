@@ -472,7 +472,7 @@ const deleteExamination = async (req, res) => {
 // Grade Management
 const getGrades = async (req, res) => {
   try {
-    const { examinationId, studentId, subjectId, status } = req.query;
+    const { examinationId, studentId, subjectId, status, page, limit } = req.query;
     
     const where = {
       tenantId: req.tenantId,
@@ -526,61 +526,20 @@ const getGrades = async (req, res) => {
     });
 
     res.json({
-      success: true,## Error Type
-      Runtime ReferenceError
-      
-      ## Error Message
-      router is not defined
-      
-      
-          at handleCreateGrade (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/app_36a9b3cd._.js:2695:9)
-          at executeDispatch (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8965:13)
-          at runWithFiberInDEV (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:886:74)
-          at processDispatchQueue (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8991:41)
-          at <unknown> (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9286:13)
-          at batchedUpdates$1 (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:2211:44)
-          at dispatchEventForPluginEventSystem (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9067:9)
-          at dispatchEvent (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:11224:37)
-          at dispatchDiscreteEvent (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:11206:64)
-          at button (<anonymous>:null:null)
-          at Button (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/app_36a9b3cd._.js?id=%255Bproject%255D%252Fapp%252Fcomponents%252Fui%252FButton.tsx+%255Bapp-client%255D+%2528ecmascript%2529:27:214)
-          at RoleBasedButton (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/app_36a9b3cd._.js?id=%255Bproject%255D%252Fapp%252Fcomponents%252FRoleBasedButton.tsx+%255Bapp-client%255D+%2528ecmascript%2529:46:214)
-          at GradesPage (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/app_36a9b3cd._.js:2834:231)
-          at ClientPageRoot (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_8db7fb1f._.js:2645:50)
-      
-      Next.js version: 15.5.2 (Turbopack)
-## Error Type
-Runtime ReferenceError
-
-## Error Message
-router is not defined
-
-
-    at handleCreateGrade (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/app_36a9b3cd._.js:2695:9)
-    at executeDispatch (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8965:13)
-    at runWithFiberInDEV (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:886:74)
-    at processDispatchQueue (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:8991:41)
-    at <unknown> (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9286:13)
-    at batchedUpdates$1 (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:2211:44)
-    at dispatchEventForPluginEventSystem (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:9067:9)
-    at dispatchEvent (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:11224:37)
-    at dispatchDiscreteEvent (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_compiled_react-dom_1e674e59._.js:11206:64)
-    at button (<anonymous>:null:null)
-    at Button (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/app_36a9b3cd._.js?id=%255Bproject%255D%252Fapp%252Fcomponents%252Fui%252FButton.tsx+%255Bapp-client%255D+%2528ecmascript%2529:27:214)
-    at RoleBasedButton (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/app_36a9b3cd._.js?id=%255Bproject%255D%252Fapp%252Fcomponents%252FRoleBasedButton.tsx+%255Bapp-client%255D+%2528ecmascript%2529:46:214)
-    at GradesPage (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/app_36a9b3cd._.js:2834:231)
-    at ClientPageRoot (file://C:/Users/HAIZARD/Desktop/school system/mult-tenant-school/.next/static/chunks/node_modules_next_dist_8db7fb1f._.js:2645:50)
-
-Next.js version: 15.5.2 (Turbopack)
-      
-      data: grades
+      success: true,
+      data: grades,
+      pagination: {
+        page: parseInt(page) || 1,
+        limit: parseInt(limit) || 10,
+        total: grades.length
+      }
     });
   } catch (error) {
-    console.error('Get grades error:', error);
+    console.error('Error fetching grades:', error);
     res.status(500).json({
       success: false,
-      message: 'Failed to get grades',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      message: 'Failed to fetch grades',
+      error: error.message
     });
   }
 };

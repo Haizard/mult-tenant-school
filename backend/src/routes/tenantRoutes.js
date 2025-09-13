@@ -258,6 +258,67 @@ router.post('/', validateTenant, async (req, res) => {
             isSystem: true
           }
         });
+
+        // Define default permissions for Tenant Admin
+        const defaultPermissions = [
+          { name: 'users:read', description: 'View users', resource: 'users', action: 'read' },
+          { name: 'users:create', description: 'Create users', resource: 'users', action: 'create' },
+          { name: 'users:update', description: 'Update users', resource: 'users', action: 'update' },
+          { name: 'users:delete', description: 'Delete users', resource: 'users', action: 'delete' },
+          { name: 'courses:read', description: 'View courses', resource: 'courses', action: 'read' },
+          { name: 'courses:create', description: 'Create courses', resource: 'courses', action: 'create' },
+          { name: 'courses:update', description: 'Update courses', resource: 'courses', action: 'update' },
+          { name: 'courses:delete', description: 'Delete courses', resource: 'courses', action: 'delete' },
+          { name: 'subjects:read', description: 'View subjects', resource: 'subjects', action: 'read' },
+          { name: 'subjects:create', description: 'Create subjects', resource: 'subjects', action: 'create' },
+          { name: 'subjects:update', description: 'Update subjects', resource: 'subjects', action: 'update' },
+          { name: 'subjects:delete', description: 'Delete subjects', resource: 'subjects', action: 'delete' },
+          { name: 'examinations:read', description: 'View examinations', resource: 'examinations', action: 'read' },
+          { name: 'examinations:create', description: 'Create examinations', resource: 'examinations', action: 'create' },
+          { name: 'examinations:update', description: 'Update examinations', resource: 'examinations', action: 'update' },
+          { name: 'examinations:delete', description: 'Delete examinations', resource: 'examinations', action: 'delete' },
+          { name: 'grades:read', description: 'View grades', resource: 'grades', action: 'read' },
+          { name: 'grades:create', description: 'Create grades', resource: 'grades', action: 'create' },
+          { name: 'grades:update', description: 'Update grades', resource: 'grades', action: 'update' },
+          { name: 'grades:delete', description: 'Delete grades', resource: 'grades', action: 'delete' },
+          { name: 'grading-scales:read', description: 'View grading scales', resource: 'grading-scales', action: 'read' },
+          { name: 'grading-scales:create', description: 'Create grading scales', resource: 'grading-scales', action: 'create' },
+          { name: 'academic-years:read', description: 'View academic years', resource: 'academic-years', action: 'read' },
+          { name: 'academic-years:create', description: 'Create academic years', resource: 'academic-years', action: 'create' },
+          { name: 'academic-years:update', description: 'Update academic years', resource: 'academic-years', action: 'update' },
+          { name: 'academic-years:delete', description: 'Delete academic years', resource: 'academic-years', action: 'delete' },
+          { name: 'reports:read', description: 'View reports', resource: 'reports', action: 'read' },
+          { name: 'analytics:read', description: 'View analytics', resource: 'analytics', action: 'read' }
+        ];
+
+        // Create/assign permissions to the new role
+        for (const permissionData of defaultPermissions) {
+          // Create or get the permission
+          const permission = await tx.permission.upsert({
+            where: {
+              name: permissionData.name
+            },
+            update: {
+              description: permissionData.description,
+              resource: permissionData.resource,
+              action: permissionData.action
+            },
+            create: {
+              name: permissionData.name,
+              description: permissionData.description,
+              resource: permissionData.resource,
+              action: permissionData.action
+            }
+          });
+
+          // Assign permission to role
+          await tx.rolePermission.create({
+            data: {
+              roleId: tenantAdminRole.id,
+              permissionId: permission.id
+            }
+          });
+        }
       }
 
       // Assign Tenant Admin role to user

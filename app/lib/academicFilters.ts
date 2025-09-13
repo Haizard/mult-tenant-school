@@ -284,11 +284,15 @@ export class AcademicDataFilter {
   canViewAcademicData(resource: string, resourceId?: string): boolean {
     switch (resource) {
       case 'courses':
-        return this.permissionChecker.canViewAcademic();
+        return this.permissionChecker.hasPermission('courses', 'read');
       case 'subjects':
-        return this.permissionChecker.canViewAcademic();
+        return this.permissionChecker.hasPermission('subjects', 'read');
       case 'classes':
-        return this.permissionChecker.canViewAcademic();
+        return this.permissionChecker.hasPermission('classes', 'read');
+      case 'examinations':
+        return this.permissionChecker.hasPermission('examinations', 'read');
+      case 'grades':
+        return this.permissionChecker.hasPermission('grades', 'read');
       case 'teacher_assignments':
         return this.permissionChecker.hasAnyRole(['Super Admin', 'Tenant Admin', 'Teacher']);
       default:
@@ -302,11 +306,25 @@ export class AcademicDataFilter {
   canManageAcademicData(resource: string, resourceId?: string): boolean {
     switch (resource) {
       case 'courses':
-        return this.permissionChecker.canManageAcademic();
+        return this.permissionChecker.hasPermission('courses', 'create') || 
+               this.permissionChecker.hasPermission('courses', 'update') ||
+               this.permissionChecker.hasPermission('courses', 'delete');
       case 'subjects':
-        return this.permissionChecker.canManageAcademic();
+        return this.permissionChecker.hasPermission('subjects', 'create') || 
+               this.permissionChecker.hasPermission('subjects', 'update') ||
+               this.permissionChecker.hasPermission('subjects', 'delete');
       case 'classes':
-        return this.permissionChecker.canManageAcademic();
+        return this.permissionChecker.hasPermission('classes', 'create') || 
+               this.permissionChecker.hasPermission('classes', 'update') ||
+               this.permissionChecker.hasPermission('classes', 'delete');
+      case 'examinations':
+        return this.permissionChecker.hasPermission('examinations', 'create') || 
+               this.permissionChecker.hasPermission('examinations', 'update') ||
+               this.permissionChecker.hasPermission('examinations', 'delete');
+      case 'grades':
+        return this.permissionChecker.hasPermission('grades', 'create') || 
+               this.permissionChecker.hasPermission('grades', 'update') ||
+               this.permissionChecker.hasPermission('grades', 'delete');
       case 'teacher_assignments':
         return this.permissionChecker.hasAnyRole(['Super Admin', 'Tenant Admin']);
       default:

@@ -66,6 +66,28 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     { resource: 'teacher_assignments', action: 'update', roles: ['Super Admin', 'Tenant Admin'] },
     { resource: 'teacher_assignments', action: 'delete', roles: ['Super Admin', 'Tenant Admin'] },
     
+    // Examination management
+    { resource: 'examinations', action: 'create', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'examinations', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'] },
+    { resource: 'examinations', action: 'update', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'examinations', action: 'delete', roles: ['Super Admin', 'Tenant Admin'] },
+    
+    // Grade management
+    { resource: 'grades', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'grades', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'] },
+    { resource: 'grades', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'grades', action: 'delete', roles: ['Super Admin', 'Tenant Admin'] },
+    
+    // Grading scales
+    { resource: 'grading-scales', action: 'create', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'grading-scales', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    
+    // Academic years
+    { resource: 'academic-years', action: 'create', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'academic-years', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'] },
+    { resource: 'academic-years', action: 'update', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'academic-years', action: 'delete', roles: ['Super Admin', 'Tenant Admin'] },
+    
     // Reports and analytics
     { resource: 'reports', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
     { resource: 'analytics', action: 'read', roles: ['Super Admin', 'Tenant Admin'] },
@@ -93,6 +115,16 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     { resource: 'assessments', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
     { resource: 'assessments', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
     { resource: 'assessments', action: 'delete', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    
+    // Examination management (for assigned subjects)
+    { resource: 'examinations', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'] },
+    { resource: 'examinations', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'examinations', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    
+    // Grade management (for assigned subjects)
+    { resource: 'grades', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'grades', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher', 'Student'] },
+    { resource: 'grades', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
     
     // Student data access (assigned students only)
     { resource: 'students', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
@@ -161,42 +193,28 @@ export class RolePermissionChecker {
    * Check if user has permission for a specific resource and action
    */
   hasPermission(resource: string, action: string): boolean {
-    if (!this.user?.roles) return false;
+    if (!this.user?.permissions) return false;
 
-    // Check if any of the user's roles have the required permission
-    return this.user.roles.some(role => {
-      const rolePermissions = ROLE_PERMISSIONS[role.name] || [];
-      return rolePermissions.some(permission => 
-        permission.resource === resource && 
-        permission.action === action &&
-        permission.roles.includes(role.name)
-      );
-    });
+    // Check if user has the permission in their permissions array from database
+    const permissionName = `${resource}:${action}`;
+    return this.user.permissions.includes(permissionName);
   }
 
   /**
    * Get all permissions for the current user
    */
   getUserPermissions(): Permission[] {
-    if (!this.user?.roles) return [];
+    if (!this.user?.permissions) return [];
 
-    const userPermissions: Permission[] = [];
-    
-    this.user.roles.forEach(role => {
-      const rolePermissions = ROLE_PERMISSIONS[role.name] || [];
-      rolePermissions.forEach(permission => {
-        if (permission.roles.includes(role.name)) {
-          // Avoid duplicates
-          if (!userPermissions.some(up => 
-            up.resource === permission.resource && up.action === permission.action
-          )) {
-            userPermissions.push(permission);
-          }
-        }
-      });
+    // Convert permission strings like "grades:create" to Permission objects
+    return this.user.permissions.map(permissionName => {
+      const [resource, action] = permissionName.split(':');
+      return {
+        resource,
+        action,
+        roles: this.user.roles.map(role => role.name)
+      };
     });
-
-    return userPermissions;
   }
 
   /**
@@ -298,8 +316,9 @@ export const createPermissionChecker = (user: User | null): RolePermissionChecke
 
 // Export default permission checker for common use cases
 export const checkPermission = (user: User | null, resource: string, action: string): boolean => {
-  const checker = createPermissionChecker(user);
-  return checker.hasPermission(resource, action);
+  if (!user?.permissions) return false;
+  const permissionName = `${resource}:${action}`;
+  return user.permissions.includes(permissionName);
 };
 
 // Export role checking utilities
