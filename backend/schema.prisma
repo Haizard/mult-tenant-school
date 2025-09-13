@@ -43,6 +43,7 @@ model Tenant {
   grades Grade[]
   gradingScales GradingScale[]
   schedules Schedule[]
+  classes Class[]
 }
 
 enum TenantStatus {
@@ -93,6 +94,10 @@ model User {
   teacherSchedules Schedule[] @relation("ScheduleTeacher")
   createdSchedules Schedule[] @relation("ScheduleCreatedBy")
   updatedSchedules Schedule[] @relation("ScheduleUpdatedBy")
+  
+  // Class relationships
+  createdClasses Class[] @relation("ClassCreatedBy")
+  updatedClasses Class[] @relation("ClassUpdatedBy")
 
   @@unique([tenantId, email])
 }
@@ -267,6 +272,29 @@ model AcademicYear {
   @@unique([tenantId, yearName])
 }
 
+model Class {
+  id          String @id @default(cuid())
+  tenantId    String
+  className   String
+  classCode   String?
+  description String?
+  capacity    Int     @default(30)
+  status      ClassStatus @default(ACTIVE)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  createdBy String
+  updatedBy String
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdByUser User @relation("ClassCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser User @relation("ClassUpdatedBy", fields: [updatedBy], references: [id])
+  schedules Schedule[]
+
+  @@unique([tenantId, className])
+}
+
 // Examination & Grading Models for Story 4.1
 model Examination {
   id          String @id @default(cuid())
@@ -427,6 +455,12 @@ enum ScheduleStatus {
   CANCELLED
   COMPLETED
   DRAFT
+}
+
+enum ClassStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
 }
 
 // Schedule Management Model for Academic Calendar

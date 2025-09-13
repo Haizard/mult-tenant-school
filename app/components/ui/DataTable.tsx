@@ -32,9 +32,9 @@ const DataTable = ({
   const [currentPage, setCurrentPage] = useState(1);
 
   // Filter data based on search term
-  const filteredData = data.filter((row) =>
+  const filteredData = (data || []).filter((row) =>
     row && Object.values(row).some((value) =>
-      String(value).toLowerCase().includes(searchTerm.toLowerCase())
+      value != null && String(value).toLowerCase().includes(searchTerm.toLowerCase())
     )
   );
 
@@ -137,8 +137,8 @@ const DataTable = ({
                 {columns.map((column) => (
                   <td key={column.key} className="py-4 px-4 text-text-secondary">
                     {column.render
-                      ? column.render(row[column.key], row, index)
-                      : row?.[column.key]}
+                      ? column.render(row?.[column.key], row, index)
+                      : row?.[column.key] || '-'}
                   </td>
                 ))}
               </tr>

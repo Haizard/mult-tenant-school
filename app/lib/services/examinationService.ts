@@ -354,7 +354,7 @@ class ExaminationService {
   // Utility Methods
   async getExaminationStats(): Promise<{ success: boolean; data?: any; message?: string }> {
     try {
-      const response = await apiService.get('/examinations/stats');
+      const response = await apiService.get('/examinations/examinations/stats');
       return response;
     } catch (error: any) {
       console.error('Error fetching examination stats:', error);
@@ -367,7 +367,7 @@ class ExaminationService {
 
   async getGradeStats(): Promise<{ success: boolean; data?: any; message?: string }> {
     try {
-      const response = await apiService.get('/examinations/grade-stats');
+      const response = await apiService.get('/examinations/examinations/grade-stats');
       return response;
     } catch (error: any) {
       console.error('Error fetching grade stats:', error);

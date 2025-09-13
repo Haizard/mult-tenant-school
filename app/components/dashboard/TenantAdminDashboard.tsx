@@ -72,7 +72,12 @@ const TenantAdminDashboard = () => {
   ];
 
   useEffect(() => {
-    setSchoolUsers(sampleUsers);
+    // Simulate loading state
+    setIsLoading(true);
+    setTimeout(() => {
+      setSchoolUsers(sampleUsers);
+      setIsLoading(false);
+    }, 100);
   }, []);
 
   const getRoleIcon = (role: string) => {
@@ -145,72 +150,105 @@ const TenantAdminDashboard = () => {
       key: 'name',
       label: 'User',
       render: (user: SchoolUser) => (
-        <div className="flex items-center">
-          {getRoleIcon(user.role)}
-          <div className="ml-3">
-            <div className="font-medium text-gray-900">{user.name}</div>
-            <div className="text-sm text-gray-500">{user.email}</div>
+        user ? (
+          <div className="flex items-center">
+            {getRoleIcon(user.role || 'Unknown')}
+            <div className="ml-3">
+              <div className="font-medium text-gray-900">{user.name || 'Unknown'}</div>
+              <div className="text-sm text-gray-500">{user.email || 'No email'}</div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <div className="flex items-center">
+            <div className="ml-3">
+              <div className="font-medium text-gray-400">Loading...</div>
+              <div className="text-sm text-gray-300">Loading...</div>
+            </div>
+          </div>
+        )
       )
     },
     {
       key: 'role',
       label: 'Role',
       render: (user: SchoolUser) => (
-        <div>
-          <div className="font-medium text-gray-900">{user.role}</div>
-          {user.department && (
-            <div className="text-sm text-gray-500">{user.department}</div>
-          )}
-          {user.grade && (
-            <div className="text-sm text-gray-500">{user.grade}</div>
-          )}
-        </div>
+        user ? (
+          <div>
+            <div className="font-medium text-gray-900">{user.role || 'Unknown'}</div>
+            {user.department && (
+              <div className="text-sm text-gray-500">{user.department}</div>
+            )}
+            {user.grade && (
+              <div className="text-sm text-gray-500">{user.grade}</div>
+            )}
+          </div>
+        ) : (
+          <div>
+            <div className="font-medium text-gray-400">Loading...</div>
+          </div>
+        )
       )
     },
     {
       key: 'status',
       label: 'Status',
       render: (user: SchoolUser) => (
-        <StatusBadge status={getStatusColor(user.status) as any}>
-          {user.status}
-        </StatusBadge>
+        user && user.status ? (
+          <StatusBadge status={getStatusColor(user.status) as any}>
+            {user.status}
+          </StatusBadge>
+        ) : (
+          <StatusBadge status="default">
+            Unknown
+          </StatusBadge>
+        )
       )
     },
     {
       key: 'lastLogin',
       label: 'Last Login',
       render: (user: SchoolUser) => (
-        <div className="text-sm text-gray-600">
-          {new Date(user.lastLogin).toLocaleDateString()}
-        </div>
+        user && user.lastLogin ? (
+          <div className="text-sm text-gray-600">
+            {new Date(user.lastLogin).toLocaleDateString()}
+          </div>
+        ) : (
+          <div className="text-sm text-gray-400">
+            Never
+          </div>
+        )
       )
     },
     {
       key: 'actions',
       label: 'Actions',
       render: (user: SchoolUser) => (
-        <div className="flex space-x-2">
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => handleEditUser(user.id)}
-            className="text-blue-600 hover:text-blue-800"
-          >
-            Edit
-          </Button>
-          {user.status === 'PENDING' && (
+        user ? (
+          <div className="flex space-x-2">
             <Button
               variant="ghost"
               size="sm"
               onClick={() => handleEditUser(user.id)}
-              className="text-green-600 hover:text-green-800"
+              className="text-blue-600 hover:text-blue-800"
             >
-              Approve
+              Edit
             </Button>
-          )}
-        </div>
+            {user.status === 'PENDING' && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => handleEditUser(user.id)}
+                className="text-green-600 hover:text-green-800"
+              >
+                Approve
+              </Button>
+            )}
+          </div>
+        ) : (
+          <div className="flex space-x-2">
+            <div className="text-gray-400 text-sm">Loading...</div>
+          </div>
+        )
       )
     }
   ];
@@ -338,13 +376,19 @@ const TenantAdminDashboard = () => {
             </Button>
           </div>
         </div>
-        <DataTable
-          data={schoolUsers}
-          columns={userColumns}
-          searchable={true}
-          sortable={true}
-          pagination={true}
-        />
+        {isLoading ? (
+          <div className="flex items-center justify-center py-8">
+            <div className="text-gray-500">Loading users...</div>
+          </div>
+        ) : (
+          <DataTable
+            data={schoolUsers || []}
+            columns={userColumns}
+            searchable={true}
+            sortable={true}
+            pagination={true}
+          />
+        )}
       </Card>
 
       {/* Academic Overview */}

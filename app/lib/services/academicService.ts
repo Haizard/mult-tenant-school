@@ -58,7 +58,7 @@ class AcademicService {
   // Subjects
   async getSubjects(): Promise<Subject[]> {
     try {
-      const response = await apiService.get('/academic/subjects');
+      const response = await apiService.get('/subjects');
       return response.data || [];
     } catch (error) {
       console.error('Error fetching subjects:', error);
@@ -68,7 +68,7 @@ class AcademicService {
 
   async getSubjectById(id: string): Promise<Subject> {
     try {
-      const response = await apiService.get(`/academic/subjects/${id}`);
+      const response = await apiService.get(`/subjects/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching subject:', error);
@@ -78,7 +78,7 @@ class AcademicService {
 
   async createSubject(subjectData: Partial<Subject>): Promise<Subject> {
     try {
-      const response = await apiService.post('/academic/subjects', subjectData);
+      const response = await apiService.post('/subjects', subjectData);
       return response.data;
     } catch (error) {
       console.error('Error creating subject:', error);
@@ -88,7 +88,7 @@ class AcademicService {
 
   async updateSubject(id: string, subjectData: Partial<Subject>): Promise<Subject> {
     try {
-      const response = await apiService.put(`/academic/subjects/${id}`, subjectData);
+      const response = await apiService.put(`/subjects/${id}`, subjectData);
       return response.data;
     } catch (error) {
       console.error('Error updating subject:', error);
@@ -98,7 +98,7 @@ class AcademicService {
 
   async deleteSubject(id: string): Promise<void> {
     try {
-      await apiService.delete(`/academic/subjects/${id}`);
+      await apiService.delete(`/subjects/${id}`);
     } catch (error) {
       console.error('Error deleting subject:', error);
       throw error;
@@ -108,7 +108,7 @@ class AcademicService {
   // Academic Years
   async getAcademicYears(): Promise<AcademicYear[]> {
     try {
-      const response = await apiService.get('/academic/academic-years');
+      const response = await apiService.get('/academic-years');
       return response.data || [];
     } catch (error) {
       console.error('Error fetching academic years:', error);
@@ -118,7 +118,7 @@ class AcademicService {
 
   async getCurrentAcademicYear(): Promise<AcademicYear> {
     try {
-      const response = await apiService.get('/academic/academic-years/current');
+      const response = await apiService.get('/academic-years/current');
       return response.data;
     } catch (error) {
       console.error('Error fetching current academic year:', error);
@@ -128,7 +128,7 @@ class AcademicService {
 
   async createAcademicYear(yearData: Partial<AcademicYear>): Promise<AcademicYear> {
     try {
-      const response = await apiService.post('/academic/academic-years', yearData);
+      const response = await apiService.post('/academic-years', yearData);
       return response.data;
     } catch (error) {
       console.error('Error creating academic year:', error);
@@ -139,7 +139,7 @@ class AcademicService {
   // Classes
   async getClasses(): Promise<Class[]> {
     try {
-      const response = await apiService.get('/academic/classes');
+      const response = await apiService.get('/classes');
       return response.data || [];
     } catch (error) {
       console.error('Error fetching classes:', error);
@@ -149,7 +149,7 @@ class AcademicService {
 
   async getClassById(id: string): Promise<Class> {
     try {
-      const response = await apiService.get(`/academic/classes/${id}`);
+      const response = await apiService.get(`/classes/${id}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching class:', error);
@@ -169,7 +169,7 @@ class AcademicService {
 
   async updateClass(id: string, classData: Partial<Class>): Promise<Class> {
     try {
-      const response = await apiService.put(`/academic/classes/${id}`, classData);
+      const response = await apiService.put(`/classes/${id}`, classData);
       return response.data;
     } catch (error) {
       console.error('Error updating class:', error);
@@ -179,7 +179,7 @@ class AcademicService {
 
   async deleteClass(id: string): Promise<void> {
     try {
-      await apiService.delete(`/academic/classes/${id}`);
+      await apiService.delete(`/classes/${id}`);
     } catch (error) {
       console.error('Error deleting class:', error);
       throw error;
@@ -262,7 +262,7 @@ class AcademicService {
         });
       }
       
-      const response = await apiService.get(`/academic/reports?${params.toString()}`);
+      const response = await apiService.get(`/reports?${params.toString()}`);
       return response.data || [];
     } catch (error) {
       console.error('Error fetching academic reports:', error);
@@ -284,7 +284,7 @@ class AcademicService {
         });
       }
       
-      const response = await apiService.get(`/academic/statistics?${params.toString()}`);
+      const response = await apiService.get(`/statistics?${params.toString()}`);
       return response.data;
     } catch (error) {
       console.error('Error fetching academic statistics:', error);

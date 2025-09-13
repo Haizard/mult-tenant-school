@@ -1,6 +1,5 @@
 const express = require('express');
-const { authenticate } = require('../middleware/auth');
-const { authorize } = require('../middleware/authorize');
+const { authenticateToken: authenticate, authorize } = require('../middleware/auth');
 const {
   getSchedules,
   getScheduleById,
