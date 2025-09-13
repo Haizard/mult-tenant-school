@@ -23,6 +23,10 @@ const {
   getGradingScales,
   createGradingScale,
   validateGradingScale,
+  
+  // Export functions
+  exportGrades,
+  exportExaminations,
 } = require('../controllers/examinationController');
 
 // Apply authentication middleware to all routes
@@ -45,5 +49,9 @@ router.delete('/grades/:id', authorize(['grades:delete']), deleteGrade);
 // Grading Scale Routes
 router.get('/grading-scales', authorize(['grading-scales:read']), getGradingScales);
 router.post('/grading-scales', authorize(['grading-scales:create']), validateGradingScale, createGradingScale);
+
+// Export Routes
+router.get('/export/grades', authorize(['grades:read']), exportGrades);
+router.get('/export/examinations', authorize(['examinations:read']), exportExaminations);
 
 module.exports = router;

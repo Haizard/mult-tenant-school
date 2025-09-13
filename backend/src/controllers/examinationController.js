@@ -1031,6 +1031,223 @@ const createGradingScale = async (req, res) => {
   }
 };
 
+// Export Grades to CSV/Excel
+const exportGrades = async (req, res) => {
+  try {
+    const { format = 'csv', examinationId, subjectId, academicYearId } = req.query;
+    
+    const where = {
+      tenantId: req.tenantId,
+      ...(examinationId && { examinationId }),
+      ...(subjectId && { subjectId }),
+    };
+
+    // If academicYearId is provided, filter by examination's academic year
+    if (academicYearId) {
+      where.examination = {
+        academicYearId: academicYearId
+      };
+    }
+
+    const grades = await prisma.grade.findMany({
+      where,
+      include: {
+        student: {
+          select: {
+            firstName: true,
+            lastName: true,
+            email: true,
+          }
+        },
+        examination: {
+          select: {
+            examName: true,
+            examType: true,
+            examLevel: true,
+            maxMarks: true,
+            startDate: true,
+          }
+        },
+        subject: {
+          select: {
+            subjectName: true,
+            subjectCode: true,
+          }
+        },
+        createdByUser: {
+          select: {
+            firstName: true,
+            lastName: true,
+          }
+        }
+      },
+      orderBy: [
+        { examination: { startDate: 'desc' } },
+        { student: { lastName: 'asc' } },
+        { student: { firstName: 'asc' } }
+      ]
+    });
+
+    if (format === 'csv') {
+      // Generate CSV
+      const csvHeaders = [
+        'Student Name',
+        'Student Email', 
+        'Examination',
+        'Subject',
+        'Raw Marks',
+        'Max Marks',
+        'Percentage',
+        'Grade',
+        'Points',
+        'Status',
+        'Exam Date',
+        'Comments',
+        'Graded By'
+      ];
+
+      const csvRows = grades.map(grade => [
+        `${grade.student.firstName} ${grade.student.lastName}`,
+        grade.student.email,
+        grade.examination.examName,
+        grade.subject.subjectName,
+        grade.rawMarks,
+        grade.examination.maxMarks,
+        grade.percentage.toFixed(1),
+        grade.grade || '',
+        grade.points || '',
+        grade.status,
+        new Date(grade.examination.startDate).toLocaleDateString(),
+        grade.comments || '',
+        grade.createdByUser ? `${grade.createdByUser.firstName} ${grade.createdByUser.lastName}` : ''
+      ]);
+
+      const csvContent = [csvHeaders, ...csvRows]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=grades-export-${new Date().toISOString().split('T')[0]}.csv`);
+      res.send(csvContent);
+    } else {
+      // Return JSON for other formats (can be extended for Excel)
+      res.json({
+        success: true,
+        data: grades,
+        count: grades.length
+      });
+    }
+  } catch (error) {
+    console.error('Export grades error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export grades',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Export Examinations to CSV/Excel
+const exportExaminations = async (req, res) => {
+  try {
+    const { format = 'csv', academicYearId, subjectId, examType } = req.query;
+    
+    const where = {
+      tenantId: req.tenantId,
+      ...(academicYearId && { academicYearId }),
+      ...(subjectId && { subjectId }),
+      ...(examType && { examType }),
+    };
+
+    const examinations = await prisma.examination.findMany({
+      where,
+      include: {
+        subject: {
+          select: {
+            subjectName: true,
+            subjectCode: true,
+          }
+        },
+        academicYear: {
+          select: {
+            yearName: true,
+          }
+        },
+        createdByUser: {
+          select: {
+            firstName: true,
+            lastName: true,
+          }
+        },
+        _count: {
+          select: {
+            grades: true
+          }
+        }
+      },
+      orderBy: [
+        { startDate: 'desc' },
+        { examName: 'asc' }
+      ]
+    });
+
+    if (format === 'csv') {
+      // Generate CSV
+      const csvHeaders = [
+        'Examination Name',
+        'Type',
+        'Level',
+        'Subject',
+        'Academic Year',
+        'Start Date',
+        'End Date',
+        'Max Marks',
+        'Weight',
+        'Status',
+        'Total Grades',
+        'Created By'
+      ];
+
+      const csvRows = examinations.map(exam => [
+        exam.examName,
+        exam.examType.replace('_', ' '),
+        exam.examLevel.replace('_', '-'),
+        exam.subject ? exam.subject.subjectName : 'All Subjects',
+        exam.academicYear ? exam.academicYear.yearName : '',
+        new Date(exam.startDate).toLocaleDateString(),
+        exam.endDate ? new Date(exam.endDate).toLocaleDateString() : '',
+        exam.maxMarks,
+        exam.weight,
+        exam.status,
+        exam._count.grades,
+        exam.createdByUser ? `${exam.createdByUser.firstName} ${exam.createdByUser.lastName}` : ''
+      ]);
+
+      const csvContent = [csvHeaders, ...csvRows]
+        .map(row => row.map(field => `"${field}"`).join(','))
+        .join('\n');
+
+      res.setHeader('Content-Type', 'text/csv');
+      res.setHeader('Content-Disposition', `attachment; filename=examinations-export-${new Date().toISOString().split('T')[0]}.csv`);
+      res.send(csvContent);
+    } else {
+      // Return JSON for other formats
+      res.json({
+        success: true,
+        data: examinations,
+        count: examinations.length
+      });
+    }
+  } catch (error) {
+    console.error('Export examinations error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to export examinations',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
 module.exports = {
   // Examination management
   getExaminations,
@@ -1053,4 +1270,8 @@ module.exports = {
   getGradingScales,
   createGradingScale,
   validateGradingScale,
+  
+  // Export functions
+  exportGrades,
+  exportExaminations,
 };
