@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { FaCalendarAlt, FaClock, FaChalkboardTeacher, FaUserGraduate, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
-import Card from '../../components/ui/Card';
+import { Card } from '../../components/ui/Card';
 import Button from '../../components/ui/Button';
 import StatusBadge from '../../components/ui/StatusBadge';
 import DataTable from '../../components/ui/DataTable';

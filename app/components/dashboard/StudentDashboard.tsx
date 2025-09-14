@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaUserGraduate, FaBook, FaCalendarAlt, FaChartLine, FaTrophy, FaClock } from 'react-icons/fa';
-import Card from '../ui/Card';
+import { Card } from '../ui/Card';
 import StatCard from '../ui/StatCard';
 import ProgressRing from '../ui/ProgressRing';
 import StatusBadge from '../ui/StatusBadge';
@@ -118,7 +118,7 @@ const StudentDashboard = () => {
         {/* Left Column - 2/3 width */}
         <div className="lg:col-span-2 space-y-6">
           {/* Recent Grades */}
-          <Card variant="strong" glow="purple">
+          <Card className="glass-card p-6 border-accent-purple/50">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-text-primary">Recent Grades</h2>
               <button className="glass-button px-4 py-2 text-sm">
@@ -135,7 +135,7 @@ const StudentDashboard = () => {
           </Card>
 
           {/* Attendance Overview */}
-          <Card variant="gradient">
+          <Card className="glass-card p-6">
             <h2 className="text-xl font-bold text-text-primary mb-6">Attendance Overview</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {attendanceData.map((item, index) => (
@@ -174,7 +174,7 @@ const StudentDashboard = () => {
           />
 
           {/* Notifications */}
-          <Card variant="default">
+          <Card className="glass-card p-6">
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-xl font-bold text-text-primary">Notifications</h2>
               <StatusBadge status="warning" size="sm">
@@ -193,7 +193,7 @@ const StudentDashboard = () => {
           </Card>
 
           {/* Quick Actions */}
-          <Card variant="strong">
+          <Card className="glass-card p-6">
             <h2 className="text-xl font-bold text-text-primary mb-6">Quick Actions</h2>
             <div className="grid grid-cols-2 gap-4">
               <button className="glass-button p-4 text-center hover:scale-105 transition-all duration-200">

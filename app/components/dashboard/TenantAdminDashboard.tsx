@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaUsers, FaChalkboardTeacher, FaUserGraduate, FaBook, FaChartLine, FaCalendarAlt, FaCog, FaBell, FaUserShield, FaBookOpen, FaPlus } from 'react-icons/fa';
-import Card from '../ui/Card';
+import { Card } from '../ui/Card';
 import Button from '../ui/Button';
 import StatusBadge from '../ui/StatusBadge';
 import DataTable from '../ui/DataTable';

@@ -1,6 +1,6 @@
 import React from 'react';
 import { FaChalkboardTeacher, FaUsers, FaBookOpen, FaChartBar, FaCalendarCheck, FaClipboardList } from 'react-icons/fa';
-import Card from '../ui/Card';
+import { Card } from '../ui/Card';
 import StatCard from '../ui/StatCard';
 import ProgressRing from '../ui/ProgressRing';
 import StatusBadge from '../ui/StatusBadge';

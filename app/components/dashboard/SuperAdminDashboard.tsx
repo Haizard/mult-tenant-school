@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { FaBuilding, FaUsers, FaPlus, FaEye, FaEdit, FaTrash, FaShieldAlt, FaChartBar, FaCog, FaBell } from 'react-icons/fa';
-import Card from '../ui/Card';
+import { Card } from '../ui/Card';
 import Button from '../ui/Button';
 import StatusBadge from '../ui/StatusBadge';
 import DataTable from '../ui/DataTable';
@@ -289,7 +289,7 @@ const SuperAdminDashboard = () => {
       {/* System Stats */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {systemStats.map((stat, index) => (
-          <Card key={index} variant="gradient" glow="purple">
+          <Card key={index} className="glass-card p-6 border-accent-purple/50">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">{stat.title}</p>
@@ -305,7 +305,7 @@ const SuperAdminDashboard = () => {
       </div>
 
       {/* Recent Activity */}
-      <Card>
+      <Card className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Recent System Activity</h2>
           <Button variant="ghost" size="sm">
@@ -339,7 +339,7 @@ const SuperAdminDashboard = () => {
       </Card>
 
       {/* Tenants Management */}
-      <Card>
+      <Card className="glass-card p-6">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-gray-900">Tenants Management</h2>
           <div className="flex space-x-2">
@@ -370,7 +370,7 @@ const SuperAdminDashboard = () => {
 
       {/* System Information */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        <Card>
+        <Card className="glass-card p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">System Health</h3>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
@@ -392,7 +392,7 @@ const SuperAdminDashboard = () => {
           </div>
         </Card>
 
-        <Card>
+        <Card className="glass-card p-6">
           <h3 className="text-lg font-semibold text-gray-900 mb-4">Quick Actions</h3>
           <div className="space-y-3">
             <Button variant="secondary" className="w-full justify-start">
