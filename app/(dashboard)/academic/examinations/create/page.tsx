@@ -9,7 +9,7 @@ import RoleGuard from '@/components/RoleGuard';
 import { useAuth } from '@/contexts/AuthContext';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { examinationService } from '@/lib/services/examinationService';
-import { academicService } from '@/lib/services/academicService';
+import { academicService } from '@/lib/academicService';
 
 interface ExaminationFormData {
   examName: string;

@@ -76,6 +76,9 @@ async function seedDatabase() {
       { name: 'tenants:read', description: 'Read tenants', resource: 'tenants', action: 'read' },
       { name: 'tenants:update', description: 'Update tenants', resource: 'tenants', action: 'update' },
       { name: 'tenants:delete', description: 'Delete tenants', resource: 'tenants', action: 'delete' },
+      
+      // Audit log permissions
+      { name: 'audit-logs:read', description: 'Read audit logs', resource: 'audit-logs', action: 'read' },
     ];
 
     console.log('📝 Creating permissions...');

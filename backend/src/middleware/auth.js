@@ -6,12 +6,8 @@ const prisma = new PrismaClient();
 // JWT Authentication Middleware
 const authenticateToken = async (req, res, next) => {
   try {
-    console.log('Authentication middleware triggered');
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1]; // Bearer TOKEN
-
-    console.log('Auth header present:', !!authHeader);
-    console.log('Token extracted:', !!token);
 
     if (!token) {
       console.error('Authentication failed: No token provided');
@@ -22,7 +18,6 @@ const authenticateToken = async (req, res, next) => {
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    console.log('Token decoded successfully:', { userId: decoded.userId, tenantId: decoded.tenantId });
     
     // Get user with roles and permissions
     const user = await prisma.user.findUnique({
@@ -53,12 +48,6 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-    console.log('User found:', {
-      id: user.id,
-      email: user.email,
-      status: user.status,
-      roles: user.userRoles.map(ur => ur.role.name)
-    });
 
     if (user.status !== 'ACTIVE') {
       console.error('Authentication failed: User account is not active:', user.status);
@@ -72,7 +61,6 @@ const authenticateToken = async (req, res, next) => {
     req.user = user;
     req.tenantId = user.tenantId;
     
-    console.log('Authentication successful for user:', user.email);
     next();
   } catch (error) {
     if (error.name === 'JsonWebTokenError') {
@@ -103,12 +91,6 @@ const authenticateToken = async (req, res, next) => {
 const authorize = (requiredPermissions = []) => {
   return (req, res, next) => {
     try {
-      console.log('Authorization check for permissions:', requiredPermissions);
-      console.log('User object:', {
-        id: req.user?.id,
-        email: req.user?.email,
-        roles: req.user?.userRoles?.map(ur => ur.role.name)
-      });
 
       if (!req.user) {
         console.error('Authorization failed: No user in request');
@@ -120,7 +102,6 @@ const authorize = (requiredPermissions = []) => {
 
       // Super Admin bypass (if needed)
       if (req.user.userRoles.some(ur => ur.role.name === 'Super Admin')) {
-        console.log('Super Admin bypass - allowing access');
         return next();
       }
 
@@ -129,17 +110,11 @@ const authorize = (requiredPermissions = []) => {
         ur.role.rolePermissions.map(rp => rp.permission.name)
       );
 
-      console.log('User permissions:', userPermissions);
-      console.log('Required permissions:', requiredPermissions);
-
       const hasPermission = requiredPermissions.every(permission =>
         userPermissions.includes(permission)
       );
 
       if (!hasPermission) {
-        console.error('Authorization failed: Insufficient permissions');
-        console.error('Required:', requiredPermissions);
-        console.error('User has:', userPermissions);
         return res.status(403).json({
           success: false,
           message: 'Insufficient permissions',
@@ -148,7 +123,6 @@ const authorize = (requiredPermissions = []) => {
         });
       }
 
-      console.log('Authorization successful - proceeding');
       next();
     } catch (error) {
       console.error('Authorization error:', error);

@@ -1,12 +1,13 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { FaArrowLeft, FaSave, FaGraduationCap, FaBook } from 'react-icons/fa';
+import { FaArrowLeft, FaSave, FaGraduationCap, FaBook, FaChalkboardTeacher } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { notificationService } from '@/lib/notifications';
 import { academicService } from '@/lib/academicService';
 import { authService } from '@/lib/auth';
+import { userService } from '@/lib/userService';
 
 interface FormData {
   subjectName: string;
@@ -16,6 +17,13 @@ interface FormData {
   description: string;
   credits: number;
   status: 'ACTIVE' | 'INACTIVE';
+}
+
+interface Teacher {
+  id: string;
+  firstName: string;
+  lastName: string;
+  email: string;
 }
 
 export default function CreateSubjectPage() {
@@ -29,7 +37,53 @@ export default function CreateSubjectPage() {
     status: 'ACTIVE'
   });
   
+  const [teachers, setTeachers] = useState<Teacher[]>([]);
+  const [selectedTeachers, setSelectedTeachers] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [loadingData, setLoadingData] = useState(true);
+
+  useEffect(() => {
+    loadTeachers();
+  }, []);
+
+  const loadTeachers = async () => {
+    try {
+      setLoadingData(true);
+      
+      // Check if user is authenticated
+      const currentUser = authService.getCurrentUserSync();
+      if (!currentUser) {
+        notificationService.error('Please log in to access this page');
+        window.location.href = '/login';
+        return;
+      }
+      
+      console.log('Loading teachers from API...');
+      
+      // Load teachers from API
+      const response = await userService.getTeachers();
+      console.log('Teachers API response:', response);
+      
+      if (!response || !response.success || !response.data) {
+        throw new Error(`Failed to load teachers: ${response?.message || 'Unknown error'}`);
+      }
+      
+      setTeachers(response.data);
+      console.log('Teachers loaded successfully:', response.data.length);
+      
+    } catch (error) {
+      console.error('Error loading teachers:', error);
+      notificationService.error(`Failed to load teachers: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      
+      // Redirect to login if authentication failed
+      if (error instanceof Error && error.message.includes('authentication')) {
+        window.location.href = '/login';
+        return;
+      }
+    } finally {
+      setLoadingData(false);
+    }
+  };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -37,6 +91,14 @@ export default function CreateSubjectPage() {
       ...prev,
       [name]: value
     }));
+  };
+
+  const handleTeacherToggle = (teacherId: string) => {
+    setSelectedTeachers(prev => 
+      prev.includes(teacherId)
+        ? prev.filter(id => id !== teacherId)
+        : [...prev, teacherId]
+    );
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,7 +147,22 @@ export default function CreateSubjectPage() {
       console.log('Creating subject with data:', subjectData);
       
       // Create subject via API
-      await academicService.createSubject(subjectData);
+      const subjectResponse = await academicService.createSubject(subjectData);
+      
+      // Assign teachers to subject if any are selected
+      if (selectedTeachers.length > 0 && subjectResponse?.data?.id) {
+        console.log('Assigning teachers to subject:', selectedTeachers);
+        
+        // Assign each selected teacher to the subject
+        for (const teacherId of selectedTeachers) {
+          try {
+            await academicService.assignTeacherToSubject(teacherId, subjectResponse.data.id);
+          } catch (assignmentError) {
+            console.error(`Failed to assign teacher ${teacherId}:`, assignmentError);
+            // Continue with other assignments even if one fails
+          }
+        }
+      }
       
       notificationService.success('Subject created successfully!');
       window.location.href = '/academic/subjects';
@@ -365,6 +442,69 @@ export default function CreateSubjectPage() {
               )}
             </div>
 
+            {/* Teacher Assignment */}
+            <div className="space-y-4">
+              <div className="flex items-center space-x-3 mb-4">
+                <div className="p-3 bg-purple-100 rounded-full">
+                  <FaChalkboardTeacher className="text-purple-600 text-xl" />
+                </div>
+                <div>
+                  <h2 className="text-xl font-semibold text-text-primary">Teacher Assignment</h2>
+                  <p className="text-text-secondary">Assign teachers to this subject (optional)</p>
+                </div>
+              </div>
+
+              {teachers.length > 0 ? (
+                <div className="space-y-4">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {teachers.map(teacher => (
+                      <div
+                        key={teacher.id}
+                        className={`p-4 border-2 rounded-lg cursor-pointer transition-colors ${
+                          selectedTeachers.includes(teacher.id)
+                            ? 'border-purple-500 bg-purple-50'
+                            : 'border-gray-200 hover:border-gray-300'
+                        }`}
+                        onClick={() => handleTeacherToggle(teacher.id)}
+                      >
+                        <div className="flex items-center justify-between">
+                          <div>
+                            <h4 className="font-medium text-text-primary">
+                              {teacher.firstName} {teacher.lastName}
+                            </h4>
+                            <p className="text-sm text-text-secondary">{teacher.email}</p>
+                          </div>
+                          {selectedTeachers.includes(teacher.id) && (
+                            <div className="text-purple-500 text-sm">✓ Selected</div>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  {selectedTeachers.length > 0 && (
+                    <div className="p-4 bg-gray-50 rounded-lg">
+                      <div className="flex items-center justify-between">
+                        <span className="text-sm text-text-secondary">
+                          Selected: {selectedTeachers.length} teacher(s)
+                        </span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-8 text-center bg-gray-50 rounded-lg">
+                  <div className="text-gray-400 text-4xl mb-2">👨‍🏫</div>
+                  <p className="text-text-secondary">
+                    No teachers available
+                  </p>
+                  <p className="text-sm text-text-muted mt-1">
+                    Create teacher accounts first to assign them to subjects
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* Actions */}
             <div className="flex items-center justify-end space-x-4 pt-6 border-t border-gray-200">
               <Button
@@ -378,7 +518,7 @@ export default function CreateSubjectPage() {
               <Button
                 type="submit"
                 variant="primary"
-                disabled={loading}
+                disabled={loading || loadingData}
                 className="flex items-center space-x-2"
               >
                 <FaSave />

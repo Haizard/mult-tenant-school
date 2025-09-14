@@ -350,7 +350,7 @@ const getUserById = async (req, res) => {
 // Get all users in tenant
 const getUsers = async (req, res) => {
   try {
-    const { page = 1, limit = 10, search, status } = req.query;
+    const { page = 1, limit = 10, search, status, role } = req.query;
     const skip = (page - 1) * limit;
 
     const where = {
@@ -369,9 +369,26 @@ const getUsers = async (req, res) => {
       where.status = status;
     }
 
+    // Add role filtering
+    let roleFilter = {};
+    if (role) {
+      roleFilter = {
+        userRoles: {
+          some: {
+            role: {
+              name: role
+            }
+          }
+        }
+      };
+    }
+
+    // Combine where conditions
+    const finalWhere = { ...where, ...roleFilter };
+
     const [users, total] = await Promise.all([
       prisma.user.findMany({
-        where,
+        where: finalWhere,
         skip: parseInt(skip),
         take: parseInt(limit),
         include: {
@@ -384,7 +401,7 @@ const getUsers = async (req, res) => {
         },
         orderBy: { createdAt: 'desc' }
       }),
-      prisma.user.count({ where })
+      prisma.user.count({ where: finalWhere })
     ]);
 
     res.json({
@@ -595,6 +612,81 @@ const getRoles = async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Failed to get roles',
+      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+    });
+  }
+};
+
+// Get teachers in tenant
+const getTeachers = async (req, res) => {
+  try {
+    const { page = 1, limit = 50, search } = req.query;
+    const skip = (page - 1) * limit;
+
+    const where = {
+      tenantId: req.tenantId,
+      userRoles: {
+        some: {
+          role: {
+            name: 'Teacher'
+          }
+        }
+      }
+    };
+
+    if (search) {
+      where.OR = [
+        { firstName: { contains: search, mode: 'insensitive' } },
+        { lastName: { contains: search, mode: 'insensitive' } },
+        { email: { contains: search, mode: 'insensitive' } }
+      ];
+    }
+
+    const [teachers, total] = await Promise.all([
+      prisma.user.findMany({
+        where,
+        skip: parseInt(skip),
+        take: parseInt(limit),
+        include: {
+          tenant: true,
+          userRoles: {
+            include: {
+              role: true
+            }
+          }
+        },
+        orderBy: { firstName: 'asc' }
+      }),
+      prisma.user.count({ where })
+    ]);
+
+    res.json({
+      success: true,
+      data: teachers.map(teacher => ({
+        id: teacher.id,
+        email: teacher.email,
+        firstName: teacher.firstName,
+        lastName: teacher.lastName,
+        phone: teacher.phone,
+        address: teacher.address,
+        status: teacher.status,
+        lastLogin: teacher.lastLogin,
+        createdAt: teacher.createdAt,
+        tenant: teacher.tenant,
+        roles: teacher.userRoles.map(ur => ur.role)
+      })),
+      pagination: {
+        page: parseInt(page),
+        limit: parseInt(limit),
+        total,
+        pages: Math.ceil(total / limit)
+      }
+    });
+  } catch (error) {
+    console.error('Get teachers error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to get teachers',
       error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
     });
   }
@@ -895,6 +987,7 @@ module.exports = {
   getProfile,
   getUserById,
   getUsers,
+  getTeachers,
   updateUser,
   deleteUser,
   getTenants,

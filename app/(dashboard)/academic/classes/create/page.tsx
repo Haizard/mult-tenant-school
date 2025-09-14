@@ -79,7 +79,7 @@ export default function CreateClassPage() {
       
       // Load teachers and subjects from API
       const [usersResponse, subjectsResponse] = await Promise.all([
-        userService.getUsers({ role: 'Teacher' }),
+        userService.getTeachers(),
         academicService.getSubjects()
       ]);
       
@@ -94,15 +94,13 @@ export default function CreateClassPage() {
         throw new Error(`Failed to load subjects: ${subjectsResponse?.message || 'Unknown error'}`);
       }
       
-      // Filter teachers from users
-      const teachers: Teacher[] = usersResponse.data
-        .filter(user => user.roles && user.roles.some(role => role.name === 'Teacher'))
-        .map(user => ({
-          id: user.id,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          email: user.email
-        }));
+      // Teachers are already filtered by the API
+      const teachers: Teacher[] = usersResponse.data.map(user => ({
+        id: user.id,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        email: user.email
+      }));
       
       // Transform subjects data
       const subjects: Subject[] = subjectsResponse.data.map(subject => ({

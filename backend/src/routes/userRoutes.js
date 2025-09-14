@@ -19,8 +19,13 @@ router.get('/system',
   userController.getSystemUsers
 );
 
-// Public route for getting user by ID (needed for user detail/edit pages)
-router.get('/:id', userController.getUserById);
+// Get teachers in tenant - must be before /:id route
+router.get('/teachers', 
+  authorize(['users:read']), 
+  ensureTenantAccess, 
+  userController.getTeachers
+);
+
 
 // User management routes (require user management permissions)
 router.get('/', 
@@ -28,6 +33,9 @@ router.get('/',
   ensureTenantAccess, 
   userController.getUsers
 );
+
+// Public route for getting user by ID (needed for user detail/edit pages)
+router.get('/:id', userController.getUserById);
 
 router.put('/:id', 
   authorize(['users:update']), 

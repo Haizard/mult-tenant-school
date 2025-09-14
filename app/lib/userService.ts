@@ -68,6 +68,19 @@ class UserService {
     return apiService.get<User[]>(endpoint);
   }
 
+  public async getTeachers(filters: { search?: string; page?: number; limit?: number } = {}): Promise<PaginatedResponse<User[]>> {
+    const params = new URLSearchParams();
+    
+    if (filters.search) params.append('search', filters.search);
+    if (filters.page) params.append('page', filters.page.toString());
+    if (filters.limit) params.append('limit', filters.limit.toString());
+
+    const queryString = params.toString();
+    const endpoint = `/users/teachers${queryString ? `?${queryString}` : ''}`;
+    
+    return apiService.get<User[]>(endpoint);
+  }
+
   public async getUserById(userId: string): Promise<User> {
     const response = await apiService.get<User>(`/users/${userId}`);
     

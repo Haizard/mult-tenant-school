@@ -10,7 +10,7 @@ import RoleGuard from '@/components/RoleGuard';
 import RoleBasedButton from '@/components/RoleBasedButton';
 import { useAuth } from '@/contexts/AuthContext';
 import { examinationService } from '@/lib/services/examinationService';
-import { academicService } from '@/lib/services/academicService';
+import { academicService } from '@/lib/academicService';
 
 interface GradeReport {
   totalGrades: number;

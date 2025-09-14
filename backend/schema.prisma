@@ -44,6 +44,7 @@ model Tenant {
   gradingScales GradingScale[]
   schedules Schedule[]
   classes Class[]
+  auditLogs AuditLog[]
 }
 
 enum TenantStatus {
@@ -502,4 +503,40 @@ model Schedule {
   @@index([tenantId, date])
   @@index([tenantId, type])
   @@index([tenantId, status])
+}
+
+// Audit Logging
+model AuditLog {
+  id          String @id @default(cuid())
+  userId      String
+  userEmail   String
+  userName    String
+  userRoles   String // JSON array of role names
+  tenantId    String
+  action      String
+  resource    String
+  resourceId  String?
+  details     String? // JSON object with additional details
+  ipAddress   String?
+  userAgent   String?
+  timestamp   DateTime
+  status      AuditStatus @default(SUCCESS)
+  errorMessage String?
+  
+  createdAt DateTime @default(now())
+
+  // Relationships
+  tenant Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, timestamp])
+  @@index([tenantId, userId])
+  @@index([tenantId, action])
+  @@index([tenantId, resource])
+  @@index([tenantId, status])
+}
+
+enum AuditStatus {
+  SUCCESS
+  FAILURE
+  PENDING
 }
