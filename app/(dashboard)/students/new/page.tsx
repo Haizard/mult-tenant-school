@@ -2,14 +2,13 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Select } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Checkbox } from '@/components/ui/checkbox';
-import { 
+import {
   ArrowLeft, 
   Save, 
   User, 
@@ -42,7 +41,7 @@ export default function NewStudentPage() {
     admissionNumber: '',
     admissionDate: '',
     dateOfBirth: '',
-    gender: '',
+    gender: '' as 'MALE' | 'FEMALE' | 'OTHER' | '',
     nationality: 'Tanzanian',
     religion: '',
     bloodGroup: '',
@@ -84,8 +83,8 @@ export default function NewStudentPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.userId || !formData.studentId || !formData.dateOfBirth || 
-        !formData.gender || !formData.address || !formData.city || 
+    if (!formData.userId || !formData.studentId || !formData.dateOfBirth ||
+        !formData.gender || !formData.address || !formData.city ||
         !formData.region || !formData.emergencyContact || !formData.emergencyPhone) {
       toast({
         title: 'Validation Error',
@@ -95,9 +94,15 @@ export default function NewStudentPage() {
       return;
     }
 
+    // Ensure gender is properly typed
+    const submitData = {
+      ...formData,
+      gender: formData.gender as 'MALE' | 'FEMALE' | 'OTHER'
+    };
+
     try {
       setLoading(true);
-      await studentService.createStudent(formData);
+      await studentService.createStudent(submitData);
       
       toast({
         title: 'Success',
@@ -122,12 +127,12 @@ export default function NewStudentPage() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/students">
+          <Link href="/students">
+            <Button variant="outline" size="sm">
               <ArrowLeft className="h-4 w-4 mr-2" />
               Back
-            </Link>
-          </Button>
+            </Button>
+          </Link>
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Add New Student</h1>
             <p className="text-muted-foreground">
@@ -200,16 +205,12 @@ export default function NewStudentPage() {
                   <Label htmlFor="gender">Gender *</Label>
                   <Select
                     value={formData.gender}
-                    onValueChange={(value) => handleInputChange('gender', value)}
+                    onChange={(e) => handleInputChange('gender', e.target.value)}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select gender" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="MALE">Male</SelectItem>
-                      <SelectItem value="FEMALE">Female</SelectItem>
-                      <SelectItem value="OTHER">Other</SelectItem>
-                    </SelectContent>
+                    <option value="">Select gender</option>
+                    <option value="MALE">Male</option>
+                    <option value="FEMALE">Female</option>
+                    <option value="OTHER">Other</option>
                   </Select>
                 </div>
                 <div>
@@ -237,21 +238,17 @@ export default function NewStudentPage() {
                   <Label htmlFor="bloodGroup">Blood Group</Label>
                   <Select
                     value={formData.bloodGroup}
-                    onValueChange={(value) => handleInputChange('bloodGroup', value)}
+                    onChange={(e) => handleInputChange('bloodGroup', e.target.value)}
                   >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select blood group" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="A+">A+</SelectItem>
-                      <SelectItem value="A-">A-</SelectItem>
-                      <SelectItem value="B+">B+</SelectItem>
-                      <SelectItem value="B-">B-</SelectItem>
-                      <SelectItem value="AB+">AB+</SelectItem>
-                      <SelectItem value="AB-">AB-</SelectItem>
-                      <SelectItem value="O+">O+</SelectItem>
-                      <SelectItem value="O-">O-</SelectItem>
-                    </SelectContent>
+                    <option value="">Select blood group</option>
+                    <option value="A+">A+</option>
+                    <option value="A-">A-</option>
+                    <option value="B+">B+</option>
+                    <option value="B-">B-</option>
+                    <option value="AB+">AB+</option>
+                    <option value="AB-">AB-</option>
+                    <option value="O+">O+</option>
+                    <option value="O-">O-</option>
                   </Select>
                 </div>
               </div>
@@ -411,17 +408,13 @@ export default function NewStudentPage() {
                 <Label htmlFor="transportMode">Transport Mode</Label>
                 <Select
                   value={formData.transportMode}
-                  onValueChange={(value) => handleInputChange('transportMode', value)}
+                  onChange={(e) => handleInputChange('transportMode', e.target.value)}
                 >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select transport mode" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="BUS">School Bus</SelectItem>
-                    <SelectItem value="WALKING">Walking</SelectItem>
-                    <SelectItem value="PRIVATE">Private Vehicle</SelectItem>
-                    <SelectItem value="OTHER">Other</SelectItem>
-                  </SelectContent>
+                  <option value="">Select transport mode</option>
+                  <option value="BUS">School Bus</option>
+                  <option value="WALKING">Walking</option>
+                  <option value="PRIVATE">Private Vehicle</option>
+                  <option value="OTHER">Other</option>
                 </Select>
               </div>
               <div>
@@ -464,9 +457,11 @@ export default function NewStudentPage() {
 
         {/* Submit Button */}
         <div className="flex justify-end space-x-4">
-          <Button type="button" variant="outline" asChild>
-            <Link href="/students">Cancel</Link>
-          </Button>
+          <Link href="/students">
+            <Button type="button" variant="outline">
+              Cancel
+            </Button>
+          </Link>
           <Button type="submit" disabled={loading}>
             {loading ? (
               <>
