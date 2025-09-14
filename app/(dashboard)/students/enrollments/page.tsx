@@ -1,11 +1,10 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
   Search, 
   Plus, 
@@ -95,99 +94,104 @@ export default function EnrollmentsPage() {
   });
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Student Enrollments</h1>
-          <p className="text-muted-foreground">
-            Manage student enrollments in courses, subjects, and classes
-          </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="space-y-6">
+        {/* Header - Match system style */}
+        <div className="glass-card p-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-3xl font-bold text-text-primary mb-2">Student Enrollments</h1>
+              <p className="text-text-secondary">
+                Manage student enrollments in courses, subjects, and classes
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="p-3 rounded-xl bg-gradient-to-r from-accent-purple to-accent-purple-light shadow-purple-glow">
+                <BookOpen className="h-6 w-6 text-white" />
+              </div>
+              <Button variant="secondary" size="sm">
+                <Download className="h-4 w-4 mr-2" />
+                Export
+              </Button>
+              <Button 
+                variant="primary"
+                onClick={() => window.location.href = '/students/enrollments/new'}
+              >
+                <Plus className="h-4 w-4 mr-2" />
+                New Enrollment
+              </Button>
+            </div>
+          </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm">
-            <Download className="h-4 w-4 mr-2" />
-            Export
-          </Button>
-          <Button asChild>
-            <Link href="/students/enrollments/new">
-              <Plus className="h-4 w-4 mr-2" />
-              New Enrollment
-            </Link>
-          </Button>
+
+        {/* Statistics Cards - Match system style */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card variant="gradient" glow="blue">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Enrollments</p>
+                <p className="text-3xl font-bold text-gray-900">{enrollments.length}</p>
+                <p className="text-xs text-gray-500 mt-1">All time enrollments</p>
+              </div>
+              <div className="p-3 rounded-full bg-blue-100">
+                <BookOpen className="text-2xl text-blue-600" />
+              </div>
+            </div>
+          </Card>
+          
+          <Card variant="gradient" glow="green">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Enrollments</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {enrollments.filter(e => e.status === 'ACTIVE').length}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Currently active</p>
+              </div>
+              <div className="p-3 rounded-full bg-green-100">
+                <CheckCircle className="text-2xl text-green-600" />
+              </div>
+            </div>
+          </Card>
+          
+          <Card variant="gradient" glow="purple">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Course Enrollments</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {enrollments.filter(e => e.enrollmentType === 'COURSE').length}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Course programs</p>
+              </div>
+              <div className="p-3 rounded-full bg-purple-100">
+                <GraduationCap className="text-2xl text-purple-600" />
+              </div>
+            </div>
+          </Card>
+          
+          <Card variant="gradient" glow="orange">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Subject Enrollments</p>
+                <p className="text-3xl font-bold text-gray-900">
+                  {enrollments.filter(e => e.enrollmentType === 'SUBJECT').length}
+                </p>
+                <p className="text-xs text-gray-500 mt-1">Individual subjects</p>
+              </div>
+              <div className="p-3 rounded-full bg-orange-100">
+                <BookOpen className="text-2xl text-orange-600" />
+              </div>
+            </div>
+          </Card>
         </div>
-      </div>
 
-      {/* Statistics Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {/* Filters and Search - Match system style */}
         <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Enrollments</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{enrollments.length}</div>
-            <p className="text-xs text-muted-foreground">
-              All time enrollments
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Enrollments</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {enrollments.filter(e => e.status === 'ACTIVE').length}
+          <div className="p-6">
+            <div className="mb-6">
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Enrollment Directory</h2>
+              <p className="text-gray-600">Search and filter enrollments by various criteria</p>
             </div>
-            <p className="text-xs text-muted-foreground">
-              Currently active
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Course Enrollments</CardTitle>
-            <GraduationCap className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {enrollments.filter(e => e.enrollmentType === 'COURSE').length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Course programs
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Subject Enrollments</CardTitle>
-            <BookOpen className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {enrollments.filter(e => e.enrollmentType === 'SUBJECT').length}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Individual subjects
-            </p>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Filters and Search */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Enrollment Directory</CardTitle>
-          <CardDescription>
-            Search and filter enrollments by various criteria
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
           <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">

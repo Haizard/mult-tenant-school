@@ -1,12 +1,11 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
   Plus, 
@@ -148,106 +147,86 @@ export default function StudentsPage() {
   };
 
   return (
-    <div className="p-6 space-y-6 min-h-screen bg-gradient-to-br from-blue-50/30 via-purple-50/20 to-indigo-50/30">
-      {/* Premium Header with Glassmorphism */}
-      <div className="glass-card-premium p-6 animate-slide-in-up">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-4">
-            <div className="p-3 rounded-xl bg-gradient-to-r from-accent-purple to-accent-purple-light shadow-purple-glow">
-              <GraduationCap className="h-6 w-6 text-white" />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="space-y-6">
+        {/* Header Section - Match TenantAdmin Dashboard Style */}
+        <div className="glass-card p-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
+          <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold gradient-text-animated">Student Management</h1>
-              <p className="text-text-secondary mt-1">
-                Comprehensive student enrollment and academic tracking system
-              </p>
+              <h1 className="text-3xl font-bold text-text-primary mb-2">Student Management</h1>
+              <p className="text-text-secondary">Comprehensive student enrollment and academic tracking system</p>
             </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <Button 
-              variant="secondary" 
-              className="glass-button hover-lift shadow-glass-light border-glass-border text-text-primary"
-              size="sm"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export Data
-            </Button>
-            <Button 
-              asChild
-              className="btn-primary hover-lift animate-glow"
-            >
-              <Link href="/students/new">
+            <div className="flex items-center space-x-3">
+              <Button 
+                variant="secondary" 
+                size="sm"
+                className="flex items-center"
+              >
+                <Download className="h-4 w-4 mr-2" />
+                Export Data
+              </Button>
+              <Button 
+                variant="primary"
+                onClick={() => window.location.href = '/students/new'}
+                className="flex items-center"
+              >
                 <Plus className="h-4 w-4 mr-2" />
                 Add New Student
-              </Link>
-            </Button>
+              </Button>
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Premium Statistics Cards */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4 animate-slide-in-up" style={{animationDelay: '0.1s'}}>
-        <div className="glass-card-premium p-6 hover-lift transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <p className="text-text-secondary text-sm font-medium tracking-wide uppercase">Total Students</p>
-              <div className="flex items-baseline space-x-2">
-                <p className="text-3xl font-bold text-text-primary">{pagination.total}</p>
-                <span className="text-sm text-accent-green font-medium flex items-center">
-                  <TrendingUp className="h-3 w-3 mr-1" />
-                  +12%
-                </span>
+        {/* Statistics Cards - Matching TenantAdmin Dashboard */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Card variant="gradient" glow="blue">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Total Students</p>
+                <p className="text-3xl font-bold text-gray-900">{pagination.total}</p>
+                <p className="text-xs text-gray-500 mt-1">+12% this month</p>
               </div>
-              <p className="text-xs text-text-muted">Growth from last month</p>
+              <div className="p-3 rounded-full bg-blue-100">
+                <Users className="text-2xl text-blue-600" />
+              </div>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-r from-accent-blue to-accent-blue-light shadow-blue-glow">
-              <Users className="h-6 w-6 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="glass-card-premium p-6 hover-lift transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <p className="text-text-secondary text-sm font-medium tracking-wide uppercase">Active Students</p>
-              <div className="flex items-baseline space-x-2">
-                <p className="text-3xl font-bold text-text-primary">
+          </Card>
+
+          <Card variant="gradient" glow="green">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Active Students</p>
+                <p className="text-3xl font-bold text-gray-900">
                   {students.filter(s => s.status === 'ACTIVE').length}
                 </p>
-                <span className="text-sm text-accent-green font-medium">98.5%</span>
+                <p className="text-xs text-gray-500 mt-1">98.5% active rate</p>
               </div>
-              <p className="text-xs text-text-muted">Currently enrolled</p>
+              <div className="p-3 rounded-full bg-green-100">
+                <UserCheck className="text-2xl text-green-600" />
+              </div>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-r from-accent-green to-accent-green-light shadow-green-glow">
-              <UserCheck className="h-6 w-6 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="glass-card-premium p-6 hover-lift transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <p className="text-text-secondary text-sm font-medium tracking-wide uppercase">Graduates</p>
-              <div className="flex items-baseline space-x-2">
-                <p className="text-3xl font-bold text-text-primary">
+          </Card>
+
+          <Card variant="gradient" glow="purple">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">Graduates</p>
+                <p className="text-3xl font-bold text-gray-900">
                   {students.filter(s => s.status === 'GRADUATED').length}
                 </p>
-                <span className="text-sm text-accent-purple font-medium">2024</span>
+                <p className="text-xs text-gray-500 mt-1">2024 Academic Year</p>
               </div>
-              <p className="text-xs text-text-muted">This academic year</p>
+              <div className="p-3 rounded-full bg-purple-100">
+                <Award className="text-2xl text-purple-600" />
+              </div>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-r from-accent-purple to-accent-purple-light shadow-purple-glow">
-              <Award className="h-6 w-6 text-white" />
-            </div>
-          </div>
-        </div>
-        
-        <div className="glass-card-premium p-6 hover-lift transition-all duration-300">
-          <div className="flex items-center justify-between">
-            <div className="space-y-2">
-              <p className="text-text-secondary text-sm font-medium tracking-wide uppercase">New This Month</p>
-              <div className="flex items-baseline space-x-2">
-                <p className="text-3xl font-bold text-text-primary">
+          </Card>
+
+          <Card variant="gradient" glow="orange">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm font-medium text-gray-600">New This Month</p>
+                <p className="text-3xl font-bold text-gray-900">
                   {students.filter(s => {
                     const createdDate = new Date(s.createdAt);
                     const thirtyDaysAgo = new Date();
@@ -255,385 +234,246 @@ export default function StudentsPage() {
                     return createdDate > thirtyDaysAgo;
                   }).length}
                 </p>
-                <span className="text-sm text-status-warning font-medium">Fresh</span>
+                <p className="text-xs text-gray-500 mt-1">Recent enrollments</p>
               </div>
-              <p className="text-xs text-text-muted">Recent enrollments</p>
+              <div className="p-3 rounded-full bg-orange-100">
+                <Star className="text-2xl text-orange-600" />
+              </div>
             </div>
-            <div className="p-3 rounded-xl bg-gradient-to-r from-status-warning to-yellow-400 shadow-orange-glow">
-              <Star className="h-6 w-6 text-white" />
-            </div>
-          </div>
+          </Card>
         </div>
-      </div>
 
-      {/* Premium Search and Filter Section */}
-      <div className="glass-card-premium p-6 animate-slide-in-up" style={{animationDelay: '0.2s'}}>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-lg bg-gradient-to-r from-accent-blue/20 to-accent-purple/20">
-              <Search className="h-5 w-5 text-accent-purple" />
-            </div>
+        {/* Search and Filter Section - Simplified to match system style */}
+        <Card>
+          <div className="flex flex-col md:flex-row gap-4 items-center justify-between mb-6">
             <div>
-              <h2 className="text-xl font-bold text-text-primary">Student Directory</h2>
-              <p className="text-text-secondary text-sm">Advanced search and filtering capabilities</p>
+              <h2 className="text-xl font-semibold text-gray-900 mb-2">Student Directory</h2>
+              <p className="text-gray-600">Search and manage student records</p>
             </div>
           </div>
-          <div className="flex items-center space-x-2">
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="glass-button text-text-secondary hover:text-accent-purple"
-            >
-              <Filter className="h-4 w-4 mr-2" />
-              Advanced
-            </Button>
-            <Button 
-              variant="ghost" 
-              size="sm"
-              className="glass-button text-text-secondary hover:text-accent-green"
-            >
-              <Download className="h-4 w-4 mr-2" />
-              Export
-            </Button>
-          </div>
-        </div>
-        
-        {/* Search Bar */}
-        <div className="flex flex-col lg:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <div className="relative group">
-              <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 text-text-muted group-hover:text-accent-purple transition-colors duration-200 h-5 w-5" />
+          {/* Search and Filters */}
+          <div className="flex flex-col md:flex-row gap-4 items-center">
+            {/* Search */}
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 h-4 w-4" />
               <Input
-                placeholder="Search by name, student ID, email, or phone number..."
+                type="text"
+                placeholder="Search students..."
                 value={searchTerm}
                 onChange={(e) => handleSearch(e.target.value)}
-                className="input-field pl-12 pr-4 py-4 text-base border-0 focus:ring-2 focus:ring-accent-purple/30"
+                className="pl-10 pr-4 py-2 w-full"
               />
             </div>
-          </div>
-          
-          {/* Filter Controls */}
-          <div className="flex gap-3">
-            <Select
-              value={filters.status || 'all'}
-              onValueChange={(value) => handleFilterChange('status', value)}
-            >
-              <SelectTrigger className="glass-input w-[160px] border-glass-border hover:border-accent-purple/30 transition-colors">
-                <div className="flex items-center space-x-2">
-                  <Shield className="h-4 w-4 text-accent-purple" />
-                  <SelectValue placeholder="Status" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="glass-card border-glass-border">
-                <SelectItem value="all" className="hover:bg-glass-white/50">🔍 All Status</SelectItem>
-                <SelectItem value="ACTIVE" className="hover:bg-green-50/50">✅ Active</SelectItem>
-                <SelectItem value="INACTIVE" className="hover:bg-gray-50/50">⏸️ Inactive</SelectItem>
-                <SelectItem value="SUSPENDED" className="hover:bg-red-50/50">🚫 Suspended</SelectItem>
-                <SelectItem value="GRADUATED" className="hover:bg-blue-50/50">🎓 Graduated</SelectItem>
-                <SelectItem value="TRANSFERRED" className="hover:bg-yellow-50/50">📤 Transferred</SelectItem>
-                <SelectItem value="DROPPED" className="hover:bg-red-50/50">❌ Dropped</SelectItem>
-              </SelectContent>
-            </Select>
             
-            <Select
-              value={filters.gender || 'all'}
-              onValueChange={(value) => handleFilterChange('gender', value)}
+            {/* Status Filter */}
+            <select
+              value={filters.status || 'all'}
+              onChange={(e) => handleFilterChange('status', e.target.value)}
+              className="px-4 py-2 border rounded-lg"
             >
-              <SelectTrigger className="glass-input w-[140px] border-glass-border hover:border-accent-blue/30 transition-colors">
-                <div className="flex items-center space-x-2">
-                  <Users className="h-4 w-4 text-accent-blue" />
-                  <SelectValue placeholder="Gender" />
-                </div>
-              </SelectTrigger>
-              <SelectContent className="glass-card border-glass-border">
-                <SelectItem value="all" className="hover:bg-glass-white/50">🔍 All Gender</SelectItem>
-                <SelectItem value="MALE" className="hover:bg-blue-50/50">👨 Male</SelectItem>
-                <SelectItem value="FEMALE" className="hover:bg-pink-50/50">👩 Female</SelectItem>
-                <SelectItem value="OTHER" className="hover:bg-purple-50/50">🏳️‍⚧️ Other</SelectItem>
-              </SelectContent>
-            </Select>
+              <option value="all">All Status</option>
+              <option value="ACTIVE">Active</option>
+              <option value="INACTIVE">Inactive</option>
+              <option value="SUSPENDED">Suspended</option>
+              <option value="GRADUATED">Graduated</option>
+              <option value="TRANSFERRED">Transferred</option>
+              <option value="DROPPED">Dropped</option>
+            </select>
+            
+            {/* Gender Filter */}
+            <select
+              value={filters.gender || 'all'}
+              onChange={(e) => handleFilterChange('gender', e.target.value)}
+              className="px-4 py-2 border rounded-lg"
+            >
+              <option value="all">All Gender</option>
+              <option value="MALE">Male</option>
+              <option value="FEMALE">Female</option>
+              <option value="OTHER">Other</option>
+            </select>
           </div>
-        </div>
 
-        {/* Premium Student Cards */}
-        <div className="mt-6">
-          {loading ? (
-            <div className="flex items-center justify-center py-16">
-              <div className="text-center space-y-4">
-                <div className="animate-spin rounded-full h-12 w-12 border-4 border-accent-purple/20 border-t-accent-purple mx-auto"></div>
-                <p className="text-text-muted font-medium">Loading student directory...</p>
+          {/* Student Cards */}
+          <div className="mt-6">
+            {loading ? (
+              <div className="flex items-center justify-center py-16">
+                <div className="text-gray-500">Loading students...</div>
               </div>
-            </div>
-          ) : students.length === 0 ? (
-            <div className="glass-card-premium p-12 text-center animate-fade-in-scale">
-              <div className="space-y-6">
-                <div className="p-4 rounded-full bg-gradient-to-r from-accent-purple/20 to-accent-blue/20 w-20 h-20 mx-auto flex items-center justify-center">
-                  <GraduationCap className="h-10 w-10 text-accent-purple" />
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-2xl font-bold text-text-primary">
-                    {searchTerm || filters.status || filters.gender ? 'No matches found' : 'No students enrolled yet'}
-                  </h3>
-                  <p className="text-text-secondary max-w-md mx-auto">
-                    {searchTerm || filters.status || filters.gender
-                      ? 'Try adjusting your search criteria or filters to find what you’re looking for'
-                      : 'Ready to build your student community? Add your first student to get started'
-                    }
-                  </p>
-                </div>
+            ) : students.length === 0 ? (
+              <div className="text-center py-16">
+                <GraduationCap className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  {searchTerm || filters.status || filters.gender ? 'No matches found' : 'No students enrolled yet'}
+                </h3>
+                <p className="text-gray-600 max-w-md mx-auto mb-6">
+                  {searchTerm || filters.status || filters.gender
+                    ? 'Try adjusting your search criteria or filters'
+                    : 'Ready to build your student community? Add your first student to get started'
+                  }
+                </p>
                 {!searchTerm && !filters.status && !filters.gender && (
-                  <Button asChild className="btn-primary animate-glow">
-                    <Link href="/students/new">
-                      <Plus className="h-4 w-4 mr-2" />
-                      Enroll First Student
-                    </Link>
+                  <Button 
+                    variant="primary"
+                    onClick={() => window.location.href = '/students/new'}
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Enroll First Student
                   </Button>
                 )}
               </div>
-            </div>
-          ) : (
-            <div className="grid gap-4 animate-slide-in-up" style={{animationDelay: '0.3s'}}>
-              {students.map((student, index) => (
-                <div 
-                  key={student.id} 
-                  className="glass-card-premium hover-lift transition-all duration-300 overflow-hidden"
-                  style={{animationDelay: `${0.1 * index}s`}}
-                >
-                  <div className="p-6">
-                    <div className="flex items-center justify-between">
-                      {/* Student Info Section */}
-                      <div className="flex items-center space-x-6 flex-1">
+            ) : (
+              <div className="space-y-4">
+                {students.map((student) => (
+                  <Card key={student.id} className="hover:shadow-lg transition-shadow">
+                    <div className="flex items-center justify-between p-6">
+                      <div className="flex items-center space-x-4">
                         {/* Avatar */}
-                        <div className="relative">
-                          <div className="w-16 h-16 rounded-xl bg-gradient-to-r from-accent-purple/20 to-accent-blue/20 backdrop-blur-sm border border-glass-border flex items-center justify-center shadow-glass">
-                            <span className="text-xl font-bold bg-gradient-to-r from-accent-purple to-accent-blue bg-clip-text text-transparent">
-                              {student.user.firstName[0]}{student.user.lastName[0]}
-                            </span>
-                          </div>
-                          <div className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-gradient-to-r from-accent-green to-green-400 flex items-center justify-center shadow-green-glow">
-                            <div className="w-2 h-2 bg-white rounded-full"></div>
-                          </div>
+                        <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold">
+                          {student.user.firstName[0]}{student.user.lastName[0]}
                         </div>
                         
-                        {/* Student Details */}
-                        <div className="flex-1 space-y-3">
-                          <div className="flex items-center justify-between">
-                            <div className="space-y-1">
-                              <div className="flex items-center space-x-3">
-                                <h3 className="text-xl font-bold text-text-primary hover:text-accent-purple transition-colors cursor-pointer">
-                                  {student.user.firstName} {student.user.lastName}
-                                </h3>
-                                <div className="flex items-center space-x-2">
-                                  <span className={`inline-flex items-center px-3 py-1 rounded-full text-xs font-medium ${
-                                    student.status === 'ACTIVE' ? 'badge-success' : 
-                                    student.status === 'GRADUATED' ? 'badge-info' :
-                                    student.status === 'SUSPENDED' ? 'badge-danger' : 'badge-warning'
-                                  }`}>
-                                    {student.status === 'ACTIVE' ? '✅' : 
-                                     student.status === 'GRADUATED' ? '🎓' :
-                                     student.status === 'SUSPENDED' ? '🚫' : '⏸️'} {student.status}
-                                  </span>
-                                  <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                                    student.gender === 'MALE' ? 'bg-blue-100 text-blue-800' :
-                                    student.gender === 'FEMALE' ? 'bg-pink-100 text-pink-800' :
-                                    'bg-purple-100 text-purple-800'
-                                  }`}>
-                                    {student.gender === 'MALE' ? '👨' : student.gender === 'FEMALE' ? '👩' : '🏳️‍⚧️'} {student.gender}
-                                  </span>
-                                </div>
-                              </div>
-                              <p className="text-text-secondary text-sm font-medium">Student ID: {student.studentId}</p>
-                            </div>
+                        {/* Student Info */}
+                        <div className="flex-1">
+                          <div className="flex items-center space-x-3 mb-1">
+                            <h3 className="text-lg font-semibold text-gray-900">
+                              {student.user.firstName} {student.user.lastName}
+                            </h3>
+                            <Badge 
+                              className={`text-xs ${
+                                student.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 
+                                student.status === 'GRADUATED' ? 'bg-blue-100 text-blue-800' :
+                                student.status === 'SUSPENDED' ? 'bg-red-100 text-red-800' : 'bg-gray-100 text-gray-800'
+                              }`}
+                            >
+                              {student.status}
+                            </Badge>
+                            <Badge className={`text-xs ${
+                              student.gender === 'MALE' ? 'bg-blue-100 text-blue-800' :
+                              student.gender === 'FEMALE' ? 'bg-pink-100 text-pink-800' :
+                              'bg-purple-100 text-purple-800'
+                            }`}>
+                              {student.gender}
+                            </Badge>
                           </div>
-                          
-                          {/* Contact Info */}
-                          <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 text-sm">
-                            <div className="flex items-center space-x-2 text-text-secondary">
-                              <Mail className="h-4 w-4 text-accent-blue" />
-                              <span className="truncate">{student.user.email}</span>
+                          <div className="flex items-center space-x-6 text-sm text-gray-600">
+                            <div className="flex items-center space-x-1">
+                              <Mail className="h-4 w-4" />
+                              <span>{student.user.email}</span>
                             </div>
-                            <div className="flex items-center space-x-2 text-text-secondary">
-                              <Calendar className="h-4 w-4 text-accent-green" />
-                              <span>Age: {calculateAge(student.dateOfBirth)} years</span>
+                            <div className="flex items-center space-x-1">
+                              <Calendar className="h-4 w-4" />
+                              <span>Age: {calculateAge(student.dateOfBirth)}</span>
                             </div>
-                            <div className="flex items-center space-x-2 text-text-secondary">
-                              <MapPin className="h-4 w-4 text-accent-purple" />
+                            <div className="flex items-center space-x-1">
+                              <MapPin className="h-4 w-4" />
                               <span>{student.region}</span>
                             </div>
                           </div>
-                          
-                          {/* Enrollment Info */}
-                          {student.enrollments && student.enrollments.length > 0 && (
-                            <div className="flex items-center space-x-2 text-sm">
-                              <BookOpen className="h-4 w-4 text-status-warning" />
-                              <span className="text-text-secondary">
-                                <span className="font-medium text-text-primary">Enrolled in:</span> {' '}
-                                {student.enrollments
-                                  .filter(e => e.isActive)
-                                  .map(e => e.class?.className || e.course?.courseName || e.subject?.subjectName)
-                                  .join(', ')
-                                }
-                              </span>
-                            </div>
-                          )}
+                          <p className="text-sm text-gray-500 mt-1">Student ID: {student.studentId}</p>
                         </div>
                       </div>
                       
-                      {/* Actions Section */}
-                      <div className="flex items-center space-x-4">
-                        {/* Admission Date */}
-                        <div className="text-right space-y-1 hidden lg:block">
-                          <div className="flex items-center space-x-1 text-text-muted text-xs">
-                            <Clock className="h-3 w-3" />
-                            <span>Admitted</span>
-                          </div>
-                          <p className="text-text-secondary text-sm font-medium">
-                            {format(new Date(student.createdAt), 'MMM dd, yyyy')}
-                          </p>
-                          {student.admissionDate && (
-                            <p className="text-text-muted text-xs">
-                              Enrolled: {format(new Date(student.admissionDate), 'MMM dd, yyyy')}
-                            </p>
-                          )}
-                        </div>
-                        
-                        {/* Action Buttons */}
-                        <div className="flex items-center space-x-2">
-                          <Button 
-                            asChild
-                            variant="ghost" 
-                            size="sm"
-                            className="glass-button text-accent-blue hover:text-accent-blue hover:bg-blue-50/30 transition-all duration-200"
-                          >
-                            <Link href={`/students/${student.id}`}>
-                              <Eye className="h-4 w-4 mr-1" />
-                              View
-                            </Link>
-                          </Button>
-                          
-                          <Button 
-                            asChild
-                            variant="ghost" 
-                            size="sm"
-                            className="glass-button text-accent-green hover:text-accent-green hover:bg-green-50/30 transition-all duration-200"
-                          >
-                            <Link href={`/students/${student.id}/edit`}>
-                              <Edit3 className="h-4 w-4 mr-1" />
-                              Edit
-                            </Link>
-                          </Button>
-                          
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button 
-                                variant="ghost" 
-                                size="sm"
-                                className="glass-button text-text-secondary hover:text-accent-purple transition-all duration-200"
-                              >
-                                <MoreHorizontal className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end" className="glass-card border-glass-border shadow-glass">
-                              <DropdownMenuItem asChild className="hover:bg-glass-white/50 cursor-pointer">
-                                <Link href={`/students/${student.id}/enrollments`} className="flex items-center">
-                                  <BookOpen className="h-4 w-4 mr-2 text-accent-blue" />
-                                  Manage Enrollments
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild className="hover:bg-glass-white/50 cursor-pointer">
-                                <Link href={`/students/${student.id}/academic-records`} className="flex items-center">
-                                  <Award className="h-4 w-4 mr-2 text-accent-green" />
-                                  Academic Records
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild className="hover:bg-glass-white/50 cursor-pointer">
-                                <Link href={`/students/${student.id}/attendance`} className="flex items-center">
-                                  <Clock className="h-4 w-4 mr-2 text-status-warning" />
-                                  Attendance
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild className="hover:bg-glass-white/50 cursor-pointer">
-                                <Link href={`/students/${student.id}/health-records`} className="flex items-center">
-                                  <Heart className="h-4 w-4 mr-2 text-status-danger" />
-                                  Health Records
-                                </Link>
-                              </DropdownMenuItem>
-                              <DropdownMenuItem asChild className="hover:bg-glass-white/50 cursor-pointer">
-                                <Link href={`/students/${student.id}/documents`} className="flex items-center">
-                                  <FileText className="h-4 w-4 mr-2 text-accent-purple" />
-                                  Documents
-                                </Link>
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                        </div>
+                      {/* Actions */}
+                      <div className="flex items-center space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => window.location.href = `/students/${student.id}`}
+                        >
+                          <Eye className="h-4 w-4 mr-1" />
+                          View
+                        </Button>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => window.location.href = `/students/${student.id}/edit`}
+                        >
+                          <Edit3 className="h-4 w-4 mr-1" />
+                          Edit
+                        </Button>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="ghost" size="sm">
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem>
+                              <BookOpen className="h-4 w-4 mr-2" />
+                              Manage Enrollments
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Award className="h-4 w-4 mr-2" />
+                              Academic Records
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Clock className="h-4 w-4 mr-2" />
+                              Attendance
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <Heart className="h-4 w-4 mr-2" />
+                              Health Records
+                            </DropdownMenuItem>
+                            <DropdownMenuItem>
+                              <FileText className="h-4 w-4 mr-2" />
+                              Documents
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-          </div>
-
-        {/* Premium Pagination */}
-        {pagination.pages > 1 && (
-          <div className="mt-8 glass-card-premium p-4 animate-slide-in-up" style={{animationDelay: '0.4s'}}>
-            <div className="flex items-center justify-between">
-              <div className="text-text-secondary text-sm font-medium">
-                Showing <span className="text-text-primary font-semibold">{((pagination.page - 1) * pagination.limit) + 1}</span> to{' '}
-                <span className="text-text-primary font-semibold">{Math.min(pagination.page * pagination.limit, pagination.total)}</span> of{' '}
-                <span className="text-text-primary font-semibold">{pagination.total}</span> students
+                  </Card>
+                ))}
               </div>
-              <div className="flex items-center space-x-1">
+            )}
+          </div>
+        </Card>
+
+        {/* Pagination */}
+        {pagination.pages > 1 && (
+          <Card className="mt-6">
+            <div className="flex items-center justify-between">
+              <div className="text-gray-600 text-sm">
+                Showing {((pagination.page - 1) * pagination.limit) + 1} to{' '}
+                {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
+                {pagination.total} students
+              </div>
+              <div className="flex items-center space-x-2">
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page - 1)}
                   disabled={pagination.page <= 1}
-                  className="glass-button disabled:opacity-50 disabled:cursor-not-allowed hover:text-accent-purple"
                 >
                   Previous
                 </Button>
-                <div className="flex items-center space-x-1">
-                  {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
-                    const page = i + 1;
-                    return (
-                      <Button
-                        key={page}
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => handlePageChange(page)}
-                        className={`w-10 h-10 p-0 rounded-lg transition-all duration-200 ${
-                          pagination.page === page
-                            ? 'bg-gradient-to-r from-accent-purple to-accent-purple-light text-white shadow-purple-glow'
-                            : 'glass-button hover:text-accent-purple hover:border-accent-purple/30'
-                        }`}
-                      >
-                        {page}
-                      </Button>
-                    );
-                  })}
-                </div>
+                {Array.from({ length: Math.min(5, pagination.pages) }, (_, i) => {
+                  const page = i + 1;
+                  return (
+                    <Button
+                      key={page}
+                      variant={pagination.page === page ? 'primary' : 'ghost'}
+                      size="sm"
+                      onClick={() => handlePageChange(page)}
+                      className="w-10 h-10 p-0"
+                    >
+                      {page}
+                    </Button>
+                  );
+                })}
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => handlePageChange(pagination.page + 1)}
                   disabled={pagination.page >= pagination.pages}
-                  className="glass-button disabled:opacity-50 disabled:cursor-not-allowed hover:text-accent-purple"
                 >
                   Next
                 </Button>
               </div>
             </div>
-          </div>
+          </Card>
         )}
       </div>
     </div>
   );
 }
-
-
-
-

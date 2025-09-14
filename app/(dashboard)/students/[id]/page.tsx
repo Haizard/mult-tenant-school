@@ -2,8 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
@@ -94,75 +94,95 @@ export default function StudentDetailPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center py-8">
-        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+        <div className="flex items-center justify-center py-16">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-12 w-12 border-4 border-blue-500/20 border-t-blue-500 mx-auto mb-4"></div>
+            <p className="text-gray-600">Loading student details...</p>
+          </div>
+        </div>
       </div>
     );
   }
 
   if (!student) {
     return (
-      <div className="text-center py-8">
-        <AlertCircle className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-        <h3 className="text-lg font-medium text-gray-900 mb-2">Student not found</h3>
-        <p className="text-gray-500 mb-4">The student you're looking for doesn't exist.</p>
-        <Button asChild>
-          <Link href="/students">
+      <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+        <div className="text-center py-16">
+          <AlertCircle className="h-16 w-16 text-gray-400 mx-auto mb-4" />
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Student not found</h3>
+          <p className="text-gray-600 mb-6">The student you're looking for doesn't exist.</p>
+          <Button 
+            variant="primary"
+            onClick={() => window.location.href = '/students'}
+          >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Students
-          </Link>
-        </Button>
+          </Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/students">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Link>
-          </Button>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">
-              {student.user.firstName} {student.user.lastName}
-            </h1>
-            <p className="text-muted-foreground">
-              Student ID: {student.studentId} • {student.user.email}
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="space-y-6">
+        {/* Header - Match system style */}
+        <div className="glass-card p-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-4 mb-3">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => window.location.href = '/students'}
+                  className="flex items-center"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Students
+                </Button>
+              </div>
+              <h1 className="text-3xl font-bold text-text-primary mb-2">
+                {student.user.firstName} {student.user.lastName}
+              </h1>
+              <p className="text-text-secondary">
+                Student ID: {student.studentId} • {student.user.email}
+              </p>
+            </div>
+            <div className="flex items-center space-x-3">
+              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xl">
+                {student.user.firstName[0]}{student.user.lastName[0]}
+              </div>
+              <Button 
+                variant="primary" 
+                size="sm"
+                onClick={() => window.location.href = `/students/${student.id}/edit`}
+                className="flex items-center"
+              >
+                <Edit className="h-4 w-4 mr-2" />
+                Edit Profile
+              </Button>
+            </div>
+          </div>
+
+          {/* Status and Basic Info */}
+          <div className="flex items-center space-x-3 mt-4">
+            <Badge className={getStatusColor(student.status)}>
+              {student.status}
+            </Badge>
+            <Badge className={getGenderColor(student.gender)}>
+              {student.gender}
+            </Badge>
+            <Badge variant="outline">
+              Age: {calculateAge(student.dateOfBirth)}
+            </Badge>
+            {student.admissionNumber && (
+              <Badge variant="outline">
+                Admission: {student.admissionNumber}
+              </Badge>
+            )}
           </div>
         </div>
-        <div className="flex items-center space-x-2">
-          <Button variant="outline" size="sm" asChild>
-            <Link href={`/students/${student.id}/edit`}>
-              <Edit className="h-4 w-4 mr-2" />
-              Edit
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {/* Status and Basic Info */}
-      <div className="flex items-center space-x-4">
-        <Badge className={getStatusColor(student.status)}>
-          {student.status}
-        </Badge>
-        <Badge className={getGenderColor(student.gender)}>
-          {student.gender}
-        </Badge>
-        <Badge variant="outline">
-          Age: {calculateAge(student.dateOfBirth)}
-        </Badge>
-        {student.admissionNumber && (
-          <Badge variant="outline">
-            Admission: {student.admissionNumber}
-          </Badge>
-        )}
-      </div>
 
       {/* Main Content */}
       <Tabs defaultValue="overview" className="space-y-6">
@@ -181,13 +201,14 @@ export default function StudentDetailPage() {
           <div className="grid gap-6 md:grid-cols-2">
             {/* Personal Information */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <User className="h-5 w-5" />
-                  <span>Personal Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-blue-100">
+                    <User className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+                </div>
+                <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Full Name</label>
@@ -214,18 +235,19 @@ export default function StudentDetailPage() {
                     <p className="text-sm">{student.bloodGroup || 'Not specified'}</p>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
 
             {/* Contact Information */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Phone className="h-5 w-5" />
-                  <span>Contact Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-green-100">
+                    <Phone className="h-5 w-5 text-green-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+                </div>
+                <div className="space-y-4">
                 <div className="space-y-3">
                   <div className="flex items-center space-x-3">
                     <Mail className="h-4 w-4 text-gray-400" />
@@ -248,18 +270,19 @@ export default function StudentDetailPage() {
                     </div>
                   )}
                 </div>
-              </CardContent>
+              </div>
             </Card>
 
             {/* Emergency Contact */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <AlertCircle className="h-5 w-5" />
-                  <span>Emergency Contact</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-red-100">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Emergency Contact</h3>
+                </div>
+                <div className="space-y-4">
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Contact Person</label>
@@ -270,18 +293,19 @@ export default function StudentDetailPage() {
                     <p className="text-sm">{student.emergencyPhone}</p>
                   </div>
                 </div>
-              </CardContent>
+              </div>
             </Card>
 
             {/* Academic Information */}
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <GraduationCap className="h-5 w-5" />
-                  <span>Academic Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-purple-100">
+                    <GraduationCap className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Academic Information</h3>
+                </div>
+                <div className="space-y-4">
                 <div className="space-y-3">
                   <div>
                     <label className="text-sm font-medium text-gray-500">Student ID</label>
@@ -312,7 +336,7 @@ export default function StudentDetailPage() {
                     </div>
                   )}
                 </div>
-              </CardContent>
+              </div>
             </Card>
           </div>
 

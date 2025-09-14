@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/Card';
-import { Button } from '@/components/ui/Button';
+import { Card } from '@/components/ui/Card';
+import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
   ArrowLeft, 
@@ -269,39 +268,49 @@ export default function NewStudentPage() {
   };
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <Link href="/students">
-            <Button variant="outline" size="sm">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back
-            </Button>
-          </Link>
-          <div>
-            <h1 className="text-3xl font-bold tracking-tight">Add New Student</h1>
-            <p className="text-muted-foreground">
-              Create a new student profile with personal and academic information
-            </p>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
+      <div className="space-y-6">
+        {/* Header - Match system style */}
+        <div className="glass-card p-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
+          <div className="flex items-center justify-between">
+            <div>
+              <div className="flex items-center space-x-4 mb-2">
+                <Button 
+                  variant="ghost" 
+                  size="sm"
+                  onClick={() => router.push('/students')}
+                  className="flex items-center"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Students
+                </Button>
+              </div>
+              <h1 className="text-3xl font-bold text-text-primary">Add New Student</h1>
+              <p className="text-text-secondary">
+                Create a new student profile with personal and academic information
+              </p>
+            </div>
+            <div className="p-3 rounded-xl bg-gradient-to-r from-accent-purple to-accent-purple-light shadow-purple-glow">
+              <GraduationCap className="h-8 w-8 text-white" />
+            </div>
           </div>
         </div>
-      </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="grid gap-6 md:grid-cols-2">
-          {/* Personal Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <User className="h-5 w-5" />
-                <span>Personal Information</span>
-              </CardTitle>
-              <CardDescription>
-                Basic personal details of the student
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid gap-6 md:grid-cols-2">
+            {/* Personal Information */}
+            <Card>
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-blue-100">
+                    <User className="h-5 w-5 text-blue-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
+                    <p className="text-sm text-gray-600">Basic personal details of the student</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="studentId">Student ID *</Label>
@@ -349,15 +358,16 @@ export default function NewStudentPage() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <Label htmlFor="gender">Gender *</Label>
-                  <Select
+                  <select
                     value={formData.gender}
                     onChange={(e) => handleInputChange('gender', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select gender</option>
                     <option value="MALE">Male</option>
                     <option value="FEMALE">Female</option>
                     <option value="OTHER">Other</option>
-                  </Select>
+                  </select>
                 </div>
                 <div>
                   <Label htmlFor="nationality">Nationality</Label>
@@ -382,9 +392,10 @@ export default function NewStudentPage() {
                 </div>
                 <div>
                   <Label htmlFor="bloodGroup">Blood Group</Label>
-                  <Select
+                  <select
                     value={formData.bloodGroup}
                     onChange={(e) => handleInputChange('bloodGroup', e.target.value)}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   >
                     <option value="">Select blood group</option>
                     <option value="A+">A+</option>
@@ -395,24 +406,25 @@ export default function NewStudentPage() {
                     <option value="AB-">AB-</option>
                     <option value="O+">O+</option>
                     <option value="O-">O-</option>
-                  </Select>
+                  </select>
+                </div>
                 </div>
               </div>
-            </CardContent>
-          </Card>
+            </Card>
 
-          {/* Contact Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Phone className="h-5 w-5" />
-                <span>Contact Information</span>
-              </CardTitle>
-              <CardDescription>
-                Address and contact details
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* Contact Information */}
+            <Card>
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-green-100">
+                    <Phone className="h-5 w-5 text-green-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
+                    <p className="text-sm text-gray-600">Address and contact details</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
               <div>
                 <Label htmlFor="address">Address *</Label>
                 <Textarea
@@ -466,22 +478,23 @@ export default function NewStudentPage() {
                     placeholder="e.g., +255 123 456 789"
                   />
                 </div>
+                </div>
               </div>
-            </CardContent>
-          </Card>
+            </Card>
 
-          {/* Emergency Contact */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <AlertCircle className="h-5 w-5" />
-                <span>Emergency Contact</span>
-              </CardTitle>
-              <CardDescription>
-                Emergency contact information
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* Emergency Contact */}
+            <Card>
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-red-100">
+                    <AlertCircle className="h-5 w-5 text-red-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Emergency Contact</h3>
+                    <p className="text-sm text-gray-600">Emergency contact information</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
               <div>
                 <Label htmlFor="emergencyContact">Emergency Contact Name *</Label>
                 <Input
@@ -502,21 +515,23 @@ export default function NewStudentPage() {
                   required
                 />
               </div>
-            </CardContent>
-          </Card>
+                </div>
+              </div>
+            </Card>
 
-          {/* Academic Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <GraduationCap className="h-5 w-5" />
-                <span>Academic Information</span>
-              </CardTitle>
-              <CardDescription>
-                Previous academic background
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* Academic Information */}
+            <Card>
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-purple-100">
+                    <GraduationCap className="h-5 w-5 text-purple-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Academic Information</h3>
+                    <p className="text-sm text-gray-600">Previous academic background</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
               <div>
                 <Label htmlFor="previousSchool">Previous School</Label>
                 <Input
@@ -535,33 +550,36 @@ export default function NewStudentPage() {
                   placeholder="e.g., Grade 6"
                 />
               </div>
-            </CardContent>
-          </Card>
+                </div>
+              </div>
+            </Card>
 
-          {/* Transport Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <MapPin className="h-5 w-5" />
-                <span>Transport Information</span>
-              </CardTitle>
-              <CardDescription>
-                Transportation details
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            {/* Transport Information */}
+            <Card>
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-orange-100">
+                    <MapPin className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Transport Information</h3>
+                    <p className="text-sm text-gray-600">Transportation details</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
               <div>
                 <Label htmlFor="transportMode">Transport Mode</Label>
-                <Select
+                <select
                   value={formData.transportMode}
                   onChange={(e) => handleInputChange('transportMode', e.target.value)}
+                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 >
                   <option value="">Select transport mode</option>
                   <option value="BUS">School Bus</option>
                   <option value="WALKING">Walking</option>
                   <option value="PRIVATE">Private Vehicle</option>
                   <option value="OTHER">Other</option>
-                </Select>
+                </select>
               </div>
               <div>
                 <Label htmlFor="transportRoute">Transport Route</Label>
@@ -572,57 +590,61 @@ export default function NewStudentPage() {
                   placeholder="e.g., Route A, Kimara"
                 />
               </div>
-            </CardContent>
-          </Card>
-
-          {/* Medical Information */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <Heart className="h-5 w-5" />
-                <span>Medical Information</span>
-              </CardTitle>
-              <CardDescription>
-                Health conditions and medical notes
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div>
-                <Label htmlFor="medicalInfo">Medical Information</Label>
-                <Textarea
-                  id="medicalInfo"
-                  value={formData.medicalInfo}
-                  onChange={(e) => handleInputChange('medicalInfo', e.target.value)}
-                  placeholder="Any medical conditions, allergies, or special requirements..."
-                  rows={4}
-                />
+                </div>
               </div>
-            </CardContent>
-          </Card>
-        </div>
+            </Card>
 
-        {/* Submit Button */}
-        <div className="flex justify-end space-x-4">
-          <Link href="/students">
-            <Button type="button" variant="outline">
+            {/* Medical Information */}
+            <Card>
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-pink-100">
+                    <Heart className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">Medical Information</h3>
+                    <p className="text-sm text-gray-600">Health conditions and medical notes</p>
+                  </div>
+                </div>
+                <div>
+                  <Label htmlFor="medicalInfo">Medical Information</Label>
+                  <Textarea
+                    id="medicalInfo"
+                    value={formData.medicalInfo}
+                    onChange={(e) => handleInputChange('medicalInfo', e.target.value)}
+                    placeholder="Any medical conditions, allergies, or special requirements..."
+                    rows={4}
+                  />
+                </div>
+              </div>
+            </Card>
+          </div>
+
+          {/* Submit Button */}
+          <div className="flex justify-end space-x-4">
+            <Button 
+              type="button" 
+              variant="ghost"
+              onClick={() => router.push('/students')}
+            >
               Cancel
             </Button>
-          </Link>
-          <Button type="submit" disabled={loading}>
-            {loading ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Creating...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Create Student
-              </>
-            )}
-          </Button>
-        </div>
-      </form>
+            <Button type="submit" variant="primary" disabled={loading}>
+              {loading ? (
+                <>
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                  Creating...
+                </>
+              ) : (
+                <>
+                  <Save className="h-4 w-4 mr-2" />
+                  Create Student
+                </>
+              )}
+            </Button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }
