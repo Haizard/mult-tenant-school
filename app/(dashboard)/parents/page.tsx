@@ -89,7 +89,7 @@ export default function ParentsPage() {
   const handleFilterChange = (key: keyof ParentFilters, value: string) => {
     setFilters(prev => ({
       ...prev,
-      [key]: value || undefined,
+      [key]: value === 'all' ? undefined : value || undefined,
       page: 1
     }));
   };
@@ -228,14 +228,14 @@ export default function ParentsPage() {
             </div>
             <div className="flex gap-2">
               <Select
-                value={filters.status || ''}
+                value={filters.status || 'all'}
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="INACTIVE">Inactive</SelectItem>
                   <SelectItem value="SUSPENDED">Suspended</SelectItem>
@@ -243,14 +243,14 @@ export default function ParentsPage() {
               </Select>
               
               <Select
-                value={filters.relationship || ''}
+                value={filters.relationship || 'all'}
                 onValueChange={(value) => handleFilterChange('relationship', value)}
               >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Relationship" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Relationships</SelectItem>
+                  <SelectItem value="all">All Relationships</SelectItem>
                   <SelectItem value="FATHER">Father</SelectItem>
                   <SelectItem value="MOTHER">Mother</SelectItem>
                   <SelectItem value="GUARDIAN">Guardian</SelectItem>

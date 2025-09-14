@@ -35,8 +35,8 @@ export default function EnrollmentsPage() {
   const [enrollments, setEnrollments] = useState<StudentEnrollment[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [typeFilter, setTypeFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [typeFilter, setTypeFilter] = useState('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -88,8 +88,8 @@ export default function EnrollmentsPage() {
       enrollment.subject?.subjectName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       enrollment.academicYear.yearName.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = !statusFilter || enrollment.status === statusFilter;
-    const matchesType = !typeFilter || enrollment.enrollmentType === typeFilter;
+    const matchesStatus = statusFilter === 'all' || enrollment.status === statusFilter;
+    const matchesType = typeFilter === 'all' || enrollment.enrollmentType === typeFilter;
     
     return matchesSearch && matchesStatus && matchesType;
   });
@@ -209,7 +209,7 @@ export default function EnrollmentsPage() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="INACTIVE">Inactive</SelectItem>
                   <SelectItem value="SUSPENDED">Suspended</SelectItem>
@@ -226,7 +226,7 @@ export default function EnrollmentsPage() {
                   <SelectValue placeholder="Type" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Types</SelectItem>
+                  <SelectItem value="all">All Types</SelectItem>
                   <SelectItem value="COURSE">Course</SelectItem>
                   <SelectItem value="SUBJECT">Subject</SelectItem>
                   <SelectItem value="CLASS">Class</SelectItem>

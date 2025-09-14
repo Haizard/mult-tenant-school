@@ -35,9 +35,9 @@ export default function AcademicRecordsPage() {
   const [records, setRecords] = useState<StudentAcademicRecord[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [statusFilter, setStatusFilter] = useState('');
-  const [termFilter, setTermFilter] = useState('');
-  const [yearFilter, setYearFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
+  const [termFilter, setTermFilter] = useState('all');
+  const [yearFilter, setYearFilter] = useState('all');
   const { toast } = useToast();
 
   useEffect(() => {
@@ -102,9 +102,9 @@ export default function AcademicRecordsPage() {
       record.subject?.subjectName?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       record.grade?.toLowerCase().includes(searchTerm.toLowerCase());
     
-    const matchesStatus = !statusFilter || record.status === statusFilter;
-    const matchesTerm = !termFilter || record.term === termFilter;
-    const matchesYear = !yearFilter || record.academicYear.yearName === yearFilter;
+    const matchesStatus = statusFilter === 'all' || record.status === statusFilter;
+    const matchesTerm = termFilter === 'all' || record.term === termFilter;
+    const matchesYear = yearFilter === 'all' || record.academicYear.yearName === yearFilter;
     
     return matchesSearch && matchesStatus && matchesTerm && matchesYear;
   });
@@ -227,7 +227,7 @@ export default function AcademicRecordsPage() {
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="INACTIVE">Inactive</SelectItem>
                   <SelectItem value="ARCHIVED">Archived</SelectItem>
@@ -242,7 +242,7 @@ export default function AcademicRecordsPage() {
                   <SelectValue placeholder="Term" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Terms</SelectItem>
+                  <SelectItem value="all">All Terms</SelectItem>
                   <SelectItem value="FIRST_TERM">First Term</SelectItem>
                   <SelectItem value="SECOND_TERM">Second Term</SelectItem>
                   <SelectItem value="THIRD_TERM">Third Term</SelectItem>
