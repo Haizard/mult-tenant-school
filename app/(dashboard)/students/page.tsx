@@ -91,7 +91,7 @@ export default function StudentsPage() {
   const handleFilterChange = (key: keyof StudentFilters, value: string) => {
     setFilters(prev => ({
       ...prev,
-      [key]: value || undefined,
+      [key]: value === 'all' ? undefined : value || undefined,
       page: 1
     }));
   };
@@ -250,14 +250,14 @@ export default function StudentsPage() {
             </div>
             <div className="flex gap-2">
               <Select
-                value={filters.status || ''}
+                value={filters.status || 'all'}
                 onValueChange={(value) => handleFilterChange('status', value)}
               >
                 <SelectTrigger className="w-[140px]">
                   <SelectValue placeholder="Status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Status</SelectItem>
+                  <SelectItem value="all">All Status</SelectItem>
                   <SelectItem value="ACTIVE">Active</SelectItem>
                   <SelectItem value="INACTIVE">Inactive</SelectItem>
                   <SelectItem value="SUSPENDED">Suspended</SelectItem>
@@ -268,14 +268,14 @@ export default function StudentsPage() {
               </Select>
               
               <Select
-                value={filters.gender || ''}
+                value={filters.gender || 'all'}
                 onValueChange={(value) => handleFilterChange('gender', value)}
               >
                 <SelectTrigger className="w-[120px]">
                   <SelectValue placeholder="Gender" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Gender</SelectItem>
+                  <SelectItem value="all">All Gender</SelectItem>
                   <SelectItem value="MALE">Male</SelectItem>
                   <SelectItem value="FEMALE">Female</SelectItem>
                   <SelectItem value="OTHER">Other</SelectItem>
