@@ -6,17 +6,29 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select } from '@/components/ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import {
   ArrowLeft, 
+  ArrowRight,
   Save, 
   User, 
   Phone, 
   MapPin, 
   GraduationCap,
   Heart,
-  AlertCircle
+  AlertCircle,
+  Mail,
+  Calendar,
+  Shield,
+  FileText,
+  Users,
+  Home,
+  BookOpen,
+  CheckCircle,
+  Clock,
+  Star,
+  Sparkles
 } from 'lucide-react';
 import { studentService } from '@/lib/studentService';
 import { useToast } from '@/hooks/use-toast';
@@ -30,33 +42,124 @@ interface User {
   phone?: string;
 }
 
+interface FormData {
+  // Personal Information
+  firstName: string;
+  lastName: string;
+  email: string;
+  phone: string;
+  studentId: string;
+  admissionNumber: string;
+  dateOfBirth: string;
+  gender: 'MALE' | 'FEMALE' | 'OTHER' | '';
+  nationality: string;
+  religion: string;
+  bloodGroup: string;
+  
+  // Address Information
+  address: string;
+  city: string;
+  region: string;
+  postalCode: string;
+  
+  // Emergency Contact
+  emergencyContact: string;
+  emergencyPhone: string;
+  emergencyRelation: string;
+  
+  // Academic Information
+  admissionDate: string;
+  previousSchool: string;
+  previousGrade: string;
+  
+  // Additional Information
+  medicalInfo: string;
+  transportMode: string;
+  transportRoute: string;
+  specialNeeds: string;
+  hobbies: string;
+}
+
+const steps = [
+  {
+    id: 1,
+    title: 'Personal Details',
+    description: 'Basic student information',
+    icon: User,
+    color: 'from-accent-purple to-accent-purple-light'
+  },
+  {
+    id: 2,
+    title: 'Contact & Address',
+    description: 'Location and contact details',
+    icon: Home,
+    color: 'from-accent-blue to-accent-blue-light'
+  },
+  {
+    id: 3,
+    title: 'Emergency Contact',
+    description: 'Emergency contact information',
+    icon: Shield,
+    color: 'from-accent-green to-accent-green-light'
+  },
+  {
+    id: 4,
+    title: 'Academic Background',
+    description: 'Previous education details',
+    icon: BookOpen,
+    color: 'from-status-warning to-yellow-400'
+  },
+  {
+    id: 5,
+    title: 'Additional Info',
+    description: 'Medical and other details',
+    icon: Heart,
+    color: 'from-status-danger to-red-400'
+  }
+];
+
 export default function NewStudentPage() {
   const router = useRouter();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [currentStep, setCurrentStep] = useState(1);
   const [users, setUsers] = useState<User[]>([]);
-  const [formData, setFormData] = useState({
-    userId: '',
+  const [formData, setFormData] = useState<FormData>({
+    // Personal Information
+    firstName: '',
+    lastName: '',
+    email: '',
+    phone: '',
     studentId: '',
     admissionNumber: '',
-    admissionDate: '',
     dateOfBirth: '',
-    gender: '' as 'MALE' | 'FEMALE' | 'OTHER' | '',
+    gender: '',
     nationality: 'Tanzanian',
     religion: '',
     bloodGroup: '',
+    
+    // Address Information
     address: '',
     city: '',
     region: '',
     postalCode: '',
-    phone: '',
+    
+    // Emergency Contact
     emergencyContact: '',
     emergencyPhone: '',
-    medicalInfo: '',
+    emergencyRelation: '',
+    
+    // Academic Information
+    admissionDate: '',
     previousSchool: '',
     previousGrade: '',
+    
+    // Additional Information
+    medicalInfo: '',
     transportMode: '',
-    transportRoute: ''
+    transportRoute: '',
+    specialNeeds: '',
+    hobbies: ''
   });
 
   useEffect(() => {
@@ -73,19 +176,53 @@ export default function NewStudentPage() {
     }
   };
 
-  const handleInputChange = (field: string, value: string) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData(prev => ({
       ...prev,
       [field]: value
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    if (!formData.userId || !formData.studentId || !formData.dateOfBirth ||
-        !formData.gender || !formData.address || !formData.city ||
-        !formData.region || !formData.emergencyContact || !formData.emergencyPhone) {
+  const validateStep = (step: number): boolean => {
+    switch (step) {
+      case 1:
+        return !!(formData.firstName && formData.lastName && formData.email && 
+                 formData.studentId && formData.dateOfBirth && formData.gender);
+      case 2:
+        return !!(formData.address && formData.city && formData.region);
+      case 3:
+        return !!(formData.emergencyContact && formData.emergencyPhone && formData.emergencyRelation);
+      case 4:
+        return !!(formData.admissionDate);
+      case 5:
+        return true; // Optional information
+      default:
+        return false;
+    }
+  };
+
+  const nextStep = () => {
+    if (validateStep(currentStep)) {
+      if (currentStep < steps.length) {
+        setCurrentStep(currentStep + 1);
+      }
+    } else {
+      toast({
+        title: 'Validation Error',
+        description: 'Please fill in all required fields before proceeding',
+        variant: 'destructive'
+      });
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const handleSubmit = async () => {
+    if (!validateStep(currentStep)) {
       toast({
         title: 'Validation Error',
         description: 'Please fill in all required fields',
@@ -94,19 +231,28 @@ export default function NewStudentPage() {
       return;
     }
 
-    // Ensure gender is properly typed
-    const submitData = {
-      ...formData,
-      gender: formData.gender as 'MALE' | 'FEMALE' | 'OTHER'
-    };
-
     try {
       setLoading(true);
-      await studentService.createStudent(submitData);
+      
+      // Create the user first (in a real app, this might be a separate step)
+      const userData = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone
+      };
+
+      // Then create the student with all the form data
+      const studentData = {
+        ...formData,
+        gender: formData.gender as 'MALE' | 'FEMALE' | 'OTHER'
+      };
+
+      await studentService.createStudent(studentData);
       
       toast({
-        title: 'Success',
-        description: 'Student created successfully',
+        title: 'Success! 🎉',
+        description: 'Student registered successfully',
       });
       
       router.push('/students');
