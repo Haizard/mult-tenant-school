@@ -45,6 +45,8 @@ app.use('/api/academic', require('./routes/academicRoutes'));
 app.use('/api/examinations', require('./routes/examinationRoutes'));
 app.use('/api/schedules', require('./routes/scheduleRoutes'));
 app.use('/api/audit-logs', require('./routes/auditRoutes'));
+app.use('/api/students', require('./routes/studentRoutes'));
+app.use('/api/parents', require('./routes/parentRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {

@@ -92,6 +92,18 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     { resource: 'reports', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
     { resource: 'analytics', action: 'read', roles: ['Super Admin', 'Tenant Admin'] },
     
+    // Student management - full CRUD within tenant
+    { resource: 'students', action: 'create', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'students', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'students', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'students', action: 'delete', roles: ['Super Admin', 'Tenant Admin'] },
+    
+    // Parent management - full CRUD within tenant
+    { resource: 'parents', action: 'create', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'parents', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'parents', action: 'update', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'parents', action: 'delete', roles: ['Super Admin', 'Tenant Admin'] },
+    
     // Administrative features
     { resource: 'library', action: 'manage', roles: ['Super Admin', 'Tenant Admin'] },
     { resource: 'transport', action: 'manage', roles: ['Super Admin', 'Tenant Admin'] },
@@ -128,6 +140,13 @@ export const ROLE_PERMISSIONS: RolePermissions = {
     
     // Student data access (assigned students only)
     { resource: 'students', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'students', action: 'create', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'students', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'students', action: 'delete', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'parents', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
+    { resource: 'parents', action: 'create', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'parents', action: 'update', roles: ['Super Admin', 'Tenant Admin'] },
+    { resource: 'parents', action: 'delete', roles: ['Super Admin', 'Tenant Admin'] },
     { resource: 'attendance', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
     { resource: 'attendance', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Teacher'] },
     

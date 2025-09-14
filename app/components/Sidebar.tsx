@@ -106,6 +106,13 @@ const Sidebar = () => {
       );
     }
 
+    // Student management - Tenant Admin and Teacher only
+    if (hasAnyRole(['Tenant Admin', 'Teacher'])) {
+      items.push(
+        { icon: <FaGraduationCap />, text: "Students", href: "/students", show: true, hasDropdown: true }
+      );
+    }
+
     // Basic features - all authenticated users
     items.push(
       { icon: <FaUserCircle />, text: "Account", href: "/account", show: true }
