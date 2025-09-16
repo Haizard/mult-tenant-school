@@ -128,13 +128,19 @@ class ApiService {
       }
 
       if (!response.ok) {
-        console.error('API Error:', {
-          url,
-          status: response.status,
-          statusText: response.statusText,
-          data,
-          headers: headers
-        });
+        console.error(
+          'API Error:',
+          JSON.stringify(
+            {
+              url,
+              status: response.status,
+              statusText: response.statusText,
+              data,
+            },
+            null,
+            2
+          )
+        );
         return {
           success: false,
           message: data?.message || `HTTP ${response.status}: ${response.statusText}`,

@@ -343,13 +343,14 @@ export default function StudentDetailPage() {
           {/* Transport Information */}
           {(student.transportMode || student.transportRoute) && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <MapPin className="h-5 w-5" />
-                  <span>Transport Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-orange-100">
+                    <MapPin className="h-5 w-5 text-orange-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Transport Information</h3>
+                </div>
+                <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   {student.transportMode && (
                     <div>
@@ -364,22 +365,23 @@ export default function StudentDetailPage() {
                     </div>
                   )}
                 </div>
-              </CardContent>
+                </div>
+              </div>
             </Card>
           )}
 
           {/* Medical Information */}
           {student.medicalInfo && (
             <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center space-x-2">
-                  <Heart className="h-5 w-5" />
-                  <span>Medical Information</span>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+              <div className="p-6">
+                <div className="flex items-center space-x-2 mb-4">
+                  <div className="p-2 rounded-lg bg-pink-100">
+                    <Heart className="h-5 w-5 text-pink-600" />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-900">Medical Information</h3>
+                </div>
                 <p className="text-sm whitespace-pre-wrap">{student.medicalInfo}</p>
-              </CardContent>
+              </div>
             </Card>
           )}
         </TabsContent>
@@ -387,16 +389,17 @@ export default function StudentDetailPage() {
         {/* Enrollments Tab */}
         <TabsContent value="enrollments" className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <BookOpen className="h-5 w-5" />
-                <span>Current Enrollments</span>
-              </CardTitle>
-              <CardDescription>
-                Active course, subject, and class enrollments
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <div className="p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <BookOpen className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Current Enrollments</h3>
+                  <p className="text-sm text-gray-600">Active course, subject, and class enrollments</p>
+                </div>
+              </div>
+              <div>
               {student.enrollments && student.enrollments.length > 0 ? (
                 <div className="space-y-4">
                   {student.enrollments
@@ -431,23 +434,24 @@ export default function StudentDetailPage() {
                   <p className="text-gray-500">This student is not currently enrolled in any programs.</p>
                 </div>
               )}
-            </CardContent>
+            </div>
           </Card>
         </TabsContent>
 
         {/* Academic Records Tab */}
         <TabsContent value="academic" className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center space-x-2">
-                <GraduationCap className="h-5 w-5" />
-                <span>Academic Records</span>
-              </CardTitle>
-              <CardDescription>
-                Student's academic performance and progress
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
+            <div className="p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="p-2 rounded-lg bg-purple-100">
+                  <GraduationCap className="h-5 w-5 text-purple-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Academic Records</h3>
+                  <p className="text-sm text-gray-600">Student's academic performance and progress</p>
+                </div>
+              </div>
+              <div>
               {student.academicRecords && student.academicRecords.length > 0 ? (
                 <div className="space-y-4">
                   {student.academicRecords.map((record) => (

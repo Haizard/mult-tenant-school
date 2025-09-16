@@ -220,11 +220,17 @@ export default function NewStudentPage() {
     }
   };
 
-  const handleSubmit = async () => {
-    if (!validateStep(currentStep)) {
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    // Validate all required fields
+    const requiredFields = ['firstName', 'lastName', 'email', 'studentId', 'dateOfBirth', 'gender'];
+    const missingFields = requiredFields.filter(field => !formData[field as keyof FormData]);
+    
+    if (missingFields.length > 0) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields',
+        description: `Missing required fields: ${missingFields.join(', ')}`,
         variant: 'destructive'
       });
       return;
@@ -311,103 +317,139 @@ export default function NewStudentPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="studentId">Student ID *</Label>
-                  <Input
-                    id="studentId"
-                    value={formData.studentId}
-                    onChange={(e) => handleInputChange('studentId', e.target.value)}
-                    placeholder="e.g., STU001"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="admissionNumber">Admission Number</Label>
-                  <Input
-                    id="admissionNumber"
-                    value={formData.admissionNumber}
-                    onChange={(e) => handleInputChange('admissionNumber', e.target.value)}
-                    placeholder="e.g., ADM2024001"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="firstName">First Name *</Label>
+                      <Input
+                        id="firstName"
+                        value={formData.firstName}
+                        onChange={(e) => handleInputChange('firstName', e.target.value)}
+                        placeholder="e.g., John"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="lastName">Last Name *</Label>
+                      <Input
+                        id="lastName"
+                        value={formData.lastName}
+                        onChange={(e) => handleInputChange('lastName', e.target.value)}
+                        placeholder="e.g., Doe"
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="admissionDate">Admission Date</Label>
-                  <Input
-                    id="admissionDate"
-                    type="date"
-                    value={formData.admissionDate}
-                    onChange={(e) => handleInputChange('admissionDate', e.target.value)}
-                  />
-                </div>
-              </div>
+                  <div>
+                    <Label htmlFor="email">Email Address *</Label>
+                    <Input
+                      id="email"
+                      type="email"
+                      value={formData.email}
+                      onChange={(e) => handleInputChange('email', e.target.value)}
+                      placeholder="e.g., john.doe@example.com"
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="gender">Gender *</Label>
-                  <select
-                    value={formData.gender}
-                    onChange={(e) => handleInputChange('gender', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select gender</option>
-                    <option value="MALE">Male</option>
-                    <option value="FEMALE">Female</option>
-                    <option value="OTHER">Other</option>
-                  </select>
-                </div>
-                <div>
-                  <Label htmlFor="nationality">Nationality</Label>
-                  <Input
-                    id="nationality"
-                    value={formData.nationality}
-                    onChange={(e) => handleInputChange('nationality', e.target.value)}
-                    placeholder="e.g., Tanzanian"
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="studentId">Student ID *</Label>
+                      <Input
+                        id="studentId"
+                        value={formData.studentId}
+                        onChange={(e) => handleInputChange('studentId', e.target.value)}
+                        placeholder="e.g., STU001"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="admissionNumber">Admission Number</Label>
+                      <Input
+                        id="admissionNumber"
+                        value={formData.admissionNumber}
+                        onChange={(e) => handleInputChange('admissionNumber', e.target.value)}
+                        placeholder="e.g., ADM2024001"
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="religion">Religion</Label>
-                  <Input
-                    id="religion"
-                    value={formData.religion}
-                    onChange={(e) => handleInputChange('religion', e.target.value)}
-                    placeholder="e.g., Christian, Muslim"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bloodGroup">Blood Group</Label>
-                  <select
-                    value={formData.bloodGroup}
-                    onChange={(e) => handleInputChange('bloodGroup', e.target.value)}
-                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  >
-                    <option value="">Select blood group</option>
-                    <option value="A+">A+</option>
-                    <option value="A-">A-</option>
-                    <option value="B+">B+</option>
-                    <option value="B-">B-</option>
-                    <option value="AB+">AB+</option>
-                    <option value="AB-">AB-</option>
-                    <option value="O+">O+</option>
-                    <option value="O-">O-</option>
-                  </select>
-                </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="dateOfBirth">Date of Birth *</Label>
+                      <Input
+                        id="dateOfBirth"
+                        type="date"
+                        value={formData.dateOfBirth}
+                        onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="admissionDate">Admission Date</Label>
+                      <Input
+                        id="admissionDate"
+                        type="date"
+                        value={formData.admissionDate}
+                        onChange={(e) => handleInputChange('admissionDate', e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="gender">Gender *</Label>
+                      <select
+                        value={formData.gender}
+                        onChange={(e) => handleInputChange('gender', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select gender</option>
+                        <option value="MALE">Male</option>
+                        <option value="FEMALE">Female</option>
+                        <option value="OTHER">Other</option>
+                      </select>
+                    </div>
+                    <div>
+                      <Label htmlFor="nationality">Nationality</Label>
+                      <Input
+                        id="nationality"
+                        value={formData.nationality}
+                        onChange={(e) => handleInputChange('nationality', e.target.value)}
+                        placeholder="e.g., Tanzanian"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="religion">Religion</Label>
+                      <Input
+                        id="religion"
+                        value={formData.religion}
+                        onChange={(e) => handleInputChange('religion', e.target.value)}
+                        placeholder="e.g., Christian, Muslim"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="bloodGroup">Blood Group</Label>
+                      <select
+                        value={formData.bloodGroup}
+                        onChange={(e) => handleInputChange('bloodGroup', e.target.value)}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="">Select blood group</option>
+                        <option value="A+">A+</option>
+                        <option value="A-">A-</option>
+                        <option value="B+">B+</option>
+                        <option value="B-">B-</option>
+                        <option value="AB+">AB+</option>
+                        <option value="AB-">AB-</option>
+                        <option value="O+">O+</option>
+                        <option value="O-">O-</option>
+                      </select>
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -425,59 +467,60 @@ export default function NewStudentPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-              <div>
-                <Label htmlFor="address">Address *</Label>
-                <Textarea
-                  id="address"
-                  value={formData.address}
-                  onChange={(e) => handleInputChange('address', e.target.value)}
-                  placeholder="Street address"
-                  required
-                />
-              </div>
+                  <div>
+                    <Label htmlFor="address">Address *</Label>
+                    <Textarea
+                      id="address"
+                      value={formData.address}
+                      onChange={(e) => handleInputChange('address', e.target.value)}
+                      placeholder="Street address"
+                      required
+                    />
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="city">City *</Label>
-                  <Input
-                    id="city"
-                    value={formData.city}
-                    onChange={(e) => handleInputChange('city', e.target.value)}
-                    placeholder="e.g., Dar es Salaam"
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="region">Region *</Label>
-                  <Input
-                    id="region"
-                    value={formData.region}
-                    onChange={(e) => handleInputChange('region', e.target.value)}
-                    placeholder="e.g., Dar es Salaam"
-                    required
-                  />
-                </div>
-              </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="city">City *</Label>
+                      <Input
+                        id="city"
+                        value={formData.city}
+                        onChange={(e) => handleInputChange('city', e.target.value)}
+                        placeholder="e.g., Dar es Salaam"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="region">Region *</Label>
+                      <Input
+                        id="region"
+                        value={formData.region}
+                        onChange={(e) => handleInputChange('region', e.target.value)}
+                        placeholder="e.g., Dar es Salaam"
+                        required
+                      />
+                    </div>
+                  </div>
 
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="postalCode">Postal Code</Label>
-                  <Input
-                    id="postalCode"
-                    value={formData.postalCode}
-                    onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                    placeholder="e.g., 11101"
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="phone">Phone Number</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => handleInputChange('phone', e.target.value)}
-                    placeholder="e.g., +255 123 456 789"
-                  />
-                </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="postalCode">Postal Code</Label>
+                      <Input
+                        id="postalCode"
+                        value={formData.postalCode}
+                        onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                        placeholder="e.g., 11101"
+                      />
+                    </div>
+                    <div>
+                      <Label htmlFor="phone">Phone Number</Label>
+                      <Input
+                        id="phone"
+                        value={formData.phone}
+                        onChange={(e) => handleInputChange('phone', e.target.value)}
+                        placeholder="e.g., +255 123 456 789"
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             </Card>
@@ -495,26 +538,35 @@ export default function NewStudentPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-              <div>
-                <Label htmlFor="emergencyContact">Emergency Contact Name *</Label>
-                <Input
-                  id="emergencyContact"
-                  value={formData.emergencyContact}
-                  onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
-                  placeholder="e.g., John Doe"
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="emergencyPhone">Emergency Phone Number *</Label>
-                <Input
-                  id="emergencyPhone"
-                  value={formData.emergencyPhone}
-                  onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
-                  placeholder="e.g., +255 123 456 789"
-                  required
-                />
-              </div>
+                  <div>
+                    <Label htmlFor="emergencyContact">Emergency Contact Name *</Label>
+                    <Input
+                      id="emergencyContact"
+                      value={formData.emergencyContact}
+                      onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
+                      placeholder="e.g., John Doe"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="emergencyPhone">Emergency Phone Number *</Label>
+                    <Input
+                      id="emergencyPhone"
+                      value={formData.emergencyPhone}
+                      onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
+                      placeholder="e.g., +255 123 456 789"
+                      required
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="emergencyRelation">Relationship</Label>
+                    <Input
+                      id="emergencyRelation"
+                      value={formData.emergencyRelation}
+                      onChange={(e) => handleInputChange('emergencyRelation', e.target.value)}
+                      placeholder="e.g., Parent, Guardian"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -532,24 +584,24 @@ export default function NewStudentPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-              <div>
-                <Label htmlFor="previousSchool">Previous School</Label>
-                <Input
-                  id="previousSchool"
-                  value={formData.previousSchool}
-                  onChange={(e) => handleInputChange('previousSchool', e.target.value)}
-                  placeholder="e.g., ABC Primary School"
-                />
-              </div>
-              <div>
-                <Label htmlFor="previousGrade">Previous Grade/Class</Label>
-                <Input
-                  id="previousGrade"
-                  value={formData.previousGrade}
-                  onChange={(e) => handleInputChange('previousGrade', e.target.value)}
-                  placeholder="e.g., Grade 6"
-                />
-              </div>
+                  <div>
+                    <Label htmlFor="previousSchool">Previous School</Label>
+                    <Input
+                      id="previousSchool"
+                      value={formData.previousSchool}
+                      onChange={(e) => handleInputChange('previousSchool', e.target.value)}
+                      placeholder="e.g., ABC Primary School"
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="previousGrade">Previous Grade/Class</Label>
+                    <Input
+                      id="previousGrade"
+                      value={formData.previousGrade}
+                      onChange={(e) => handleInputChange('previousGrade', e.target.value)}
+                      placeholder="e.g., Grade 6"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -567,29 +619,29 @@ export default function NewStudentPage() {
                   </div>
                 </div>
                 <div className="space-y-4">
-              <div>
-                <Label htmlFor="transportMode">Transport Mode</Label>
-                <select
-                  value={formData.transportMode}
-                  onChange={(e) => handleInputChange('transportMode', e.target.value)}
-                  className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="">Select transport mode</option>
-                  <option value="BUS">School Bus</option>
-                  <option value="WALKING">Walking</option>
-                  <option value="PRIVATE">Private Vehicle</option>
-                  <option value="OTHER">Other</option>
-                </select>
-              </div>
-              <div>
-                <Label htmlFor="transportRoute">Transport Route</Label>
-                <Input
-                  id="transportRoute"
-                  value={formData.transportRoute}
-                  onChange={(e) => handleInputChange('transportRoute', e.target.value)}
-                  placeholder="e.g., Route A, Kimara"
-                />
-              </div>
+                  <div>
+                    <Label htmlFor="transportMode">Transport Mode</Label>
+                    <select
+                      value={formData.transportMode}
+                      onChange={(e) => handleInputChange('transportMode', e.target.value)}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    >
+                      <option value="">Select transport mode</option>
+                      <option value="BUS">School Bus</option>
+                      <option value="WALKING">Walking</option>
+                      <option value="PRIVATE">Private Vehicle</option>
+                      <option value="OTHER">Other</option>
+                    </select>
+                  </div>
+                  <div>
+                    <Label htmlFor="transportRoute">Transport Route</Label>
+                    <Input
+                      id="transportRoute"
+                      value={formData.transportRoute}
+                      onChange={(e) => handleInputChange('transportRoute', e.target.value)}
+                      placeholder="e.g., Route A, Kimara"
+                    />
+                  </div>
                 </div>
               </div>
             </Card>
@@ -648,7 +700,3 @@ export default function NewStudentPage() {
     </div>
   );
 }
-
-
-
-

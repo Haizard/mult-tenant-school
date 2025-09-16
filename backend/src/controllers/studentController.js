@@ -50,6 +50,7 @@ const validateAttendance = [
 
 // Student Management
 const getStudents = async (req, res) => {
+  console.log('Request tenant ID:', req.tenantId);
   try {
     const { page = 1, limit = 10, search, status, gender, classId } = req.query;
     const skip = (page - 1) * limit;

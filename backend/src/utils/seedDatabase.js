@@ -79,6 +79,12 @@ async function seedDatabase() {
       
       // Audit log permissions
       { name: 'audit-logs:read', description: 'Read audit logs', resource: 'audit-logs', action: 'read' },
+
+      // Student permissions
+      { name: 'students:create', description: 'Create students', resource: 'students', action: 'create' },
+      { name: 'students:read', description: 'Read students', resource: 'students', action: 'read' },
+      { name: 'students:update', description: 'Update students', resource: 'students', action: 'update' },
+      { name: 'students:delete', description: 'Delete students', resource: 'students', action: 'delete' },
     ];
 
     console.log('📝 Creating permissions...');
@@ -203,7 +209,8 @@ async function seedDatabase() {
           { resource: 'grades' },
           { resource: 'grading-scales' },
           { resource: 'academic-years' },
-          { resource: 'schedules' }
+          { resource: 'schedules' },
+          { resource: 'students' }
         ]
       }
     });
@@ -235,7 +242,8 @@ async function seedDatabase() {
           { name: 'grades:read' },
           { name: 'grading-scales:read' },
           { name: 'academic-years:read' },
-          { name: 'schedules:read' }
+          { name: 'schedules:read' },
+          { name: 'students:read' }
         ]
       }
     });
