@@ -39,51 +39,62 @@ async function fixPermissions() {
       console.log(`❓ Has students:read: ${permissions.includes('students:read')}`);
     }
 
-    // Get students permission
-    const studentsReadPermission = await prisma.permission.findUnique({
-      where: { name: 'students:read' }
-    });
-
-    if (!studentsReadPermission) {
-      console.log('\n❌ students:read permission not found in database');
-      return;
-    }
-
-    // Get all roles that should have students:read permission
-    const rolesToUpdate = await prisma.role.findMany({
-      where: {
-        OR: [
-          { name: 'Super Admin' },
-          { name: 'Tenant Admin' },
-          { name: 'Teacher' }
-        ]
-      },
-      include: {
-        rolePermissions: {
-          include: {
-            permission: true
+    // Add missing students permissions to roles that should have them
+    const rolesToUpdate = [
+      { name: 'Tenant Admin', permissions: ['students:read', 'students:create', 'students:update', 'students:delete'] },
+      { name: 'Super Admin', permissions: ['students:read', 'students:create', 'students:update', 'students:delete'] },
+      { name: 'Teacher', permissions: ['students:read', 'students:create', 'students:update'] }
+    ];
+  
+    for (const roleConfig of rolesToUpdate) {
+      const role = await prisma.role.findFirst({
+        where: { name: roleConfig.name },
+        include: {
+          rolePermissions: {
+            include: {
+              permission: true
+            }
           }
         }
-      }
-    });
+      });
 
-    console.log('\n🔧 Fixing role permissions...');
-    for (const role of rolesToUpdate) {
-      const hasStudentsRead = role.rolePermissions.some(rp => rp.permission.name === 'students:read');
-      
-      if (!hasStudentsRead) {
-        console.log(`➕ Adding students:read permission to ${role.name}`);
-        await prisma.rolePermission.create({
-          data: {
-            roleId: role.id,
-            permissionId: studentsReadPermission.id
+      if (role) {
+        for (const permissionName of roleConfig.permissions) {
+          const [resource, action] = permissionName.split(':');
+          
+          // Check if role already has this permission
+          const hasPermission = role.rolePermissions.some(rp => 
+            rp.permission.resource === resource && rp.permission.action === action
+          );
+
+          if (!hasPermission) {
+            // Find the permission
+            const permission = await prisma.permission.findFirst({
+              where: {
+                resource: resource,
+                action: action
+              }
+            });
+
+            if (permission) {
+              await prisma.rolePermission.create({
+                data: {
+                  roleId: role.id,
+                  permissionId: permission.id
+                }
+              });
+              console.log(`✅ Added ${permissionName} permission to ${roleConfig.name}`);
+            } else {
+              console.log(`❌ ${permissionName} permission not found`);
+            }
+          } else {
+            console.log(`✅ ${roleConfig.name} already has ${permissionName} permission`);
           }
-        });
+        }
       } else {
-        console.log(`✅ ${role.name} already has students:read permission`);
+        console.log(`❌ Role ${roleConfig.name} not found`);
       }
     }
-
     console.log('\n🎉 Permission fix completed!');
     console.log('\n💡 Note: Users may need to log out and log back in for changes to take effect.');
 

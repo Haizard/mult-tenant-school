@@ -166,7 +166,10 @@ const createStudent = async (req, res) => {
     }
 
     const {
-      userId,
+      firstName,
+      lastName,
+      email,
+      phone,
       studentId,
       admissionNumber,
       admissionDate,
@@ -179,15 +182,25 @@ const createStudent = async (req, res) => {
       city,
       region,
       postalCode,
-      phone,
       emergencyContact,
       emergencyPhone,
+      emergencyRelation,
       medicalInfo,
       previousSchool,
       previousGrade,
       transportMode,
-      transportRoute
+      transportRoute,
+      specialNeeds,
+      hobbies
     } = req.body;
+
+    // Validate required fields
+    if (!firstName || !lastName || !email || !studentId || !dateOfBirth || !gender) {
+      return res.status(400).json({
+        success: false,
+        message: 'Missing required fields: firstName, lastName, email, studentId, dateOfBirth, gender'
+      });
+    }
 
     // Check if student ID already exists in tenant
     const existingStudent = await prisma.student.findFirst({
@@ -204,26 +217,39 @@ const createStudent = async (req, res) => {
       });
     }
 
-    // Check if user exists and belongs to tenant
-    const user = await prisma.user.findFirst({
+    // Check if email already exists in tenant
+    const existingUser = await prisma.user.findFirst({
       where: {
-        id: userId,
+        email: email,
         tenantId: req.tenantId
       }
     });
 
-    if (!user) {
-      return res.status(404).json({
+    if (existingUser) {
+      return res.status(409).json({
         success: false,
-        message: 'User not found'
+        message: 'User with this email already exists in this tenant'
       });
     }
+
+    // Create user first
+    const user = await prisma.user.create({
+      data: {
+        firstName,
+        lastName,
+        email,
+        phone: phone || null,
+        role: 'STUDENT',
+        tenantId: req.tenantId,
+        status: 'ACTIVE'
+      }
+    });
 
     // Create student
     const student = await prisma.student.create({
       data: {
         tenantId: req.tenantId,
-        userId,
+        userId: user.id,
         studentId,
         admissionNumber,
         admissionDate: admissionDate ? new Date(admissionDate) : null,
@@ -236,14 +262,16 @@ const createStudent = async (req, res) => {
         city,
         region,
         postalCode,
-        phone,
         emergencyContact,
         emergencyPhone,
+        emergencyRelation,
         medicalInfo,
         previousSchool,
         previousGrade,
         transportMode,
-        transportRoute
+        transportRoute,
+        specialNeeds,
+        hobbies
       },
       include: {
         tenant: true,
