@@ -45,17 +45,28 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 // API Routes
-app.use('/api/tenants', require('./routes/tenantRoutes'));
-app.use('/api/users', require('./routes/userRoutes'));
-app.use('/api/auth', require('./routes/authRoutes')); // Auth routes
-app.use('/api', require('./routes/roleRoutes'));
-app.use('/api/academic', require('./routes/academicRoutes'));
-app.use('/api/examinations', require('./routes/examinationRoutes'));
-app.use('/api/schedules', require('./routes/scheduleRoutes'));
-app.use('/api/audit-logs', require('./routes/auditRoutes'));
-app.use('/api/students', require('./routes/studentRoutes'));
-app.use('/api/parents', require('./routes/parentRoutes'));
-app.use('/api/attendance', require('./routes/attendanceRoutes'));
+const tenantRoutes = require('./routes/tenantRoutes');
+const userRoutes = require('./routes/userRoutes');
+const authRoutes = require('./routes/authRoutes');
+const roleRoutes = require('./routes/roleRoutes');
+const academicRoutes = require('./routes/academicRoutes');
+const examinationRoutes = require('./routes/examinationRoutes');
+const scheduleRoutes = require('./routes/scheduleRoutes');
+const auditRoutes = require('./routes/auditRoutes');
+const studentRoutes = require('./routes/studentRoutes');
+const parentRoutes = require('./routes/parentRoutes');
+const attendanceRoutes = require('./routes/attendanceRoutes');
+const leaveRoutes = require('./routes/leaveRoutes');
+const notificationRoutes = require('./routes/notificationRoutes');
+
+app.use('/api/auth', authRoutes);
+app.use('/api/users', userRoutes);
+app.use('/api/tenants', tenantRoutes);
+app.use('/api/roles', roleRoutes);
+app.use('/api/students', studentRoutes);
+app.use('/api/attendance', attendanceRoutes);
+app.use('/api/leave', leaveRoutes);
+app.use('/api/notifications', notificationRoutes);
 
 // Error handling middleware
 app.use((err, req, res, next) => {

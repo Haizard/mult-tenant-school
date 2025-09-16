@@ -123,6 +123,7 @@ const Sidebar = () => {
       items.push(
         { icon: <FaCalendarAlt />, text: "Schedule", href: "/schedule", show: true },
         { icon: <FaClipboardList />, text: "Attendance", href: "/attendance", show: true },
+        { icon: <FaFileAlt />, text: "Leave Requests", href: "/leave", show: true },
         { icon: <FaBullhorn />, text: "Announcements", href: "/announcements", show: true }
       );
     }

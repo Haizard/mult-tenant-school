@@ -85,6 +85,19 @@ async function seedDatabase() {
       { name: 'students:read', description: 'Read students', resource: 'students', action: 'read' },
       { name: 'students:update', description: 'Update students', resource: 'students', action: 'update' },
       { name: 'students:delete', description: 'Delete students', resource: 'students', action: 'delete' },
+      
+      // Attendance permissions
+      { name: 'attendance:create', description: 'Mark attendance', resource: 'attendance', action: 'create' },
+      { name: 'attendance:read', description: 'View attendance records', resource: 'attendance', action: 'read' },
+      { name: 'attendance:update', description: 'Update attendance records', resource: 'attendance', action: 'update' },
+      { name: 'attendance:delete', description: 'Delete attendance records', resource: 'attendance', action: 'delete' },
+      { name: 'attendance:manage', description: 'Full attendance management', resource: 'attendance', action: 'manage' },
+      
+      // Parent permissions
+      { name: 'parents:create', description: 'Create parent accounts', resource: 'parents', action: 'create' },
+      { name: 'parents:read', description: 'View parent information', resource: 'parents', action: 'read' },
+      { name: 'parents:update', description: 'Update parent information', resource: 'parents', action: 'update' },
+      { name: 'parents:delete', description: 'Delete parent accounts', resource: 'parents', action: 'delete' },
     ];
 
     console.log('📝 Creating permissions...');

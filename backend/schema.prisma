@@ -43,8 +43,11 @@ model Tenant {
   grades Grade[]
   gradingScales GradingScale[]
   schedules Schedule[]
-  classes Class[]
+  userRoles UserRole[]
   auditLogs AuditLog[]
+  notifications Notification[]
+  leaveRequestsRequested LeaveRequest[] @relation("LeaveRequestedBy")
+  leaveRequestsApproved LeaveRequest[] @relation("LeaveApprovedBy")
   students Student[]
   parents Parent[]
   parentRelations ParentStudentRelation[]
@@ -606,6 +609,8 @@ model Student {
   academicRecords   StudentAcademicRecord[]
   parentRelations   ParentStudentRelation[]
   attendance        Attendance[]
+  notifications     Notification[]
+  leaveRequests     LeaveRequest[]
   grades            Grade[] @relation("StudentGrades")
   healthRecords     HealthRecord[]
   documents         StudentDocument[]
@@ -888,4 +893,92 @@ enum AttendanceStatus {
   LATE
   EXCUSED
   SICK
+}
+
+// Leave Management Models for Story 3.1
+model LeaveRequest {
+  id                String @id @default(cuid())
+  tenantId          String
+  studentId         String
+  requestedBy       String // User ID who requested (parent/student/admin)
+  leaveType         LeaveType
+  startDate         DateTime
+  endDate           DateTime
+  reason            String
+  description       String?
+  supportingDocs    String? // JSON array of file paths
+  status            LeaveStatus @default(PENDING)
+  approvedBy        String?
+  approvedAt        DateTime?
+  rejectedReason    String?
+  isEmergency       Boolean @default(false)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  tenant            Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student           Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  requester         User @relation("LeaveRequestedBy", fields: [requestedBy], references: [id])
+  approver          User? @relation("LeaveApprovedBy", fields: [approvedBy], references: [id])
+
+  @@index([tenantId, studentId])
+  @@index([tenantId, status])
+}
+
+model Notification {
+  id                String @id @default(cuid())
+  tenantId          String
+  userId            String
+  type              NotificationType
+  title             String
+  message           String
+  data              Json? // Additional data for the notification
+  isRead            Boolean @default(false)
+  readAt            DateTime?
+  priority          NotificationPriority @default(NORMAL)
+  
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  // Relationships
+  tenant            Tenant @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user              User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, userId])
+  @@index([tenantId, isRead])
+}
+
+// Enums for Leave Management
+enum LeaveType {
+  SICK
+  PERSONAL
+  FAMILY_EMERGENCY
+  MEDICAL_APPOINTMENT
+  RELIGIOUS
+  VACATION
+  OTHER
+}
+
+enum LeaveStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+}
+
+enum NotificationType {
+  ATTENDANCE_ALERT
+  LEAVE_REQUEST
+  LEAVE_APPROVED
+  LEAVE_REJECTED
+  GENERAL
+  EMERGENCY
+}
+
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
 }

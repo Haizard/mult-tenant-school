@@ -274,59 +274,75 @@ const AttendancePage = () => {
           </div>
         </div>
 
+        {/* Date Selector */}
+        <Card className="p-4">
+          <div className="flex items-center gap-4">
+            <label className="text-sm font-medium text-gray-700">Select Date:</label>
+            <input
+              type="date"
+              value={selectedDate}
+              onChange={(e) => setSelectedDate(e.target.value)}
+              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+            />
+            <Button onClick={() => setSelectedDate(attendanceService.getTodayDate())}>
+              Today
+            </Button>
+          </div>
+        </Card>
+
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card variant="default">
+          <Card className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-accent-green to-accent-green-light rounded-xl">
+              <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
                 <FaUserCheck className="text-2xl text-white" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Present Today</p>
-                <p className="text-2xl font-bold text-text-primary">
-                  {attendanceRecords.filter(a => a.status === 'PRESENT').length}
+                <p className="text-sm text-gray-600">Present Today</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {attendanceStats.PRESENT}
                 </p>
               </div>
             </div>
           </Card>
 
-          <Card variant="default">
+          <Card className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-accent-red to-accent-red-light rounded-xl">
+              <div className="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-xl">
                 <FaUserTimes className="text-2xl text-white" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Absent Today</p>
-                <p className="text-2xl font-bold text-text-primary">
-                  {attendanceRecords.filter(a => a.status === 'ABSENT').length}
+                <p className="text-sm text-gray-600">Absent Today</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {attendanceStats.ABSENT}
                 </p>
               </div>
             </div>
           </Card>
 
-          <Card variant="default">
+          <Card className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-accent-yellow to-accent-yellow-light rounded-xl">
+              <div className="p-3 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl">
                 <FaClipboardList className="text-2xl text-white" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Late Today</p>
-                <p className="text-2xl font-bold text-text-primary">
-                  {attendanceRecords.filter(a => a.status === 'LATE').length}
+                <p className="text-sm text-gray-600">Late Today</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {attendanceStats.LATE}
                 </p>
               </div>
             </div>
           </Card>
 
-          <Card variant="default">
+          <Card className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-accent-blue to-accent-blue-light rounded-xl">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
                 <FaCalendarAlt className="text-2xl text-white" />
               </div>
               <div>
-                <p className="text-sm text-text-secondary">Attendance Rate</p>
-                <p className="text-2xl font-bold text-text-primary">
-                  {Math.round((attendanceRecords.filter(a => a.status === 'PRESENT').length / attendanceRecords.length) * 100)}%
+                <p className="text-sm text-gray-600">Attendance Rate</p>
+                <p className="text-2xl font-bold text-gray-900">
+                  {attendanceService.calculateAttendanceRate(attendanceStats)}%
                 </p>
               </div>
             </div>
@@ -334,7 +350,7 @@ const AttendancePage = () => {
         </div>
 
         {/* Attendance Table */}
-        <Card variant="strong" glow="purple">
+        <Card className="p-6">
           <div className="flex items-center justify-between mb-6">
             <h2 className="text-xl font-bold text-text-primary">Attendance Records</h2>
             <div className="flex items-center gap-2">
