@@ -303,6 +303,10 @@ class StudentService {
     return response.data;
   }
 
+  public async getStudent(studentId: string): Promise<Student> {
+    return this.getStudentById(studentId);
+  }
+
   public async createStudent(studentData: {
     userId: string;
     studentId: string;

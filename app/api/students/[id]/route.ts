@@ -1,35 +1,26 @@
 
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '../../../../lib/prisma';
+
+const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:3001';
 
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
 ) {
   try {
-    const student = await prisma.student.findUnique({
-      where: { id: params.id },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-          }
-        }
-      }
+    const authHeader = request.headers.get('authorization');
+    
+    const response = await fetch(`${BACKEND_URL}/api/students/${params.id}`, {
+      method: 'GET',
+      headers: {
+        'Authorization': authHeader || '',
+        'Content-Type': 'application/json',
+      },
     });
 
-    if (!student) {
-      return NextResponse.json(
-        { error: 'Student not found' },
-        { status: 404 }
-      );
-    }
-
-    return NextResponse.json(student);
+    const data = await response.json();
+    
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('Error fetching student:', error);
     return NextResponse.json(
@@ -44,69 +35,21 @@ export async function PUT(
   { params }: { params: { id: string } }
 ) {
   try {
+    const authHeader = request.headers.get('authorization');
     const body = await request.json();
     
-    // Update user data if provided
-    if (body.firstName || body.lastName || body.email || body.phone) {
-      const student = await prisma.student.findUnique({
-        where: { id: params.id },
-        select: { userId: true }
-      });
-
-      if (student) {
-        await prisma.user.update({
-          where: { id: student.userId },
-          data: {
-            firstName: body.firstName,
-            lastName: body.lastName,
-            email: body.email,
-            phone: body.phone,
-          }
-        });
-      }
-    }
-
-    // Update student data
-    const updatedStudent = await prisma.student.update({
-      where: { id: params.id },
-      data: {
-        studentId: body.studentId,
-        admissionNumber: body.admissionNumber,
-        dateOfBirth: body.dateOfBirth ? new Date(body.dateOfBirth) : undefined,
-        gender: body.gender,
-        nationality: body.nationality,
-        religion: body.religion,
-        bloodGroup: body.bloodGroup,
-        address: body.address,
-        city: body.city,
-        region: body.region,
-        postalCode: body.postalCode,
-        emergencyContact: body.emergencyContact,
-        emergencyPhone: body.emergencyPhone,
-        emergencyRelation: body.emergencyRelation,
-        admissionDate: body.admissionDate ? new Date(body.admissionDate) : undefined,
-        previousSchool: body.previousSchool,
-        previousGrade: body.previousGrade,
-        medicalInfo: body.medicalInfo,
-        transportMode: body.transportMode,
-        transportRoute: body.transportRoute,
-        specialNeeds: body.specialNeeds,
-        hobbies: body.hobbies,
+    const response = await fetch(`${BACKEND_URL}/api/students/${params.id}`, {
+      method: 'PUT',
+      headers: {
+        'Authorization': authHeader || '',
+        'Content-Type': 'application/json',
       },
-      include: {
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-          }
-        }
-      }
+      body: JSON.stringify(body),
     });
 
-    return NextResponse.json(updatedStudent);
+    const data = await response.json();
+    
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('Error updating student:', error);
     return NextResponse.json(
@@ -121,30 +64,19 @@ export async function DELETE(
   { params }: { params: { id: string } }
 ) {
   try {
-    // Get student to find associated user
-    const student = await prisma.student.findUnique({
-      where: { id: params.id },
-      select: { userId: true }
+    const authHeader = request.headers.get('authorization');
+    
+    const response = await fetch(`${BACKEND_URL}/api/students/${params.id}`, {
+      method: 'DELETE',
+      headers: {
+        'Authorization': authHeader || '',
+        'Content-Type': 'application/json',
+      },
     });
 
-    if (!student) {
-      return NextResponse.json(
-        { error: 'Student not found' },
-        { status: 404 }
-      );
-    }
-
-    // Delete student first (due to foreign key constraint)
-    await prisma.student.delete({
-      where: { id: params.id }
-    });
-
-    // Delete associated user
-    await prisma.user.delete({
-      where: { id: student.userId }
-    });
-
-    return NextResponse.json({ message: 'Student deleted successfully' });
+    const data = await response.json();
+    
+    return NextResponse.json(data, { status: response.status });
   } catch (error) {
     console.error('Error deleting student:', error);
     return NextResponse.json(
