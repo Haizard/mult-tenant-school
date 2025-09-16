@@ -504,24 +504,30 @@ export default function StudentDetailPage() {
                   <p className="text-gray-500">No academic records found for this student.</p>
                 </div>
               )}
-            </CardContent>
+              </div>
+            </div>
           </Card>
         </TabsContent>
 
         {/* Additional tabs would be implemented here... */}
         <TabsContent value="attendance">
           <Card>
-            <CardHeader>
-              <CardTitle>Attendance Records</CardTitle>
-              <CardDescription>Student attendance history and statistics</CardDescription>
-            </CardHeader>
-            <CardContent>
+            <div className="p-6">
+              <div className="flex items-center space-x-2 mb-4">
+                <div className="p-2 rounded-lg bg-blue-100">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                </div>
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-900">Attendance Records</h3>
+                  <p className="text-sm text-gray-600">Student attendance history and statistics</p>
+                </div>
+              </div>
               <div className="text-center py-8">
                 <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
                 <h3 className="text-lg font-medium text-gray-900 mb-2">Attendance Records</h3>
                 <p className="text-gray-500">Attendance tracking will be implemented here.</p>
               </div>
-            </CardContent>
+            </div>
           </Card>
         </TabsContent>
 
