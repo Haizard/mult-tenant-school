@@ -96,36 +96,54 @@ async function seedDatabase() {
       });
     }
 
-    // Create default tenant
-    console.log('🏢 Creating default tenant...');
+    // Create system tenant for super admin
+    console.log('🏢 Creating system tenant...');
+    const systemTenant = await prisma.tenant.upsert({
+      where: { email: 'system@admin.com' },
+      update: {},
+      create: {
+        name: 'System',
+        email: 'system@admin.com',
+        domain: 'system',
+        type: 'SYSTEM',
+        status: 'ACTIVE'
+      }
+    });
+
+    // Create default school tenant
+    console.log('🏫 Creating default school tenant...');
     const defaultTenant = await prisma.tenant.upsert({
       where: { email: 'admin@schoolsystem.com' },
       update: {},
       create: {
         name: 'Default School',
         email: 'admin@schoolsystem.com',
-        domain: 'default-school.system.com'
+        domain: 'default-school.system.com',
+        type: 'SCHOOL',
+        status: 'ACTIVE'
       }
     });
 
-    // Create default roles
-    console.log('👥 Creating default roles...');
-    const superAdminRole = await prisma.role.upsert({
+    // Create system roles
+    console.log('👥 Creating system roles...');
+    const systemSuperAdminRole = await prisma.role.upsert({
       where: { 
         tenantId_name: {
-          tenantId: defaultTenant.id,
+          tenantId: systemTenant.id,
           name: 'Super Admin'
         }
       },
       update: {},
       create: {
         name: 'Super Admin',
-        description: 'System administrator with full access',
-        tenantId: defaultTenant.id,
+        description: 'System administrator with full access to all tenants',
+        tenantId: systemTenant.id,
         isSystem: true
       }
     });
 
+    // Create tenant-specific roles for each school
+    console.log('🏫 Creating tenant roles...');
     const tenantAdminRole = await prisma.role.upsert({
       where: { 
         tenantId_name: {
@@ -177,19 +195,19 @@ async function seedDatabase() {
     // Assign permissions to roles
     console.log('🔐 Assigning permissions to roles...');
     
-    // Super Admin gets all permissions
+    // System Super Admin gets all permissions
     const allPermissions = await prisma.permission.findMany();
     for (const permission of allPermissions) {
       await prisma.rolePermission.upsert({
         where: {
           roleId_permissionId: {
-            roleId: superAdminRole.id,
+            roleId: systemSuperAdminRole.id,
             permissionId: permission.id
           }
         },
         update: {},
         create: {
-          roleId: superAdminRole.id,
+          roleId: systemSuperAdminRole.id,
           permissionId: permission.id
         }
       });
@@ -294,11 +312,48 @@ async function seedDatabase() {
       });
     }
 
-    // Create default super admin user
-    console.log('👤 Creating default super admin user...');
-    const hashedPassword = await bcrypt.hash('admin123', 12);
+    // Create system super admin user
+    console.log('👤 Creating system super admin user...');
+    const systemAdminPassword = await bcrypt.hash('superadmin123', 12);
     
-    const superAdminUser = await prisma.user.upsert({
+    const systemSuperAdminUser = await prisma.user.upsert({
+      where: { 
+        tenantId_email: {
+          tenantId: systemTenant.id,
+          email: 'superadmin@system.com'
+        }
+      },
+      update: {},
+      create: {
+        email: 'superadmin@system.com',
+        password: systemAdminPassword,
+        firstName: 'Super',
+        lastName: 'Admin',
+        tenantId: systemTenant.id,
+        status: 'ACTIVE'
+      }
+    });
+
+    // Assign System Super Admin role to user
+    await prisma.userRole.upsert({
+      where: {
+        userId_roleId: {
+          userId: systemSuperAdminUser.id,
+          roleId: systemSuperAdminRole.id
+        }
+      },
+      update: {},
+      create: {
+        userId: systemSuperAdminUser.id,
+        roleId: systemSuperAdminRole.id
+      }
+    });
+
+    // Create tenant admin user for default school
+    console.log('🏫 Creating tenant admin user...');
+    const tenantAdminPassword = await bcrypt.hash('admin123', 12);
+    
+    const tenantAdminUser = await prisma.user.upsert({
       where: { 
         tenantId_email: {
           tenantId: defaultTenant.id,
@@ -308,26 +363,26 @@ async function seedDatabase() {
       update: {},
       create: {
         email: 'admin@schoolsystem.com',
-        password: hashedPassword,
-        firstName: 'Super',
+        password: tenantAdminPassword,
+        firstName: 'School',
         lastName: 'Admin',
         tenantId: defaultTenant.id,
         status: 'ACTIVE'
       }
     });
 
-    // Assign Super Admin role to user
+    // Assign Tenant Admin role to user
     await prisma.userRole.upsert({
       where: {
         userId_roleId: {
-          userId: superAdminUser.id,
-          roleId: superAdminRole.id
+          userId: tenantAdminUser.id,
+          roleId: tenantAdminRole.id
         }
       },
       update: {},
       create: {
-        userId: superAdminUser.id,
-        roleId: superAdminRole.id
+        userId: tenantAdminUser.id,
+        roleId: tenantAdminRole.id
       }
     });
 
@@ -407,16 +462,22 @@ async function seedDatabase() {
 
     console.log('✅ Database seeding completed successfully!');
     console.log('📧 Default User Logins:');
-    console.log('   Super Admin:');
+    console.log('   System Super Admin:');
+    console.log('     Email: superadmin@system.com');
+    console.log('     Password: superadmin123');
+    console.log('     Tenant: System (can access all tenants)');
+    console.log('   School Admin:');
     console.log('     Email: admin@schoolsystem.com');
     console.log('     Password: admin123');
+    console.log('     Tenant: Default School (tenant-specific access)');
     console.log('   Teacher:');
     console.log('     Email: teacher@schoolsystem.com');
     console.log('     Password: teacher123');
+    console.log('     Tenant: Default School');
     console.log('   Student:');
     console.log('     Email: student@schoolsystem.com');
     console.log('     Password: student123');
-    console.log('   Tenant: Default School');
+    console.log('     Tenant: Default School');
 
   } catch (error) {
     console.error('❌ Database seeding failed:', error);

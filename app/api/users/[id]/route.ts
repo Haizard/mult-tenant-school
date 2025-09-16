@@ -1,4 +1,3 @@
-
 import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
@@ -9,8 +8,9 @@ export async function GET(
 ) {
   try {
     const authHeader = request.headers.get('authorization');
+    const userId = params.id;
     
-    const response = await fetch(`${BACKEND_URL}/api/students/${params.id}`, {
+    const response = await fetch(`${BACKEND_URL}/api/users/${userId}`, {
       method: 'GET',
       headers: {
         'Authorization': authHeader || '',
@@ -22,9 +22,9 @@ export async function GET(
     
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Error fetching student:', error);
+    console.error('Error fetching user:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch student' },
+      { error: 'Failed to fetch user' },
       { status: 500 }
     );
   }
@@ -37,8 +37,9 @@ export async function PUT(
   try {
     const authHeader = request.headers.get('authorization');
     const body = await request.json();
+    const userId = params.id;
     
-    const response = await fetch(`${BACKEND_URL}/api/students/${params.id}`, {
+    const response = await fetch(`${BACKEND_URL}/api/users/${userId}`, {
       method: 'PUT',
       headers: {
         'Authorization': authHeader || '',
@@ -51,9 +52,9 @@ export async function PUT(
     
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Error updating student:', error);
+    console.error('Error updating user:', error);
     return NextResponse.json(
-      { error: 'Failed to update student' },
+      { error: 'Failed to update user' },
       { status: 500 }
     );
   }
@@ -65,8 +66,9 @@ export async function DELETE(
 ) {
   try {
     const authHeader = request.headers.get('authorization');
+    const userId = params.id;
     
-    const response = await fetch(`${BACKEND_URL}/api/students/${params.id}`, {
+    const response = await fetch(`${BACKEND_URL}/api/users/${userId}`, {
       method: 'DELETE',
       headers: {
         'Authorization': authHeader || '',
@@ -78,9 +80,9 @@ export async function DELETE(
     
     return NextResponse.json(data, { status: response.status });
   } catch (error) {
-    console.error('Error deleting student:', error);
+    console.error('Error deleting user:', error);
     return NextResponse.json(
-      { error: 'Failed to delete student' },
+      { error: 'Failed to delete user' },
       { status: 500 }
     );
   }

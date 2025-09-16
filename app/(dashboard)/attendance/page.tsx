@@ -8,80 +8,72 @@ import StatusBadge from '../../components/ui/StatusBadge';
 import DataTable from '../../components/ui/DataTable';
 import RoleGuard from '../../components/RoleGuard';
 import { useAuth } from '../../contexts/AuthContext';
-
-interface AttendanceRecord {
-  id: string;
-  studentName: string;
-  studentId: string;
-  class: string;
-  subject: string;
-  teacher: string;
-  date: string;
-  status: 'PRESENT' | 'ABSENT' | 'LATE' | 'EXCUSED';
-  notes?: string;
-}
+import { attendanceService, AttendanceRecord } from '../../../lib/attendanceService';
+import { useToast } from '../../../hooks/use-toast';
 
 const AttendancePage = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
-
-  // Sample attendance data
-  const sampleAttendance: AttendanceRecord[] = [
-    {
-      id: '1',
-      studentName: 'Alice Brown',
-      studentId: 'STU001',
-      class: 'Grade 10A',
-      subject: 'Mathematics',
-      teacher: 'Dr. Sarah Johnson',
-      date: '2024-01-20',
-      status: 'PRESENT',
-      notes: ''
-    },
-    {
-      id: '2',
-      studentName: 'John Smith',
-      studentId: 'STU002',
-      class: 'Grade 10A',
-      subject: 'Mathematics',
-      teacher: 'Dr. Sarah Johnson',
-      date: '2024-01-20',
-      status: 'ABSENT',
-      notes: 'Sick leave'
-    },
-    {
-      id: '3',
-      studentName: 'Emma Wilson',
-      studentId: 'STU003',
-      class: 'Grade 10A',
-      subject: 'Mathematics',
-      teacher: 'Dr. Sarah Johnson',
-      date: '2024-01-20',
-      status: 'LATE',
-      notes: 'Traffic delay'
-    },
-    {
-      id: '4',
-      studentName: 'Michael Davis',
-      studentId: 'STU004',
-      class: 'Grade 11B',
-      subject: 'Physics',
-      teacher: 'John Smith',
-      date: '2024-01-20',
-      status: 'PRESENT',
-      notes: ''
-    }
-  ];
+  const [attendanceStats, setAttendanceStats] = useState({
+    PRESENT: 0,
+    ABSENT: 0,
+    LATE: 0,
+    EXCUSED: 0,
+    SICK: 0
+  });
+  const [selectedDate, setSelectedDate] = useState(attendanceService.getTodayDate());
 
   useEffect(() => {
-    // Simulate loading
-    setIsLoading(true);
-    setTimeout(() => {
-      setAttendanceRecords(sampleAttendance);
+    loadAttendanceData();
+    loadAttendanceStats();
+  }, [selectedDate]);
+
+  const loadAttendanceData = async () => {
+    try {
+      setIsLoading(true);
+      const response = await attendanceService.getAttendanceRecords({
+        date: selectedDate,
+        page: 1,
+        limit: 50
+      });
+      
+      if (response.success) {
+        setAttendanceRecords(response.data || []);
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to load attendance records',
+          variant: 'destructive'
+        });
+      }
+    } catch (error: any) {
+      console.error('Error loading attendance:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to load attendance records',
+        variant: 'destructive'
+      });
+      setAttendanceRecords([]);
+    } finally {
       setIsLoading(false);
-    }, 1000);
-  }, []);
+    }
+  };
+
+  const loadAttendanceStats = async () => {
+    try {
+      const response = await attendanceService.getAttendanceStats({
+        date: selectedDate
+      });
+      
+      if (response.success) {
+        setAttendanceStats(response.data.stats);
+      }
+    } catch (error) {
+      console.error('Error loading attendance stats:', error);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -114,15 +106,51 @@ const AttendancePage = () => {
   };
 
   const handleMarkAttendance = () => {
-    console.log('Mark attendance');
+    // TODO: Implement attendance marking modal/form
+    toast({
+      title: 'Feature Coming Soon',
+      description: 'Attendance marking interface will be available soon',
+      variant: 'default'
+    });
   };
 
-  const handleEditAttendance = (recordId: string) => {
-    console.log('Edit attendance:', recordId);
+  const handleEditAttendance = async (recordId: string) => {
+    try {
+      // TODO: Implement edit modal/form
+      toast({
+        title: 'Feature Coming Soon',
+        description: 'Edit attendance interface will be available soon',
+        variant: 'default'
+      });
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to edit attendance',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleDeleteAttendance = (recordId: string) => {
-    console.log('Delete attendance:', recordId);
+  const handleDeleteAttendance = async (recordId: string) => {
+    if (!confirm('Are you sure you want to delete this attendance record?')) {
+      return;
+    }
+
+    try {
+      await attendanceService.deleteAttendance(recordId);
+      toast({
+        title: 'Success',
+        description: 'Attendance record deleted successfully',
+        variant: 'success'
+      });
+      loadAttendanceData(); // Reload data
+    } catch (error: any) {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to delete attendance record',
+        variant: 'destructive'
+      });
+    }
   };
 
   const columns = [

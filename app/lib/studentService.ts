@@ -308,7 +308,9 @@ class StudentService {
   }
 
   public async createStudent(studentData: {
-    userId: string;
+    firstName: string;
+    lastName: string;
+    email: string;
     studentId: string;
     admissionNumber?: string;
     admissionDate?: string;

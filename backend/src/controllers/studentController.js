@@ -1,5 +1,6 @@
 const { PrismaClient } = require('@prisma/client');
 const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
 
 const prisma = new PrismaClient();
 
@@ -233,13 +234,15 @@ const createStudent = async (req, res) => {
     }
 
     // Create user first
+    const defaultPassword = await bcrypt.hash('student123', 12);
+    
     const user = await prisma.user.create({
       data: {
         firstName,
         lastName,
         email,
         phone: phone || null,
-        role: 'STUDENT',
+        password: defaultPassword,
         tenantId: req.tenantId,
         status: 'ACTIVE'
       }

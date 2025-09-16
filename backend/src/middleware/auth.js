@@ -48,7 +48,6 @@ const authenticateToken = async (req, res, next) => {
       });
     }
 
-
     if (user.status !== 'ACTIVE') {
       console.error('Authentication failed: User account is not active:', user.status);
       return res.status(401).json({
@@ -144,22 +143,27 @@ const ensureTenantAccess = (req, res, next) => {
       });
     }
 
-    // Super Admin can access all tenants
-    if (req.user.userRoles.some(ur => ur.role.name === 'Super Admin')) {
+    // Check if user is system super admin (can access all tenants)
+    const isSuperAdmin = req.user.userRoles.some(ur => 
+      ur.role.name === 'Super Admin' && ur.role.tenant?.name === 'System'
+    );
+
+    if (isSuperAdmin) {
       return next();
     }
 
-    // For tenant-specific resources, ensure user can only access their tenant's data
+    // For regular users, ensure they can only access their own tenant data
     if (req.params.tenantId && req.params.tenantId !== req.tenantId) {
+      console.log(`Tenant isolation violation: User tenant ${req.tenantId} trying to access ${req.params.tenantId}`);
       return res.status(403).json({
         success: false,
-        message: 'Access denied - tenant isolation'
+        message: 'Access denied - tenant isolation violation'
       });
     }
 
     next();
   } catch (error) {
-    console.error('Tenant access error:', error);
+    console.error('Tenant access validation error:', error);
     return res.status(500).json({
       success: false,
       message: 'Tenant access validation failed'

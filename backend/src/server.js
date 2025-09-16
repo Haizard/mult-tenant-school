@@ -36,6 +36,14 @@ app.get('/health', (req, res) => {
   });
 });
 
+// Request logging middleware (only for development)
+if (process.env.NODE_ENV === 'development') {
+  app.use((req, res, next) => {
+    console.log(`${req.method} ${req.path}`);
+    next();
+  });
+}
+
 // API Routes
 app.use('/api/tenants', require('./routes/tenantRoutes'));
 app.use('/api/users', require('./routes/userRoutes'));
@@ -47,6 +55,7 @@ app.use('/api/schedules', require('./routes/scheduleRoutes'));
 app.use('/api/audit-logs', require('./routes/auditRoutes'));
 app.use('/api/students', require('./routes/studentRoutes'));
 app.use('/api/parents', require('./routes/parentRoutes'));
+app.use('/api/attendance', require('./routes/attendanceRoutes'));
 
 // Error handling middleware
 app.use((err, req, res, next) => {
