@@ -116,7 +116,9 @@ const Sidebar = () => {
     // Teacher management - Tenant Admin and Teacher only
     if (hasAnyRole(['Tenant Admin', 'Teacher'])) {
       items.push(
-        { icon: <FaChalkboardTeacher />, text: "Teachers", href: "/teachers", show: true, hasDropdown: true }
+        { icon: <FaChalkboardTeacher />, text: "Teachers", href: "/teachers", show: true, hasDropdown: true },
+        { icon: <FaClipboardList />, text: "Teacher Attendance", href: "/teachers/attendance", show: true },
+        { icon: <FaFileAlt />, text: "Teacher Reports", href: "/teachers/reports", show: true }
       );
     }
 

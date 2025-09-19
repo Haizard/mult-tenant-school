@@ -81,4 +81,23 @@ router.delete('/:teacherId/qualifications/:qualificationId',
   teacherController.deleteTeacherQualification
 );
 
+// Teacher Class Assignment Routes
+router.get('/:teacherId/classes', 
+  authorize(['teachers:read']), 
+  ensureTenantAccess, 
+  teacherController.getTeacherClasses
+);
+
+router.post('/:teacherId/classes', 
+  authorize(['teachers:update']), 
+  ensureTenantAccess, 
+  teacherController.assignClassToTeacher
+);
+
+router.delete('/:teacherId/classes/:classId', 
+  authorize(['teachers:update']), 
+  ensureTenantAccess, 
+  teacherController.removeClassFromTeacher
+);
+
 module.exports = router;

@@ -773,6 +773,128 @@ const deleteTeacherQualification = async (req, res) => {
   }
 };
 
+// Get teacher classes
+const getTeacherClasses = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const tenantId = req.tenantId;
+
+    const teacherClasses = await prisma.teacherClass.findMany({
+      where: {
+        teacherId,
+        tenantId
+      },
+      include: {
+        class: {
+          select: {
+            id: true,
+            className: true,
+            classCode: true,
+            capacity: true
+          }
+        }
+      }
+    });
+
+    const classes = teacherClasses.map(tc => ({
+      ...tc.class,
+      role: tc.role,
+      assignedAt: tc.assignedAt
+    }));
+    res.json(classes);
+  } catch (error) {
+    console.error('Error fetching teacher classes:', error);
+    res.status(500).json({ 
+      message: 'Failed to fetch teacher classes',
+      error: error.message 
+    });
+  }
+};
+
+// Assign class to teacher
+const assignClassToTeacher = async (req, res) => {
+  try {
+    const { teacherId } = req.params;
+    const { classId, role = 'SUBJECT_TEACHER' } = req.body;
+    const tenantId = req.tenantId;
+
+    // Check if assignment already exists
+    const existingAssignment = await prisma.teacherClass.findFirst({
+      where: {
+        teacherId,
+        classId,
+        tenantId
+      }
+    });
+
+    if (existingAssignment) {
+      return res.status(400).json({ 
+        message: 'Class already assigned to teacher' 
+      });
+    }
+
+    const assignment = await prisma.teacherClass.create({
+      data: {
+        teacherId,
+        classId,
+        tenantId,
+        role,
+        assignedBy: req.user.id
+      },
+      include: {
+        class: {
+          select: {
+            id: true,
+            className: true,
+            classCode: true,
+            capacity: true
+          }
+        }
+      }
+    });
+
+    res.status(201).json(assignment);
+  } catch (error) {
+    console.error('Error assigning class to teacher:', error);
+    res.status(500).json({ 
+      message: 'Failed to assign class to teacher',
+      error: error.message 
+    });
+  }
+};
+
+// Remove class from teacher
+const removeClassFromTeacher = async (req, res) => {
+  try {
+    const { teacherId, classId } = req.params;
+    const tenantId = req.tenantId;
+
+    const assignment = await prisma.teacherClass.findFirst({
+      where: {
+        teacherId,
+        classId,
+        tenantId
+      }
+    });
+
+    if (!assignment) {
+      return res.status(404).json({ message: 'Assignment not found' });
+    }
+
+    await prisma.teacherClass.delete({
+      where: { id: assignment.id }
+    });
+
+    res.json({ message: 'Class removed from teacher successfully' });
+  } catch (error) {
+    console.error('Error removing class from teacher:', error);
+    res.status(500).json({ 
+      message: 'Failed to remove class from teacher',
+      error: error.message 
+    });
+  }
+};
+
 module.exports = {
   getTeachers,
   getTeacher,
@@ -782,6 +904,9 @@ module.exports = {
   getTeacherSubjects,
   assignSubjectToTeacher: [validateSubjectAssignment, assignSubjectToTeacher],
   removeSubjectFromTeacher,
+  getTeacherClasses,
+  assignClassToTeacher,
+  removeClassFromTeacher,
   getTeacherQualifications,
   addTeacherQualification: [validateQualification, addTeacherQualification],
   updateTeacherQualification: [validateQualification, updateTeacherQualification],

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -52,44 +52,38 @@ export default function EditTeacherPage() {
     licenseExpiry: ''
   });
 
-  useEffect(() => {
-    if (params.id) {
-      loadTeacher(params.id as string);
-    }
-  }, [params.id]);
+  const mapTeacherToFormData = useCallback((data: Teacher): UpdateTeacherData => ({
+    id: data.id,
+    firstName: data.user.firstName,
+    lastName: data.user.lastName,
+    email: data.user.email,
+    phone: data.user.phone || '',
+    employeeNumber: data.employeeNumber || '',
+    dateOfBirth: data.dateOfBirth ? data.dateOfBirth.split('T')[0] : '',
+    gender: data.gender,
+    nationality: data.nationality || '',
+    qualification: data.qualification || '',
+    experience: data.experience || 0,
+    specialization: data.specialization || '',
+    address: data.address || '',
+    city: data.city || '',
+    region: data.region || '',
+    postalCode: data.postalCode || '',
+    emergencyContact: data.emergencyContact || '',
+    emergencyPhone: data.emergencyPhone || '',
+    emergencyRelation: data.emergencyRelation || '',
+    joiningDate: data.joiningDate ? data.joiningDate.split('T')[0] : '',
+    previousSchool: data.previousSchool || '',
+    teachingLicense: data.teachingLicense || '',
+    licenseExpiry: data.licenseExpiry ? data.licenseExpiry.split('T')[0] : ''
+  }), []);
 
-  const loadTeacher = async (id: string) => {
+  const loadTeacherCallback = useCallback(async (id: string) => {
     try {
       setLoading(true);
       const data = await teacherService.getTeacher(id);
       setTeacher(data);
-      
-      // Populate form with existing data
-      setFormData({
-        id: data.id,
-        firstName: data.user.firstName,
-        lastName: data.user.lastName,
-        email: data.user.email,
-        phone: data.user.phone || '',
-        employeeNumber: data.employeeNumber || '',
-        dateOfBirth: data.dateOfBirth ? data.dateOfBirth.split('T')[0] : '',
-        gender: data.gender,
-        nationality: data.nationality || '',
-        qualification: data.qualification || '',
-        experience: data.experience || 0,
-        specialization: data.specialization || '',
-        address: data.address || '',
-        city: data.city || '',
-        region: data.region || '',
-        postalCode: data.postalCode || '',
-        emergencyContact: data.emergencyContact || '',
-        emergencyPhone: data.emergencyPhone || '',
-        emergencyRelation: data.emergencyRelation || '',
-        joiningDate: data.joiningDate ? data.joiningDate.split('T')[0] : '',
-        previousSchool: data.previousSchool || '',
-        teachingLicense: data.teachingLicense || '',
-        licenseExpiry: data.licenseExpiry ? data.licenseExpiry.split('T')[0] : ''
-      });
+      setFormData(mapTeacherToFormData(data));
     } catch (error: any) {
       console.error('Error loading teacher:', error);
       toast({
@@ -100,7 +94,15 @@ export default function EditTeacherPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [toast, mapTeacherToFormData]);
+
+  useEffect(() => {
+    if (params.id) {
+      loadTeacherCallback(params.id as string);
+    }
+  }, [params.id, loadTeacherCallback]);
+
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -182,7 +184,7 @@ export default function EditTeacherPage() {
                 </Button>
               </Link>
               <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
-                {teacher.user.firstName[0]}{teacher.user.lastName[0]}
+                {teacher.user.firstName?.[0] || '?'}{teacher.user.lastName?.[0] || ''}
               </div>
               <div>
                 <h1 className="text-xl font-semibold text-gray-900">Edit Profile</h1>
@@ -221,50 +223,25 @@ export default function EditTeacherPage() {
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
               <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Settings</h3>
               <nav className="space-y-2">
-                <button
-                  onClick={() => setActiveSection('personal')}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                    activeSection === 'personal'
-                      ? 'text-indigo-600 bg-indigo-50'
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <User className="h-4 w-4 mr-3" />
-                  Personal Info
-                </button>
-                <button
-                  onClick={() => setActiveSection('contact')}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                    activeSection === 'contact'
-                      ? 'text-indigo-600 bg-indigo-50'
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <Mail className="h-4 w-4 mr-3" />
-                  Contact Details
-                </button>
-                <button
-                  onClick={() => setActiveSection('professional')}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                    activeSection === 'professional'
-                      ? 'text-indigo-600 bg-indigo-50'
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <GraduationCap className="h-4 w-4 mr-3" />
-                  Professional
-                </button>
-                <button
-                  onClick={() => setActiveSection('emergency')}
-                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
-                    activeSection === 'emergency'
-                      ? 'text-indigo-600 bg-indigo-50'
-                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
-                  }`}
-                >
-                  <Phone className="h-4 w-4 mr-3" />
-                  Emergency Contact
-                </button>
+                {[
+                  { id: 'personal', label: 'Personal Info', icon: User },
+                  { id: 'contact', label: 'Contact Details', icon: Mail },
+                  { id: 'professional', label: 'Professional', icon: GraduationCap },
+                  { id: 'emergency', label: 'Emergency Contact', icon: Phone }
+                ].map(({ id, label, icon: Icon }) => (
+                  <button
+                    key={id}
+                    onClick={() => setActiveSection(id)}
+                    className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                      activeSection === id
+                        ? 'text-indigo-600 bg-indigo-50'
+                        : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4 mr-3" />
+                    {label}
+                  </button>
+                ))}
               </nav>
             </div>
           </div>

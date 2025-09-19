@@ -230,6 +230,38 @@ class TeacherService {
     }
   }
 
+  // Class assignment methods
+  async getTeacherClasses(teacherId: string): Promise<any[]> {
+    try {
+      const response = await apiService.get(`${this.baseUrl}/${teacherId}/classes`);
+      return (response as any)?.data || [];
+    } catch (error: any) {
+      console.error('Error fetching teacher classes:', error);
+      return [];
+    }
+  }
+
+  async assignClassToTeacher(teacherId: string, classId: string, role: string = 'SUBJECT_TEACHER'): Promise<void> {
+    try {
+      await apiService.post(`${this.baseUrl}/${teacherId}/classes`, {
+        classId,
+        role
+      });
+    } catch (error: any) {
+      console.error('Error assigning class to teacher:', error);
+      throw new Error(error.response?.data?.message || 'Failed to assign class to teacher');
+    }
+  }
+
+  async removeClassFromTeacher(teacherId: string, classId: string): Promise<void> {
+    try {
+      await apiService.delete(`${this.baseUrl}/${teacherId}/classes/${classId}`);
+    } catch (error: any) {
+      console.error('Error removing class from teacher:', error);
+      throw new Error(error.response?.data?.message || 'Failed to remove class from teacher');
+    }
+  }
+
   // Bulk operations
   async bulkAssignSubjects(assignments: TeacherSubjectAssignment[]): Promise<void> {
     try {

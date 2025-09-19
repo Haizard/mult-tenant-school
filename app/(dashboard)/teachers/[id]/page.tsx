@@ -50,10 +50,12 @@ export default function TeacherDetailPage() {
 
   useEffect(() => {
     if (params.id) {
-      loadTeacher(params.id as string);
-      loadTeacherSubjects(params.id as string);
-      loadTeacherQualifications(params.id as string);
-      loadAvailableSubjects();
+      Promise.all([
+        loadTeacher(params.id as string),
+        loadTeacherSubjects(params.id as string),
+        loadTeacherQualifications(params.id as string),
+        loadAvailableSubjects()
+      ]);
     }
   }, [params.id]);
 
@@ -80,6 +82,11 @@ export default function TeacherDetailPage() {
       setSubjects(data);
     } catch (error: any) {
       console.error('Error loading teacher subjects:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load teacher subjects',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -89,6 +96,11 @@ export default function TeacherDetailPage() {
       setQualifications(data);
     } catch (error: any) {
       console.error('Error loading teacher qualifications:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load teacher qualifications',
+        variant: 'destructive'
+      });
     }
   };
 
@@ -185,6 +197,17 @@ export default function TeacherDetailPage() {
     }
     
     return age;
+  };
+
+  const formatAddress = (teacher: Teacher) => {
+    if (!teacher.address) return 'N/A';
+    
+    const parts = [teacher.address];
+    if (teacher.city) parts.push(teacher.city);
+    if (teacher.region) parts.push(teacher.region);
+    if (teacher.postalCode) parts.push(teacher.postalCode);
+    
+    return parts.join(', ');
   };
 
   if (loading) {
@@ -380,14 +403,7 @@ export default function TeacherDetailPage() {
                     <div>
                       <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Address</label>
                       <p className="text-lg font-medium text-gray-900">
-                        {teacher.address && (
-                          <>
-                            {teacher.address}
-                            {teacher.city && `, ${teacher.city}`}
-                            {teacher.region && `, ${teacher.region}`}
-                            {teacher.postalCode && ` ${teacher.postalCode}`}
-                          </>
-                        ) || 'N/A'}
+                        {formatAddress(teacher)}
                       </p>
                     </div>
                   </div>
@@ -469,7 +485,11 @@ export default function TeacherDetailPage() {
                   <BookOpen className="h-5 w-5 mr-2" />
                   Assigned Subjects
                 </h3>
-                <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                <Button 
+                  size="sm" 
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  onClick={() => setShowSubjectModal(true)}
+                >
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
@@ -528,7 +548,11 @@ export default function TeacherDetailPage() {
                   <Award className="h-5 w-5 mr-2" />
                   Qualifications
                 </h3>
-                <Button size="sm" className="bg-white/20 hover:bg-white/30 text-white border-white/30">
+                <Button 
+                  size="sm" 
+                  className="bg-white/20 hover:bg-white/30 text-white border-white/30"
+                  onClick={() => setShowQualificationModal(true)}
+                >
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>

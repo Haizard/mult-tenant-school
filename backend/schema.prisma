@@ -51,6 +51,14 @@ model Tenant {
   teachers               Teacher[]
   teacherQualifications  TeacherQualification[]
   teacherSubjects        TeacherSubject[]
+  teacherClasses         TeacherClass[]
+  teacherAttendance      TeacherAttendance[]
+  teacherLeaves          TeacherLeave[]
+  teacherEvaluations     TeacherEvaluation[]
+  teacherGoals           TeacherGoal[]
+  teacherTrainings       TeacherTraining[]
+  teacherResources       TeacherResource[]
+  teacherMeetings        TeacherMeeting[]
   parents                Parent[]
   parentRelations        ParentStudentRelation[]
   studentEnrollments     StudentEnrollment[]
@@ -117,12 +125,7 @@ model User {
   createdClasses Class[] @relation("ClassCreatedBy")
   updatedClasses Class[] @relation("ClassUpdatedBy")
 
-  // Student management relationships
-  studentEnrollments     StudentEnrollment[]
-  studentAcademicRecords StudentAcademicRecord[]
-  healthRecords          HealthRecord[]
-  studentDocuments       StudentDocument[]
-  attendance             Attendance[]
+  // Student management relationships (removed - these are handled by specific models)
 
   // Leave and notification relationships
   leaveRequestsRequested LeaveRequest[] @relation("LeaveRequestedBy")
@@ -336,6 +339,7 @@ model Class {
   studentEnrollments     StudentEnrollment[]
   studentAcademicRecords StudentAcademicRecord[]
   attendance             Attendance[]
+  teacherClasses         TeacherClass[]
 
   @@unique([tenantId, className])
 }
@@ -669,6 +673,14 @@ model Teacher {
   user            User                   @relation(fields: [userId], references: [id], onDelete: Cascade)
   teacherSubjects TeacherSubject[]
   qualifications  TeacherQualification[]
+  teacherClasses  TeacherClass[]
+  teacherAttendance TeacherAttendance[]
+  teacherLeaves   TeacherLeave[]
+  teacherEvaluations TeacherEvaluation[]
+  teacherGoals    TeacherGoal[]
+  teacherTrainings TeacherTraining[]
+  teacherResources TeacherResource[]
+  meetingAttendees TeacherMeetingAttendee[]
 
   @@unique([tenantId, teacherId])
   @@unique([tenantId, employeeNumber])
@@ -1065,4 +1077,314 @@ enum NotificationPriority {
   NORMAL
   HIGH
   URGENT
+}
+
+// Teacher Management Extended Models
+model TeacherClass {
+  id        String @id @default(cuid())
+  tenantId  String
+  teacherId String
+  classId   String
+  role      TeacherClassRole @default(SUBJECT_TEACHER)
+  assignedAt DateTime @default(now())
+  assignedBy String?
+
+  // Relationships
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+  class   Class   @relation(fields: [classId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, teacherId, classId])
+}
+
+model TeacherAttendance {
+  id        String @id @default(cuid())
+  tenantId  String
+  teacherId String
+  date      DateTime
+  status    TeacherAttendanceStatus
+  checkIn   DateTime?
+  checkOut  DateTime?
+  reason    String?
+  notes     String?
+  markedBy  String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, teacherId, date])
+  @@index([tenantId, date])
+}
+
+model TeacherLeave {
+  id             String @id @default(cuid())
+  tenantId       String
+  teacherId      String
+  leaveType      TeacherLeaveType
+  startDate      DateTime
+  endDate        DateTime
+  reason         String
+  description    String?
+  status         LeaveStatus @default(PENDING)
+  approvedBy     String?
+  approvedAt     DateTime?
+  rejectedReason String?
+  coverageNotes  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, teacherId])
+}
+
+model TeacherEvaluation {
+  id           String @id @default(cuid())
+  tenantId     String
+  teacherId    String
+  evaluatorId  String
+  evaluationType EvaluationType
+  period       String // TERM_1, TERM_2, ANNUAL
+  overallRating Float
+  teachingSkills Float?
+  classroomManagement Float?
+  studentEngagement Float?
+  professionalism Float?
+  comments     String?
+  recommendations String?
+  status       EvaluationStatus @default(DRAFT)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, teacherId])
+}
+
+model TeacherGoal {
+  id          String @id @default(cuid())
+  tenantId    String
+  teacherId   String
+  title       String
+  description String
+  category    GoalCategory
+  targetDate  DateTime
+  status      GoalStatus @default(ACTIVE)
+  progress    Float @default(0)
+  notes       String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, teacherId])
+}
+
+model TeacherTraining {
+  id           String @id @default(cuid())
+  tenantId     String
+  teacherId    String
+  title        String
+  description  String?
+  trainingType TrainingType
+  provider     String
+  startDate    DateTime
+  endDate      DateTime?
+  status       TrainingStatus @default(REGISTERED)
+  certificateUrl String?
+  credits      Float?
+  cost         Float?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, teacherId])
+}
+
+model TeacherResource {
+  id          String @id @default(cuid())
+  tenantId    String
+  teacherId   String
+  title       String
+  description String?
+  resourceType ResourceType
+  filePath    String?
+  fileUrl     String?
+  tags        String? // JSON array
+  isPublic    Boolean @default(false)
+  downloads   Int @default(0)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  teacher Teacher @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId, teacherId])
+}
+
+model TeacherMeeting {
+  id          String @id @default(cuid())
+  tenantId    String
+  title       String
+  description String?
+  meetingType MeetingType
+  startTime   DateTime
+  endTime     DateTime
+  location    String?
+  agenda      String?
+  minutes     String?
+  status      MeetingStatus @default(SCHEDULED)
+  organizerId String
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relationships
+  tenant      Tenant               @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  attendees   TeacherMeetingAttendee[]
+
+  @@index([tenantId, startTime])
+}
+
+model TeacherMeetingAttendee {
+  id        String @id @default(cuid())
+  meetingId String
+  teacherId String
+  status    AttendeeStatus @default(INVITED)
+  notes     String?
+
+  // Relationships
+  meeting TeacherMeeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  teacher Teacher        @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, teacherId])
+}
+
+// New Enums
+enum TeacherClassRole {
+  CLASS_TEACHER
+  SUBJECT_TEACHER
+  ASSISTANT_TEACHER
+}
+
+enum TeacherAttendanceStatus {
+  PRESENT
+  ABSENT
+  LATE
+  HALF_DAY
+  SICK
+  ON_LEAVE
+}
+
+enum TeacherLeaveType {
+  SICK
+  PERSONAL
+  MATERNITY
+  PATERNITY
+  PROFESSIONAL_DEVELOPMENT
+  VACATION
+  EMERGENCY
+  OTHER
+}
+
+enum EvaluationType {
+  SELF_EVALUATION
+  PEER_EVALUATION
+  SUPERVISOR_EVALUATION
+  STUDENT_FEEDBACK
+}
+
+enum EvaluationStatus {
+  DRAFT
+  SUBMITTED
+  REVIEWED
+  APPROVED
+  ARCHIVED
+}
+
+enum GoalCategory {
+  TEACHING_IMPROVEMENT
+  PROFESSIONAL_DEVELOPMENT
+  STUDENT_OUTCOMES
+  RESEARCH
+  LEADERSHIP
+  OTHER
+}
+
+enum GoalStatus {
+  ACTIVE
+  COMPLETED
+  PAUSED
+  CANCELLED
+}
+
+enum TrainingType {
+  WORKSHOP
+  SEMINAR
+  CONFERENCE
+  ONLINE_COURSE
+  CERTIFICATION
+  MENTORSHIP
+  OTHER
+}
+
+enum TrainingStatus {
+  REGISTERED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+}
+
+enum ResourceType {
+  LESSON_PLAN
+  WORKSHEET
+  PRESENTATION
+  VIDEO
+  DOCUMENT
+  LINK
+  OTHER
+}
+
+enum MeetingType {
+  DEPARTMENT
+  STAFF
+  PARENT_TEACHER
+  TRAINING
+  PLANNING
+  OTHER
+}
+
+enum MeetingStatus {
+  SCHEDULED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
+  POSTPONED
+}
+
+enum AttendeeStatus {
+  INVITED
+  ACCEPTED
+  DECLINED
+  ATTENDED
+  ABSENT
 }

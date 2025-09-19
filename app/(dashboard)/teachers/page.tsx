@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { Card } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
@@ -27,6 +27,157 @@ import {
 import { teacherService } from '@/lib/teacherService';
 import { useToast } from '@/hooks/use-toast';
 import Link from 'next/link';
+
+interface TeacherStatsProps {
+  stats: {
+    total: number;
+    male: number;
+    female: number;
+    totalSubjects: number;
+  };
+}
+
+function TeacherStats({ stats }: TeacherStatsProps) {
+  const statItems = [
+    { label: 'Total Teachers', value: stats.total, icon: UserCheck, color: 'purple' },
+    { label: 'Male Teachers', value: stats.male, icon: User, color: 'green' },
+    { label: 'Female Teachers', value: stats.female, icon: User, color: 'pink' },
+    { label: 'Subjects Taught', value: stats.totalSubjects, icon: BookOpen, color: 'blue' }
+  ];
+
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      {statItems.map((item, index) => (
+        <Card key={index}>
+          <div className="p-6">
+            <div className="flex items-center">
+              <div className={`p-2 rounded-lg bg-${item.color}-100`}>
+                <item.icon className={`h-6 w-6 text-${item.color}-600`} />
+              </div>
+              <div className="ml-4">
+                <p className="text-sm font-medium text-gray-600">{item.label}</p>
+                <p className="text-2xl font-bold text-gray-900">{item.value}</p>
+              </div>
+            </div>
+          </div>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+const TeacherRow = React.memo(({ teacher, onDelete }: { teacher: Teacher; onDelete: (id: string) => void }) => {
+  const handleDelete = React.useCallback(() => onDelete(teacher.id), [teacher.id, onDelete]);
+  
+  const subjectDisplay = useMemo(() => {
+    const subjects = teacher.subjects || [];
+    const visibleSubjects = subjects.slice(0, 2);
+    const remainingCount = subjects.length - 2;
+    
+    return (
+      <div className="flex flex-wrap gap-1">
+        {visibleSubjects.map((subject, index) => (
+          <span
+            key={subject.id || index}
+            className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
+          >
+            {subject.subjectName}
+          </span>
+        ))}
+        {remainingCount > 0 && (
+          <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+            +{remainingCount} more
+          </span>
+        )}
+      </div>
+    );
+  }, [teacher.subjects]);
+
+  TeacherRow.displayName = 'TeacherRow';
+
+  return (
+    <tr className="hover:bg-gray-50">
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="flex items-center">
+          <div className="flex-shrink-0 h-10 w-10">
+            <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white font-semibold">
+              {(teacher.user?.firstName?.[0] || '?')}{(teacher.user?.lastName?.[0] || '')}
+            </div>
+          </div>
+          <div className="ml-4">
+            <div className="text-sm font-medium text-gray-900">
+              {teacher.user.firstName} {teacher.user.lastName}
+            </div>
+            <div className="text-sm text-gray-500">
+              {teacher.user.email}
+            </div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{teacher.teacherId}</div>
+        {teacher.employeeNumber && (
+          <div className="text-sm text-gray-500">Emp: {teacher.employeeNumber}</div>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{teacher.user.email}</div>
+        {teacher.user.phone && (
+          <div className="text-sm text-gray-500">{teacher.user.phone}</div>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        <div className="text-sm text-gray-900">{teacher.specialization || 'N/A'}</div>
+        {teacher.qualification && (
+          <div className="text-sm text-gray-500">{teacher.qualification}</div>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap">
+        {subjectDisplay}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
+        <div className="flex space-x-2">
+          <Link href={`/teachers/${teacher.id}`}>
+            <Button variant="ghost" size="sm">
+              <Eye className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Link href={`/teachers/${teacher.id}/edit`}>
+            <Button variant="ghost" size="sm">
+              <Edit className="h-4 w-4" />
+            </Button>
+          </Link>
+          <Button 
+            variant="ghost" 
+            size="sm"
+            onClick={handleDelete}
+          >
+            <Trash2 className="h-4 w-4 text-red-600" />
+          </Button>
+        </div>
+      </td>
+    </tr>
+  );
+});
+
+function DeleteModal({ show, onClose, onConfirm }: { show: boolean; onClose: () => void; onConfirm: () => void }) {
+  if (!show) return null;
+  
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+      <div className="bg-white rounded-xl p-6 w-full max-w-md mx-4">
+        <h3 className="text-lg font-semibold mb-4">Confirm Delete</h3>
+        <p className="text-gray-600 mb-6">
+          Are you sure you want to delete this teacher? This action cannot be undone.
+        </p>
+        <div className="flex justify-end space-x-3">
+          <Button variant="outline" onClick={onClose}>Cancel</Button>
+          <Button variant="destructive" onClick={onConfirm}>Delete</Button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 interface Teacher {
   id: string;
@@ -60,9 +211,9 @@ interface Teacher {
   };
   subjects?: Array<{
     id: string;
-    subject_name: string;
-    subject_level: string;
-    subject_type: string;
+    subjectName: string;
+    subjectLevel: string;
+    subjectType: string;
   }>;
 }
 
@@ -72,22 +223,28 @@ export default function TeachersPage() {
   const [teachers, setTeachers] = useState<Teacher[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [filteredTeachers, setFilteredTeachers] = useState<Teacher[]>([]);
 
   useEffect(() => {
     loadTeachers();
   }, []);
 
-  useEffect(() => {
-    // Filter teachers based on search term
-    const filtered = teachers.filter(teacher =>
-      teacher.user.firstName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.user.lastName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.teacherId.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      teacher.specialization?.toLowerCase().includes(searchTerm.toLowerCase())
+  const teacherStats = useMemo(() => ({
+    total: teachers.length,
+    male: teachers.filter(t => t.gender === 'MALE').length,
+    female: teachers.filter(t => t.gender === 'FEMALE').length,
+    totalSubjects: teachers.reduce((total, teacher) => total + (teacher.subjects?.length || 0), 0)
+  }), [teachers]);
+
+  const filteredTeachers = useMemo(() => {
+    if (!searchTerm) return teachers;
+    const term = searchTerm.toLowerCase();
+    return teachers.filter(teacher =>
+      teacher.user.firstName.toLowerCase().includes(term) ||
+      teacher.user.lastName.toLowerCase().includes(term) ||
+      teacher.user.email.toLowerCase().includes(term) ||
+      teacher.teacherId.toLowerCase().includes(term) ||
+      teacher.specialization?.toLowerCase().includes(term)
     );
-    setFilteredTeachers(filtered);
   }, [teachers, searchTerm]);
 
   const loadTeachers = async () => {
@@ -110,43 +267,56 @@ export default function TeachersPage() {
     }
   };
 
-  const handleDeleteTeacher = async (teacherId: string) => {
-    if (!confirm('Are you sure you want to delete this teacher?')) {
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState<string | null>(null);
+
+  const handleDeleteTeacher = useCallback((teacherId: string) => {
+    setTeacherToDelete(teacherId);
+    setShowDeleteModal(true);
+  }, []);
+
+  const handleCloseModal = useCallback(() => {
+    setShowDeleteModal(false);
+    setTeacherToDelete(null);
+  }, []);
+
+  const confirmDelete = async () => {
+    if (!teacherToDelete) {
+      toast({
+        title: 'Error',
+        description: 'No teacher selected for deletion',
+        variant: 'destructive'
+      });
       return;
     }
 
     try {
-      await teacherService.deleteTeacher(teacherId);
+      await teacherService.deleteTeacher(teacherToDelete);
       toast({
         title: 'Success',
         description: 'Teacher deleted successfully'
       });
-      loadTeachers(); // Reload the list
+      await loadTeachers();
     } catch (error: any) {
       console.error('Error deleting teacher:', error);
+      const errorMessage = error?.response?.status === 404 
+        ? 'Teacher not found or already deleted'
+        : error?.response?.status === 403
+        ? 'You do not have permission to delete this teacher'
+        : error?.message || 'Failed to delete teacher';
+      
       toast({
-        title: 'Error',
-        description: 'Failed to delete teacher',
+        title: 'Delete Failed',
+        description: errorMessage,
         variant: 'destructive'
       });
+    } finally {
+      setShowDeleteModal(false);
+      setTeacherToDelete(null);
     }
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric'
-    });
-  };
 
-  const calculateExperience = (joiningDate: string) => {
-    const today = new Date();
-    const joinDate = new Date(joiningDate);
-    const diffTime = Math.abs(today.getTime() - joinDate.getTime());
-    const diffYears = Math.ceil(diffTime / (1000 * 60 * 60 * 24 * 365));
-    return diffYears;
-  };
 
   if (loading) {
     return (
@@ -205,70 +375,7 @@ export default function TeachersPage() {
           </div>
         </Card>
 
-        {/* Teachers Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 rounded-lg bg-purple-100">
-                  <UserCheck className="h-6 w-6 text-purple-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Total Teachers</p>
-                  <p className="text-2xl font-bold text-gray-900">{teachers.length}</p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 rounded-lg bg-green-100">
-                  <User className="h-6 w-6 text-green-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Male Teachers</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {teachers.filter(t => t.gender === 'MALE').length}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 rounded-lg bg-pink-100">
-                  <User className="h-6 w-6 text-pink-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Female Teachers</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {teachers.filter(t => t.gender === 'FEMALE').length}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <BookOpen className="h-6 w-6 text-blue-600" />
-                </div>
-                <div className="ml-4">
-                  <p className="text-sm font-medium text-gray-600">Subjects Taught</p>
-                  <p className="text-2xl font-bold text-gray-900">
-                    {teachers.reduce((total, teacher) => total + (teacher.subjects?.length || 0), 0)}
-                  </p>
-                </div>
-              </div>
-            </div>
-          </Card>
-        </div>
+        <TeacherStats stats={teacherStats} />
 
         {/* Teachers List */}
         <Card>
@@ -316,81 +423,11 @@ export default function TeachersPage() {
                   </thead>
                   <tbody className="bg-white divide-y divide-gray-200">
                     {filteredTeachers.map((teacher) => (
-                      <tr key={teacher.id} className="hover:bg-gray-50">
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex items-center">
-                            <div className="flex-shrink-0 h-10 w-10">
-                              <div className="h-10 w-10 rounded-full bg-gradient-to-br from-purple-500 to-blue-600 flex items-center justify-center text-white font-semibold">
-                                {(teacher.user?.firstName?.[0] || '?')}{(teacher.user?.lastName?.[0] || '')}
-                              </div>
-                            </div>
-                            <div className="ml-4">
-                              <div className="text-sm font-medium text-gray-900">
-                                {teacher.user.firstName} {teacher.user.lastName}
-                              </div>
-                              <div className="text-sm text-gray-500">
-                                {teacher.user.email}
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{teacher.teacherId}</div>
-                          {teacher.employeeNumber && (
-                            <div className="text-sm text-gray-500">Emp: {teacher.employeeNumber}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{teacher.user.email}</div>
-                          {teacher.user.phone && (
-                            <div className="text-sm text-gray-500">{teacher.user.phone}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="text-sm text-gray-900">{teacher.specialization || 'N/A'}</div>
-                          {teacher.qualification && (
-                            <div className="text-sm text-gray-500">{teacher.qualification}</div>
-                          )}
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap">
-                          <div className="flex flex-wrap gap-1">
-                            {teacher.subjects?.slice(0, 2).map((subject, index) => (
-                              <span
-                                key={index}
-                                className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800"
-                              >
-                                {subject.subject_name}
-                              </span>
-                            ))}
-                            {(teacher.subjects?.length || 0) > 2 && (
-                              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
-                                +{(teacher.subjects?.length || 0) - 2} more
-                              </span>
-                            )}
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                          <div className="flex space-x-2">
-                            <Link href={`/teachers/${teacher.id}`}>
-                              <Button variant="ghost" size="sm">
-                                <Eye className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Link href={`/teachers/${teacher.id}/edit`}>
-                              <Button variant="ghost" size="sm">
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                            </Link>
-                            <Button 
-                              variant="ghost" 
-                              size="sm"
-                              onClick={() => handleDeleteTeacher(teacher.id)}
-                            >
-                              <Trash2 className="h-4 w-4 text-red-600" />
-                            </Button>
-                          </div>
-                        </td>
-                      </tr>
+                      <TeacherRow 
+                        key={teacher.id} 
+                        teacher={teacher} 
+                        onDelete={handleDeleteTeacher}
+                      />
                     ))}
                   </tbody>
                 </table>
@@ -398,6 +435,12 @@ export default function TeachersPage() {
             )}
           </div>
         </Card>
+
+        <DeleteModal 
+          show={showDeleteModal}
+          onClose={handleCloseModal}
+          onConfirm={confirmDelete}
+        />
       </div>
     </div>
   );
