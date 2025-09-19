@@ -3,12 +3,14 @@ class ApiService {
   private baseURL: string;
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_API_URL || '';
+    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
     try {
-      const url = `${this.baseURL}${endpoint}`;
+      // Remove leading slash from endpoint to avoid double slashes
+      const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+      const url = `${this.baseURL}/${cleanEndpoint}`;
       
       const config: RequestInit = {
         headers: {

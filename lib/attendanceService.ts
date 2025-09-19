@@ -84,7 +84,7 @@ class AttendanceService {
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-      const endpoint = `/api/attendance${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const endpoint = `attendance${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await this.apiService.get(endpoint);
       return response;
     } catch (error) {
@@ -95,7 +95,7 @@ class AttendanceService {
 
   async markAttendance(attendanceData: AttendanceData[]): Promise<any> {
     try {
-      const response = await this.apiService.post('/api/attendance', {
+      const response = await this.apiService.post('attendance', {
         attendanceData
       });
       return response;
@@ -111,7 +111,7 @@ class AttendanceService {
     notes?: string;
   }): Promise<any> {
     try {
-      const response = await this.apiService.put(`/api/attendance/${id}`, data);
+      const response = await this.apiService.put(`attendance/${id}`, data);
       return response;
     } catch (error) {
       console.error('Error updating attendance:', error);
@@ -121,7 +121,7 @@ class AttendanceService {
 
   async deleteAttendance(id: string): Promise<any> {
     try {
-      const response = await this.apiService.delete(`/api/attendance/${id}`);
+      const response = await this.apiService.delete(`attendance/${id}`);
       return response;
     } catch (error) {
       console.error('Error deleting attendance:', error);
@@ -141,7 +141,7 @@ class AttendanceService {
       if (params?.classId) queryParams.append('classId', params.classId);
       if (params?.subjectId) queryParams.append('subjectId', params.subjectId);
 
-      const endpoint = `/api/attendance/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const endpoint = `attendance/stats${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await this.apiService.get(endpoint);
       return response;
     } catch (error) {
@@ -164,7 +164,7 @@ class AttendanceService {
       if (params?.page) queryParams.append('page', params.page.toString());
       if (params?.limit) queryParams.append('limit', params.limit.toString());
 
-      const endpoint = `/api/attendance/student/${studentId}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+      const endpoint = `attendance/student/${studentId}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
       const response = await this.apiService.get(endpoint);
       return response;
     } catch (error) {
