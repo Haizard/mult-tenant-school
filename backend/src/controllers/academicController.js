@@ -379,12 +379,17 @@ const deleteCourse = async (req, res) => {
 // Subject Management
 const getSubjects = async (req, res) => {
   try {
+    console.log('getSubjects called with tenantId:', req.tenantId);
+    console.log('Query params:', req.query);
+    
     const { page = 1, limit = 10, search, status, subjectLevel, subjectType } = req.query;
     const skip = (page - 1) * limit;
 
     const where = {
       tenantId: req.tenantId
     };
+    
+    console.log('Where clause:', where);
 
     if (search) {
       where.OR = [
@@ -406,6 +411,8 @@ const getSubjects = async (req, res) => {
       where.subjectType = subjectType;
     }
 
+    console.log('About to query subjects...');
+    
     const [subjects, total] = await Promise.all([
       prisma.subject.findMany({
         where,
@@ -446,6 +453,8 @@ const getSubjects = async (req, res) => {
       }),
       prisma.subject.count({ where })
     ]);
+    
+    console.log('Query successful, found subjects:', subjects.length);
 
     res.json({
       success: true,

@@ -1,7 +1,7 @@
 import {
   FaHome,
   FaUsers,
-  FaUserTie,
+  FaChalkboardTeacher,
   FaBook,
   FaUserCircle,
   FaChalkboard,
@@ -110,6 +110,13 @@ const Sidebar = () => {
     if (hasAnyRole(['Tenant Admin', 'Teacher'])) {
       items.push(
         { icon: <FaGraduationCap />, text: "Students", href: "/students", show: true, hasDropdown: true }
+      );
+    }
+
+    // Teacher management - Tenant Admin and Teacher only
+    if (hasAnyRole(['Tenant Admin', 'Teacher'])) {
+      items.push(
+        { icon: <FaChalkboardTeacher />, text: "Teachers", href: "/teachers", show: true, hasDropdown: true }
       );
     }
 

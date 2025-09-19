@@ -125,497 +125,356 @@ export default function StudentDetailPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-6">
-      <div className="space-y-6">
-        {/* Header - Match system style */}
-        <div className="glass-card p-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
-          <div className="flex items-center justify-between">
-            <div>
-              <div className="flex items-center space-x-4 mb-3">
-                <Button 
-                  variant="ghost" 
-                  size="sm"
-                  onClick={() => window.location.href = '/students'}
-                  className="flex items-center"
-                >
-                  <ArrowLeft className="h-4 w-4 mr-2" />
-                  Back to Students
-                </Button>
-              </div>
-              <h1 className="text-3xl font-bold text-text-primary mb-2">
-                {student.user.firstName} {student.user.lastName}
-              </h1>
-              <p className="text-text-secondary">
-                Student ID: {student.studentId} • {student.user.email}
-              </p>
-            </div>
-            <div className="flex items-center space-x-3">
-              <div className="w-16 h-16 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white font-semibold text-xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+      {/* Hero Section with Cover */}
+      <div className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-blue-600 h-64">
+        <div className="absolute inset-0 bg-black/20"></div>
+        <div className="relative max-w-6xl mx-auto px-6 pt-8">
+          <Link href="/students">
+            <Button variant="ghost" className="text-white hover:bg-white/20 mb-6">
+              <ArrowLeft className="h-4 w-4 mr-2" />
+              Back to Students
+            </Button>
+          </Link>
+          
+          {/* Profile Header */}
+          <div className="flex items-end space-x-6">
+            <div className="relative">
+              <div className="h-32 w-32 rounded-full bg-white/20 backdrop-blur-sm border-4 border-white/30 flex items-center justify-center text-white font-bold text-4xl shadow-2xl">
                 {student.user.firstName[0]}{student.user.lastName[0]}
               </div>
-              <Button 
-                variant="primary" 
-                size="sm"
-                onClick={() => window.location.href = `/students/${student.id}/edit`}
-                className="flex items-center"
-              >
-                <Edit className="h-4 w-4 mr-2" />
-                Edit Profile
-              </Button>
+              <div className="absolute -bottom-2 -right-2 bg-green-500 h-8 w-8 rounded-full border-4 border-white flex items-center justify-center">
+                <div className="h-3 w-3 bg-white rounded-full"></div>
+              </div>
+            </div>
+            <div className="pb-4">
+              <h1 className="text-4xl font-bold text-white mb-2">
+                {student.user.firstName} {student.user.lastName}
+              </h1>
+              <div className="flex items-center space-x-4 text-white/90">
+                <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
+                  {student.studentId}
+                </span>
+                <span className="bg-white/20 px-3 py-1 rounded-full text-sm font-medium">
+                  {student.gender} • Age {calculateAge(student.dateOfBirth)}
+                </span>
+                <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+                  student.status === 'ACTIVE' ? 'bg-green-500/80' : 'bg-red-500/80'
+                }`}>
+                  {student.status}
+                </span>
+              </div>
+            </div>
+            <div className="ml-auto pb-4">
+              <Link href={`/students/${student.id}/edit`}>
+                <Button className="bg-white text-indigo-600 hover:bg-gray-100">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit Profile
+                </Button>
+              </Link>
             </div>
           </div>
+        </div>
+      </div>
 
-          {/* Status and Basic Info */}
-          <div className="flex items-center space-x-3 mt-4">
-            <Badge className={getStatusColor(student.status)}>
-              {student.status}
-            </Badge>
-            <Badge className={getGenderColor(student.gender)}>
-              {student.gender}
-            </Badge>
-            <Badge variant="outline">
-              Age: {calculateAge(student.dateOfBirth)}
-            </Badge>
-            {student.admissionNumber && (
-              <Badge variant="outline">
-                Admission: {student.admissionNumber}
-              </Badge>
-            )}
+      {/* Content */}
+      <div className="max-w-6xl mx-auto px-6 -mt-16 relative z-10">
+
+        {/* Quick Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Age</p>
+                <p className="text-2xl font-bold text-gray-900">{calculateAge(student.dateOfBirth)}</p>
+              </div>
+              <User className="h-8 w-8 text-blue-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Status</p>
+                <p className="text-2xl font-bold text-gray-900">{student.status}</p>
+              </div>
+              <CheckCircle className="h-8 w-8 text-green-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Admission</p>
+                <p className="text-2xl font-bold text-gray-900">{student.admissionNumber || 'N/A'}</p>
+              </div>
+              <GraduationCap className="h-8 w-8 text-purple-500" />
+            </div>
+          </div>
+          <div className="bg-white rounded-xl p-6 shadow-lg border border-gray-100">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-sm text-gray-600">Enrollments</p>
+                <p className="text-2xl font-bold text-gray-900">{student.enrollments?.length || 0}</p>
+              </div>
+              <BookOpen className="h-8 w-8 text-orange-500" />
+            </div>
           </div>
         </div>
 
-      {/* Main Content */}
-      <Tabs defaultValue="overview" className="space-y-6">
-        <TabsList>
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="enrollments">Enrollments</TabsTrigger>
-          <TabsTrigger value="academic">Academic Records</TabsTrigger>
-          <TabsTrigger value="attendance">Attendance</TabsTrigger>
-          <TabsTrigger value="health">Health Records</TabsTrigger>
-          <TabsTrigger value="documents">Documents</TabsTrigger>
-          <TabsTrigger value="parents">Parents</TabsTrigger>
-        </TabsList>
-
-        {/* Overview Tab */}
-        <TabsContent value="overview" className="space-y-6">
-          <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+          {/* Left Column - Personal Information */}
+          <div className="lg:col-span-2 space-y-8">
             {/* Personal Information */}
-            <Card>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-blue-500 to-indigo-500 px-6 py-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <User className="h-5 w-5 mr-2" />
+                  Personal Information
+                </h3>
+              </div>
               <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-blue-100">
-                    <User className="h-5 w-5 text-blue-600" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Full Name</label>
+                    <p className="text-lg font-medium text-gray-900">{student.user.firstName} {student.user.lastName}</p>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-                </div>
-                <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Full Name</label>
-                    <p className="text-sm">{student.user.firstName} {student.user.lastName}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Date of Birth</label>
+                    <p className="text-lg font-medium text-gray-900">{format(new Date(student.dateOfBirth), 'MMMM dd, yyyy')}</p>
+                    <p className="text-sm text-gray-500">Age: {calculateAge(student.dateOfBirth)}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Date of Birth</label>
-                    <p className="text-sm">{format(new Date(student.dateOfBirth), 'MMM dd, yyyy')}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Gender</label>
+                    <p className="text-lg font-medium text-gray-900">{student.gender}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Gender</label>
-                    <p className="text-sm">{student.gender}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Nationality</label>
+                    <p className="text-lg font-medium text-gray-900">{student.nationality}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Nationality</label>
-                    <p className="text-sm">{student.nationality}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Religion</label>
+                    <p className="text-lg font-medium text-gray-900">{student.religion || 'N/A'}</p>
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Religion</label>
-                    <p className="text-sm">{student.religion || 'Not specified'}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Blood Group</label>
-                    <p className="text-sm">{student.bloodGroup || 'Not specified'}</p>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Blood Group</label>
+                    <p className="text-lg font-medium text-gray-900">{student.bloodGroup || 'N/A'}</p>
                   </div>
                 </div>
               </div>
-            </Card>
+            </div>
 
             {/* Contact Information */}
-            <Card>
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-green-500 to-emerald-500 px-6 py-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <Mail className="h-5 w-5 mr-2" />
+                  Contact Information
+                </h3>
+              </div>
               <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-green-100">
-                    <Phone className="h-5 w-5 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Contact Information</h3>
-                </div>
-                <div className="space-y-4">
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-3">
-                    <Mail className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">{student.user.email}</span>
+                <div className="space-y-6">
+                  <div className="flex items-center space-x-4">
+                    <div className="bg-blue-100 p-3 rounded-full">
+                      <Mail className="h-5 w-5 text-blue-600" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Email Address</label>
+                      <p className="text-lg font-medium text-gray-900">{student.user.email}</p>
+                    </div>
                   </div>
                   {student.phone && (
+                    <div className="flex items-center space-x-4">
+                      <div className="bg-green-100 p-3 rounded-full">
+                        <Phone className="h-5 w-5 text-green-600" />
+                      </div>
+                      <div>
+                        <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Phone Number</label>
+                        <p className="text-lg font-medium text-gray-900">{student.phone}</p>
+                      </div>
+                    </div>
+                  )}
+                  <div className="flex items-start space-x-4">
+                    <div className="bg-purple-100 p-3 rounded-full">
+                      <MapPin className="h-5 w-5 text-purple-600" />
+                    </div>
+                    <div>
+                      <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Address</label>
+                      <p className="text-lg font-medium text-gray-900">
+                        {student.address && (
+                          <>
+                            {student.address}
+                            {student.city && `, ${student.city}`}
+                            {student.region && `, ${student.region}`}
+                            {student.postalCode && ` ${student.postalCode}`}
+                          </>
+                        ) || 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Emergency Contact */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-red-500 to-orange-500 px-6 py-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <Phone className="h-5 w-5 mr-2" />
+                  Emergency Contact
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Contact Name</label>
+                    <p className="text-lg font-medium text-gray-900">{student.emergencyContact || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Phone Number</label>
+                    <p className="text-lg font-medium text-gray-900">{student.emergencyPhone || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Academic Information */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-purple-500 to-pink-500 px-6 py-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <GraduationCap className="h-5 w-5 mr-2" />
+                  Academic Information
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Student ID</label>
+                    <p className="text-lg font-medium text-gray-900 font-mono">{student.studentId}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Admission Number</label>
+                    <p className="text-lg font-medium text-gray-900">{student.admissionNumber || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Admission Date</label>
+                    <p className="text-lg font-medium text-gray-900">{student.admissionDate ? format(new Date(student.admissionDate), 'MMMM dd, yyyy') : 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Previous School</label>
+                    <p className="text-lg font-medium text-gray-900">{student.previousSchool || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Previous Grade</label>
+                    <p className="text-lg font-medium text-gray-900">{student.previousGrade || 'N/A'}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <label className="text-xs font-medium text-gray-500 uppercase tracking-wide">Transport Mode</label>
+                    <p className="text-lg font-medium text-gray-900">{student.transportMode || 'N/A'}</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Right Column - Additional Information */}
+          <div className="space-y-8">
+
+            {/* Medical Information */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-pink-500 to-rose-500 px-6 py-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <Heart className="h-5 w-5 mr-2" />
+                  Medical Information
+                </h3>
+              </div>
+              <div className="p-6">
+                {student.medicalInfo ? (
+                  <p className="text-gray-900 whitespace-pre-wrap">{student.medicalInfo}</p>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="bg-pink-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                      <Heart className="h-8 w-8 text-pink-500" />
+                    </div>
+                    <p className="text-gray-600">No medical information recorded</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Enrollments */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-cyan-500 to-blue-500 px-6 py-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <BookOpen className="h-5 w-5 mr-2" />
+                  Enrollments
+                </h3>
+              </div>
+              <div className="p-6">
+                {student.enrollments && student.enrollments.length > 0 ? (
+                  <div className="space-y-3">
+                    {student.enrollments.map((enrollment, index) => (
+                      <div key={index} className="p-4 bg-gradient-to-r from-blue-50 to-cyan-50 rounded-xl border border-blue-100">
+                        <p className="font-semibold text-gray-900">{enrollment.class?.className || enrollment.course?.courseName || 'General Enrollment'}</p>
+                        <p className="text-sm text-gray-600">{enrollment.academicYear?.yearName} • {enrollment.status}</p>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="text-center py-8">
+                    <div className="bg-blue-100 rounded-full p-4 w-16 h-16 mx-auto mb-4">
+                      <BookOpen className="h-8 w-8 text-blue-500" />
+                    </div>
+                    <p className="text-gray-600">No enrollments found</p>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Activity Timeline */}
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-100 overflow-hidden">
+              <div className="bg-gradient-to-r from-gray-600 to-gray-700 px-6 py-4">
+                <h3 className="text-lg font-semibold text-white flex items-center">
+                  <Calendar className="h-5 w-5 mr-2" />
+                  Timeline
+                </h3>
+              </div>
+              <div className="p-6">
+                <div className="space-y-4">
+                  <div className="flex items-center space-x-3">
+                    <div className="bg-green-100 p-2 rounded-full">
+                      <CheckCircle className="h-4 w-4 text-green-600" />
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Student Registered</p>
+                      <p className="text-xs text-gray-500">{format(new Date(student.createdAt), 'MMMM dd, yyyy')}</p>
+                    </div>
+                  </div>
+                  {student.admissionDate && (
                     <div className="flex items-center space-x-3">
-                      <Phone className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm">{student.phone}</span>
+                      <div className="bg-blue-100 p-2 rounded-full">
+                        <GraduationCap className="h-4 w-4 text-blue-600" />
+                      </div>
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Admission Date</p>
+                        <p className="text-xs text-gray-500">{format(new Date(student.admissionDate), 'MMMM dd, yyyy')}</p>
+                      </div>
                     </div>
                   )}
                   <div className="flex items-center space-x-3">
-                    <MapPin className="h-4 w-4 text-gray-400" />
-                    <span className="text-sm">{student.address}, {student.city}, {student.region}</span>
-                  </div>
-                  {student.postalCode && (
-                    <div className="flex items-center space-x-3">
-                      <MapPin className="h-4 w-4 text-gray-400" />
-                      <span className="text-sm">Postal Code: {student.postalCode}</span>
+                    <div className="bg-purple-100 p-2 rounded-full">
+                      <FileText className="h-4 w-4 text-purple-600" />
                     </div>
-                  )}
-                </div>
-              </div>
-            </Card>
-
-            {/* Emergency Contact */}
-            <Card>
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-red-100">
-                    <AlertCircle className="h-5 w-5 text-red-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Emergency Contact</h3>
-                </div>
-                <div className="space-y-4">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Contact Person</label>
-                    <p className="text-sm">{student.emergencyContact}</p>
-                  </div>
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Phone Number</label>
-                    <p className="text-sm">{student.emergencyPhone}</p>
+                    <div>
+                      <p className="text-sm font-medium text-gray-900">Profile Updated</p>
+                      <p className="text-xs text-gray-500">{format(new Date(student.updatedAt), 'MMMM dd, yyyy')}</p>
+                    </div>
                   </div>
                 </div>
               </div>
-            </Card>
-
-            {/* Academic Information */}
-            <Card>
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-purple-100">
-                    <GraduationCap className="h-5 w-5 text-purple-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Academic Information</h3>
-                </div>
-                <div className="space-y-4">
-                <div className="space-y-3">
-                  <div>
-                    <label className="text-sm font-medium text-gray-500">Student ID</label>
-                    <p className="text-sm font-mono">{student.studentId}</p>
-                  </div>
-                  {student.admissionNumber && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Admission Number</label>
-                      <p className="text-sm font-mono">{student.admissionNumber}</p>
-                    </div>
-                  )}
-                  {student.admissionDate && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Admission Date</label>
-                      <p className="text-sm">{format(new Date(student.admissionDate), 'MMM dd, yyyy')}</p>
-                    </div>
-                  )}
-                  {student.previousSchool && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Previous School</label>
-                      <p className="text-sm">{student.previousSchool}</p>
-                    </div>
-                  )}
-                  {student.previousGrade && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Previous Grade</label>
-                      <p className="text-sm">{student.previousGrade}</p>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </Card>
+            </div>
           </div>
+        </div>
 
-          {/* Transport Information */}
-          {(student.transportMode || student.transportRoute) && (
-            <Card>
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-orange-100">
-                    <MapPin className="h-5 w-5 text-orange-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Transport Information</h3>
-                </div>
-                <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  {student.transportMode && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Transport Mode</label>
-                      <p className="text-sm">{student.transportMode}</p>
-                    </div>
-                  )}
-                  {student.transportRoute && (
-                    <div>
-                      <label className="text-sm font-medium text-gray-500">Transport Route</label>
-                      <p className="text-sm">{student.transportRoute}</p>
-                    </div>
-                  )}
-                </div>
-                </div>
-              </div>
-            </Card>
-          )}
-
-          {/* Medical Information */}
-          {student.medicalInfo && (
-            <Card>
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-pink-100">
-                    <Heart className="h-5 w-5 text-pink-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Medical Information</h3>
-                </div>
-                <p className="text-sm whitespace-pre-wrap">{student.medicalInfo}</p>
-              </div>
-            </Card>
-          )}
-        </TabsContent>
-
-        {/* Enrollments Tab */}
-        <TabsContent value="enrollments" className="space-y-6">
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <BookOpen className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Current Enrollments</h3>
-                  <p className="text-sm text-gray-600">Active course, subject, and class enrollments</p>
-                </div>
-              </div>
-              <div>
-              {student.enrollments && student.enrollments.length > 0 ? (
-                <div className="space-y-4">
-                  {student.enrollments
-                    .filter(enrollment => enrollment.isActive)
-                    .map((enrollment) => (
-                      <div key={enrollment.id} className="border rounded-lg p-4">
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <h4 className="font-medium">
-                              {enrollment.class?.className || 
-                               enrollment.course?.courseName || 
-                               enrollment.subject?.subjectName}
-                            </h4>
-                            <p className="text-sm text-gray-500">
-                              {enrollment.academicYear.yearName} • {enrollment.enrollmentType}
-                            </p>
-                          </div>
-                          <Badge className={enrollment.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                            {enrollment.status}
-                          </Badge>
-                        </div>
-                        {enrollment.notes && (
-                          <p className="text-sm text-gray-600 mt-2">{enrollment.notes}</p>
-                        )}
-                      </div>
-                    ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <BookOpen className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No enrollments</h3>
-                  <p className="text-gray-500">This student is not currently enrolled in any programs.</p>
-                </div>
-              )}
-            </div>
-          </Card>
-        </TabsContent>
-
-        {/* Academic Records Tab */}
-        <TabsContent value="academic" className="space-y-6">
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="p-2 rounded-lg bg-purple-100">
-                  <GraduationCap className="h-5 w-5 text-purple-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Academic Records</h3>
-                  <p className="text-sm text-gray-600">Student's academic performance and progress</p>
-                </div>
-              </div>
-              <div>
-              {student.academicRecords && student.academicRecords.length > 0 ? (
-                <div className="space-y-4">
-                  {student.academicRecords.map((record) => (
-                    <div key={record.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <h4 className="font-medium">
-                          {record.academicYear.yearName}
-                          {record.term && ` • ${record.term}`}
-                        </h4>
-                        <Badge className={record.status === 'ACTIVE' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'}>
-                          {record.status}
-                        </Badge>
-                      </div>
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                        {record.totalMarks && (
-                          <div>
-                            <label className="text-gray-500">Total Marks</label>
-                            <p className="font-medium">{record.totalMarks}</p>
-                          </div>
-                        )}
-                        {record.averageMarks && (
-                          <div>
-                            <label className="text-gray-500">Average</label>
-                            <p className="font-medium">{record.averageMarks.toFixed(2)}</p>
-                          </div>
-                        )}
-                        {record.grade && (
-                          <div>
-                            <label className="text-gray-500">Grade</label>
-                            <p className="font-medium">{record.grade}</p>
-                          </div>
-                        )}
-                        {record.rank && (
-                          <div>
-                            <label className="text-gray-500">Rank</label>
-                            <p className="font-medium">#{record.rank}</p>
-                          </div>
-                        )}
-                      </div>
-                      {record.comments && (
-                        <p className="text-sm text-gray-600 mt-2">{record.comments}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <GraduationCap className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No academic records</h3>
-                  <p className="text-gray-500">No academic records found for this student.</p>
-                </div>
-              )}
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
-
-        {/* Additional tabs would be implemented here... */}
-        <TabsContent value="attendance">
-          <Card>
-            <div className="p-6">
-              <div className="flex items-center space-x-2 mb-4">
-                <div className="p-2 rounded-lg bg-blue-100">
-                  <Clock className="h-5 w-5 text-blue-600" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-semibold text-gray-900">Attendance Records</h3>
-                  <p className="text-sm text-gray-600">Student attendance history and statistics</p>
-                </div>
-              </div>
-              <div className="text-center py-8">
-                <Clock className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Attendance Records</h3>
-                <p className="text-gray-500">Attendance tracking will be implemented here.</p>
-              </div>
-            </div>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="health">
-          <Card>
-            <CardHeader>
-              <CardTitle>Health Records</CardTitle>
-              <CardDescription>Student health information and medical records</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <Heart className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Health Records</h3>
-                <p className="text-gray-500">Health record management will be implemented here.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="documents">
-          <Card>
-            <CardHeader>
-              <CardTitle>Documents</CardTitle>
-              <CardDescription>Student documents and file management</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8">
-                <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-900 mb-2">Documents</h3>
-                <p className="text-gray-500">Document management will be implemented here.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
-
-        <TabsContent value="parents">
-          <Card>
-            <CardHeader>
-              <CardTitle>Parents & Guardians</CardTitle>
-              <CardDescription>Parent and guardian information</CardDescription>
-            </CardHeader>
-            <CardContent>
-              {student.parentRelations && student.parentRelations.length > 0 ? (
-                <div className="space-y-4">
-                  {student.parentRelations.map((relation) => (
-                    <div key={relation.id} className="border rounded-lg p-4">
-                      <div className="flex items-center justify-between">
-                        <div>
-                          <h4 className="font-medium">
-                            {relation.parent.user.firstName} {relation.parent.user.lastName}
-                          </h4>
-                          <p className="text-sm text-gray-500">
-                            {relation.relationship} • {relation.parent.user.email}
-                          </p>
-                        </div>
-                        <div className="flex space-x-2">
-                          {relation.isPrimary && (
-                            <Badge variant="outline">Primary</Badge>
-                          )}
-                          {relation.isEmergency && (
-                            <Badge variant="outline">Emergency</Badge>
-                          )}
-                          {relation.canPickup && (
-                            <Badge variant="outline">Can Pickup</Badge>
-                          )}
-                        </div>
-                      </div>
-                      {relation.notes && (
-                        <p className="text-sm text-gray-600 mt-2">{relation.notes}</p>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="text-center py-8">
-                  <Users className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-900 mb-2">No parents assigned</h3>
-                  <p className="text-gray-500">No parent or guardian information found for this student.</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+      </div>
     </div>
   );
 }
-
-
-
-

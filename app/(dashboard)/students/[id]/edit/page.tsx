@@ -2,18 +2,14 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { Card } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Badge } from '@/components/ui/badge';
-import { toast } from 'sonner';
-import { ArrowLeft, Save, User, Phone, MapPin, GraduationCap, Heart, AlertCircle } from 'lucide-react';
+import { useToast } from '@/hooks/use-toast';
+import { ArrowLeft, Save, User, MapPin, GraduationCap, Heart, AlertCircle } from 'lucide-react';
 import { studentService } from '@/lib/studentService';
 import { format } from 'date-fns';
+import Link from 'next/link';
 
 interface Student {
   id: string;
@@ -60,11 +56,12 @@ export default function EditStudentPage() {
   const router = useRouter();
   const params = useParams();
   const studentId = params.id as string;
+  const { toast } = useToast();
 
   const [student, setStudent] = useState<Student | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [activeTab, setActiveTab] = useState('personal');
+  const [activeSection, setActiveSection] = useState('personal');
 
   // Form state
   const [formData, setFormData] = useState({
@@ -139,7 +136,11 @@ export default function EditStudentPage() {
       });
     } catch (error) {
       console.error('Error loading student:', error);
-      toast.error('Failed to load student details');
+      toast({
+        title: 'Error',
+        description: 'Failed to load student details',
+        variant: 'destructive'
+      });
     } finally {
       setLoading(false);
     }
@@ -160,16 +161,27 @@ export default function EditStudentPage() {
       
       // Validate required fields
       if (!formData.firstName || !formData.lastName || !formData.email || !formData.studentId || !formData.dateOfBirth || !formData.gender) {
-        toast.error('Please fill in all required fields');
+        toast({
+          title: 'Validation Error',
+          description: 'Please fill in all required fields',
+          variant: 'destructive'
+        });
         return;
       }
 
       await studentService.updateStudent(studentId, formData);
-      toast.success('Student updated successfully');
+      toast({
+        title: 'Success',
+        description: 'Student updated successfully'
+      });
       router.push(`/students/${studentId}`);
     } catch (error: any) {
       console.error('Error updating student:', error);
-      toast.error(error.message || 'Failed to update student');
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to update student',
+        variant: 'destructive'
+      });
     } finally {
       setSaving(false);
     }
@@ -177,10 +189,9 @@ export default function EditStudentPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading student details...</p>
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="flex items-center justify-center h-64">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
         </div>
       </div>
     );
@@ -188,8 +199,8 @@ export default function EditStudentPage() {
 
   if (!student) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="text-center">
+      <div className="min-h-screen bg-gray-50 p-6">
+        <div className="text-center py-12">
           <p className="text-gray-600">Student not found</p>
           <Button 
             onClick={() => router.push('/students')}
@@ -203,408 +214,507 @@ export default function EditStudentPage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-8 max-w-4xl">
-      {/* Header */}
-      <div className="flex items-center justify-between mb-6">
-        <div className="flex items-center space-x-4">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => router.push(`/students/${studentId}`)}
-          >
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back
-          </Button>
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              Edit Student: {student.user.firstName} {student.user.lastName}
-            </h1>
-            <p className="text-gray-600">Update student information and details</p>
+    <div className="min-h-screen bg-gray-50">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+        <div className="max-w-7xl mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <Link href={`/students/${studentId}`}>
+                <Button variant="ghost" size="sm" className="text-gray-600 hover:text-gray-900">
+                  <ArrowLeft className="h-4 w-4 mr-2" />
+                  Back to Profile
+                </Button>
+              </Link>
+              <div className="h-8 w-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm">
+                {student.user.firstName[0]}{student.user.lastName[0]}
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold text-gray-900">Edit Profile</h1>
+                <p className="text-sm text-gray-500">
+                  {student.user.firstName} {student.user.lastName}
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center space-x-3">
+              <Link href={`/students/${studentId}`}>
+                <Button variant="outline" size="sm">Cancel</Button>
+              </Link>
+              <Button type="submit" form="edit-student-form" disabled={saving} size="sm">
+                {saving ? (
+                  <>
+                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save Changes
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         </div>
-        <Badge variant={student.status === 'ACTIVE' ? 'default' : 'secondary'}>
-          {student.status}
-        </Badge>
       </div>
 
-      <form onSubmit={handleSubmit}>
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="personal">Personal Info</TabsTrigger>
-            <TabsTrigger value="contact">Contact & Address</TabsTrigger>
-            <TabsTrigger value="academic">Academic Info</TabsTrigger>
-            <TabsTrigger value="additional">Additional Info</TabsTrigger>
-          </TabsList>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
+          {/* Sidebar Navigation */}
+          <div className="lg:col-span-1">
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 sticky top-24">
+              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wide mb-4">Settings</h3>
+              <nav className="space-y-2">
+                <button
+                  type="button"
+                  onClick={() => setActiveSection('personal')}
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                    activeSection === 'personal'
+                      ? 'text-indigo-600 bg-indigo-50'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <User className="h-4 w-4 mr-3" />
+                  Personal Info
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSection('contact')}
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                    activeSection === 'contact'
+                      ? 'text-indigo-600 bg-indigo-50'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <MapPin className="h-4 w-4 mr-3" />
+                  Contact & Address
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSection('academic')}
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                    activeSection === 'academic'
+                      ? 'text-indigo-600 bg-indigo-50'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <GraduationCap className="h-4 w-4 mr-3" />
+                  Academic Info
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveSection('additional')}
+                  className={`w-full flex items-center px-3 py-2 text-sm font-medium rounded-lg ${
+                    activeSection === 'additional'
+                      ? 'text-indigo-600 bg-indigo-50'
+                      : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                  }`}
+                >
+                  <Heart className="h-4 w-4 mr-3" />
+                  Additional Info
+                </button>
+              </nav>
+            </div>
+          </div>
 
-          {/* Personal Information Tab */}
-          <TabsContent value="personal" className="space-y-6">
-            <Card>
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-blue-100">
-                    <User className="h-5 w-5 text-blue-600" />
+          {/* Form Content */}
+          <div className="lg:col-span-3">
+            <form id="edit-student-form" onSubmit={handleSubmit} className="space-y-8">
+              {/* Personal Information */}
+              {activeSection === 'personal' && (
+                <section className="bg-white rounded-xl shadow-sm border border-gray-200">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <User className="h-5 w-5 mr-2 text-indigo-500" />
+                      Personal Information
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">Basic personal details and identification</p>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Personal Information</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="firstName">First Name *</Label>
-                    <Input
-                      id="firstName"
-                      value={formData.firstName}
-                      onChange={(e) => handleInputChange('firstName', e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="lastName">Last Name *</Label>
-                    <Input
-                      id="lastName"
-                      value={formData.lastName}
-                      onChange={(e) => handleInputChange('lastName', e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="email">Email *</Label>
-                    <Input
-                      id="email"
-                      type="email"
-                      value={formData.email}
-                      onChange={(e) => handleInputChange('email', e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="phone">Phone</Label>
-                    <Input
-                      id="phone"
-                      value={formData.phone}
-                      onChange={(e) => handleInputChange('phone', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="dateOfBirth">Date of Birth *</Label>
-                    <Input
-                      id="dateOfBirth"
-                      type="date"
-                      value={formData.dateOfBirth}
-                      onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="gender">Gender *</Label>
-                    <Select value={formData.gender} onValueChange={(value) => handleInputChange('gender', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select gender" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="MALE">Male</SelectItem>
-                        <SelectItem value="FEMALE">Female</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="nationality">Nationality</Label>
-                    <Input
-                      id="nationality"
-                      value={formData.nationality}
-                      onChange={(e) => handleInputChange('nationality', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="religion">Religion</Label>
-                    <Input
-                      id="religion"
-                      value={formData.religion}
-                      onChange={(e) => handleInputChange('religion', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="bloodGroup">Blood Group</Label>
-                    <Select value={formData.bloodGroup} onValueChange={(value) => handleInputChange('bloodGroup', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select blood group" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="A+">A+</SelectItem>
-                        <SelectItem value="A-">A-</SelectItem>
-                        <SelectItem value="B+">B+</SelectItem>
-                        <SelectItem value="B-">B-</SelectItem>
-                        <SelectItem value="AB+">AB+</SelectItem>
-                        <SelectItem value="AB-">AB-</SelectItem>
-                        <SelectItem value="O+">O+</SelectItem>
-                        <SelectItem value="O-">O-</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Select value={formData.status} onValueChange={(value) => handleInputChange('status', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ACTIVE">Active</SelectItem>
-                        <SelectItem value="INACTIVE">Inactive</SelectItem>
-                        <SelectItem value="SUSPENDED">Suspended</SelectItem>
-                        <SelectItem value="GRADUATED">Graduated</SelectItem>
-                        <SelectItem value="TRANSFERRED">Transferred</SelectItem>
-                        <SelectItem value="DROPPED">Dropped</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-
-          {/* Contact & Address Tab */}
-          <TabsContent value="contact" className="space-y-6">
-            <Card>
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-green-100">
-                    <MapPin className="h-5 w-5 text-green-600" />
-                  </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Contact & Address Information</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="md:col-span-2">
-                    <Label htmlFor="address">Address</Label>
-                    <Input
-                      id="address"
-                      value={formData.address}
-                      onChange={(e) => handleInputChange('address', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="city">City</Label>
-                    <Input
-                      id="city"
-                      value={formData.city}
-                      onChange={(e) => handleInputChange('city', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="region">Region/State</Label>
-                    <Input
-                      id="region"
-                      value={formData.region}
-                      onChange={(e) => handleInputChange('region', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="postalCode">Postal Code</Label>
-                    <Input
-                      id="postalCode"
-                      value={formData.postalCode}
-                      onChange={(e) => handleInputChange('postalCode', e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <div className="mt-6">
-                  <div className="flex items-center space-x-2 mb-4">
-                    <div className="p-2 rounded-lg bg-red-100">
-                      <AlertCircle className="h-5 w-5 text-red-600" />
-                    </div>
-                    <h4 className="text-md font-semibold text-gray-900">Emergency Contact</h4>
-                  </div>
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div>
-                      <Label htmlFor="emergencyContact">Emergency Contact Name</Label>
-                      <Input
-                        id="emergencyContact"
-                        value={formData.emergencyContact}
-                        onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="emergencyPhone">Emergency Phone</Label>
-                      <Input
-                        id="emergencyPhone"
-                        value={formData.emergencyPhone}
-                        onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
-                      />
-                    </div>
-                    <div>
-                      <Label htmlFor="emergencyRelation">Relationship</Label>
-                      <Input
-                        id="emergencyRelation"
-                        value={formData.emergencyRelation}
-                        onChange={(e) => handleInputChange('emergencyRelation', e.target.value)}
-                        placeholder="e.g., Parent, Guardian"
-                      />
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          First Name *
+                        </label>
+                        <Input
+                          value={formData.firstName}
+                          onChange={(e) => handleInputChange('firstName', e.target.value)}
+                          className="h-11"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Last Name *
+                        </label>
+                        <Input
+                          value={formData.lastName}
+                          onChange={(e) => handleInputChange('lastName', e.target.value)}
+                          className="h-11"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Email *
+                        </label>
+                        <Input
+                          type="email"
+                          value={formData.email}
+                          onChange={(e) => handleInputChange('email', e.target.value)}
+                          className="h-11"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Phone
+                        </label>
+                        <Input
+                          value={formData.phone}
+                          onChange={(e) => handleInputChange('phone', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Date of Birth *
+                        </label>
+                        <Input
+                          type="date"
+                          value={formData.dateOfBirth}
+                          onChange={(e) => handleInputChange('dateOfBirth', e.target.value)}
+                          className="h-11"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Gender *
+                        </label>
+                        <select
+                          value={formData.gender}
+                          onChange={(e) => handleInputChange('gender', e.target.value)}
+                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          required
+                        >
+                          <option value="">Select Gender</option>
+                          <option value="MALE">Male</option>
+                          <option value="FEMALE">Female</option>
+                          <option value="OTHER">Other</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Nationality
+                        </label>
+                        <Input
+                          value={formData.nationality}
+                          onChange={(e) => handleInputChange('nationality', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Religion
+                        </label>
+                        <Input
+                          value={formData.religion}
+                          onChange={(e) => handleInputChange('religion', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Blood Group
+                        </label>
+                        <select
+                          value={formData.bloodGroup}
+                          onChange={(e) => handleInputChange('bloodGroup', e.target.value)}
+                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        >
+                          <option value="">Select Blood Group</option>
+                          <option value="A+">A+</option>
+                          <option value="A-">A-</option>
+                          <option value="B+">B+</option>
+                          <option value="B-">B-</option>
+                          <option value="AB+">AB+</option>
+                          <option value="AB-">AB-</option>
+                          <option value="O+">O+</option>
+                          <option value="O-">O-</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Status
+                        </label>
+                        <select
+                          value={formData.status}
+                          onChange={(e) => handleInputChange('status', e.target.value)}
+                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        >
+                          <option value="ACTIVE">Active</option>
+                          <option value="INACTIVE">Inactive</option>
+                          <option value="SUSPENDED">Suspended</option>
+                          <option value="GRADUATED">Graduated</option>
+                          <option value="TRANSFERRED">Transferred</option>
+                          <option value="DROPPED">Dropped</option>
+                        </select>
+                      </div>
                     </div>
                   </div>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
+                </section>
+              )}
 
-          {/* Academic Information Tab */}
-          <TabsContent value="academic" className="space-y-6">
-            <Card>
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-purple-100">
-                    <GraduationCap className="h-5 w-5 text-purple-600" />
+              {/* Contact Information */}
+              {activeSection === 'contact' && (
+                <section className="bg-white rounded-xl shadow-sm border border-gray-200">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <MapPin className="h-5 w-5 mr-2 text-green-500" />
+                      Contact & Address Information
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">Address and emergency contact details</p>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Academic Information</h3>
-                </div>
-                
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="studentId">Student ID *</Label>
-                    <Input
-                      id="studentId"
-                      value={formData.studentId}
-                      onChange={(e) => handleInputChange('studentId', e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="admissionNumber">Admission Number</Label>
-                    <Input
-                      id="admissionNumber"
-                      value={formData.admissionNumber}
-                      onChange={(e) => handleInputChange('admissionNumber', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="admissionDate">Admission Date</Label>
-                    <Input
-                      id="admissionDate"
-                      type="date"
-                      value={formData.admissionDate}
-                      onChange={(e) => handleInputChange('admissionDate', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="previousSchool">Previous School</Label>
-                    <Input
-                      id="previousSchool"
-                      value={formData.previousSchool}
-                      onChange={(e) => handleInputChange('previousSchool', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="previousGrade">Previous Grade</Label>
-                    <Input
-                      id="previousGrade"
-                      value={formData.previousGrade}
-                      onChange={(e) => handleInputChange('previousGrade', e.target.value)}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="transportMode">Transport Mode</Label>
-                    <Select value={formData.transportMode} onValueChange={(value) => handleInputChange('transportMode', value)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select transport mode" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="BUS">School Bus</SelectItem>
-                        <SelectItem value="WALKING">Walking</SelectItem>
-                        <SelectItem value="PRIVATE">Private Vehicle</SelectItem>
-                        <SelectItem value="PUBLIC">Public Transport</SelectItem>
-                        <SelectItem value="OTHER">Other</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="md:col-span-2">
-                    <Label htmlFor="transportRoute">Transport Route</Label>
-                    <Input
-                      id="transportRoute"
-                      value={formData.transportRoute}
-                      onChange={(e) => handleInputChange('transportRoute', e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Address
+                        </label>
+                        <Input
+                          value={formData.address}
+                          onChange={(e) => handleInputChange('address', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          City
+                        </label>
+                        <Input
+                          value={formData.city}
+                          onChange={(e) => handleInputChange('city', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Region
+                        </label>
+                        <Input
+                          value={formData.region}
+                          onChange={(e) => handleInputChange('region', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Postal Code
+                        </label>
+                        <Input
+                          value={formData.postalCode}
+                          onChange={(e) => handleInputChange('postalCode', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                    </div>
 
-          {/* Additional Information Tab */}
-          <TabsContent value="additional" className="space-y-6">
-            <Card>
-              <div className="p-6">
-                <div className="flex items-center space-x-2 mb-4">
-                  <div className="p-2 rounded-lg bg-pink-100">
-                    <Heart className="h-5 w-5 text-pink-600" />
+                    <div className="mt-8">
+                      <div className="flex items-center space-x-2 mb-4">
+                        <div className="p-2 rounded-lg bg-red-100">
+                          <AlertCircle className="h-5 w-5 text-red-600" />
+                        </div>
+                        <h4 className="text-md font-semibold text-gray-900">Emergency Contact</h4>
+                      </div>
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Contact Name
+                          </label>
+                          <Input
+                            value={formData.emergencyContact}
+                            onChange={(e) => handleInputChange('emergencyContact', e.target.value)}
+                            className="h-11"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Phone Number
+                          </label>
+                          <Input
+                            value={formData.emergencyPhone}
+                            onChange={(e) => handleInputChange('emergencyPhone', e.target.value)}
+                            className="h-11"
+                          />
+                        </div>
+                        <div>
+                          <label className="block text-sm font-semibold text-gray-700 mb-2">
+                            Relationship
+                          </label>
+                          <Input
+                            value={formData.emergencyRelation}
+                            onChange={(e) => handleInputChange('emergencyRelation', e.target.value)}
+                            className="h-11"
+                            placeholder="e.g., Parent, Guardian"
+                          />
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <h3 className="text-lg font-semibold text-gray-900">Additional Information</h3>
-                </div>
-                
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="medicalInfo">Medical Information</Label>
-                    <Textarea
-                      id="medicalInfo"
-                      value={formData.medicalInfo}
-                      onChange={(e) => handleInputChange('medicalInfo', e.target.value)}
-                      placeholder="Any medical conditions, allergies, or special requirements..."
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="specialNeeds">Special Needs</Label>
-                    <Textarea
-                      id="specialNeeds"
-                      value={formData.specialNeeds}
-                      onChange={(e) => handleInputChange('specialNeeds', e.target.value)}
-                      placeholder="Any special educational or physical needs..."
-                      rows={3}
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="hobbies">Hobbies & Interests</Label>
-                    <Textarea
-                      id="hobbies"
-                      value={formData.hobbies}
-                      onChange={(e) => handleInputChange('hobbies', e.target.value)}
-                      placeholder="Student's hobbies, interests, and extracurricular activities..."
-                      rows={3}
-                    />
-                  </div>
-                </div>
-              </div>
-            </Card>
-          </TabsContent>
-        </Tabs>
+                </section>
+              )}
 
-        {/* Action Buttons */}
-        <div className="flex justify-end space-x-4 mt-6">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={() => router.push(`/students/${studentId}`)}
-            disabled={saving}
-          >
-            Cancel
-          </Button>
-          <Button
-            type="submit"
-            disabled={saving}
-          >
-            {saving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
-                Saving...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Save Changes
-              </>
-            )}
-          </Button>
+              {/* Academic Information */}
+              {activeSection === 'academic' && (
+                <section className="bg-white rounded-xl shadow-sm border border-gray-200">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <GraduationCap className="h-5 w-5 mr-2 text-purple-500" />
+                      Academic Information
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">Educational background and school details</p>
+                  </div>
+                  <div className="p-6">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Student ID *
+                        </label>
+                        <Input
+                          value={formData.studentId}
+                          onChange={(e) => handleInputChange('studentId', e.target.value)}
+                          className="h-11"
+                          required
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Admission Number
+                        </label>
+                        <Input
+                          value={formData.admissionNumber}
+                          onChange={(e) => handleInputChange('admissionNumber', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Admission Date
+                        </label>
+                        <Input
+                          type="date"
+                          value={formData.admissionDate}
+                          onChange={(e) => handleInputChange('admissionDate', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Previous School
+                        </label>
+                        <Input
+                          value={formData.previousSchool}
+                          onChange={(e) => handleInputChange('previousSchool', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Previous Grade
+                        </label>
+                        <Input
+                          value={formData.previousGrade}
+                          onChange={(e) => handleInputChange('previousGrade', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Transport Mode
+                        </label>
+                        <select
+                          value={formData.transportMode}
+                          onChange={(e) => handleInputChange('transportMode', e.target.value)}
+                          className="w-full h-11 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        >
+                          <option value="">Select Transport Mode</option>
+                          <option value="BUS">School Bus</option>
+                          <option value="WALKING">Walking</option>
+                          <option value="PRIVATE">Private Vehicle</option>
+                          <option value="PUBLIC">Public Transport</option>
+                          <option value="OTHER">Other</option>
+                        </select>
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Transport Route
+                        </label>
+                        <Input
+                          value={formData.transportRoute}
+                          onChange={(e) => handleInputChange('transportRoute', e.target.value)}
+                          className="h-11"
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+
+              {/* Additional Information */}
+              {activeSection === 'additional' && (
+                <section className="bg-white rounded-xl shadow-sm border border-gray-200">
+                  <div className="px-6 py-4 border-b border-gray-200">
+                    <h2 className="text-lg font-semibold text-gray-900 flex items-center">
+                      <Heart className="h-5 w-5 mr-2 text-pink-500" />
+                      Additional Information
+                    </h2>
+                    <p className="text-sm text-gray-500 mt-1">Medical information and personal interests</p>
+                  </div>
+                  <div className="p-6">
+                    <div className="space-y-6">
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Medical Information
+                        </label>
+                        <Textarea
+                          value={formData.medicalInfo}
+                          onChange={(e) => handleInputChange('medicalInfo', e.target.value)}
+                          placeholder="Any medical conditions, allergies, or special requirements..."
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Special Needs
+                        </label>
+                        <Textarea
+                          value={formData.specialNeeds}
+                          onChange={(e) => handleInputChange('specialNeeds', e.target.value)}
+                          placeholder="Any special educational or physical needs..."
+                          rows={3}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-semibold text-gray-700 mb-2">
+                          Hobbies & Interests
+                        </label>
+                        <Textarea
+                          value={formData.hobbies}
+                          onChange={(e) => handleInputChange('hobbies', e.target.value)}
+                          placeholder="Student's hobbies, interests, and extracurricular activities..."
+                          rows={3}
+                        />
+                      </div>
+                    </div>
+                  </div>
+                </section>
+              )}
+            </form>
+          </div>
         </div>
-      </form>
+      </div>
     </div>
   );
 }

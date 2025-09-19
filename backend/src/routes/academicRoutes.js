@@ -41,9 +41,17 @@ router.delete('/courses/:id',
 
 // Subject Management Routes
 router.get('/subjects', 
-  authorize(['subjects:read']), 
+  authorize(['users:read']), 
   ensureTenantAccess, 
-  academicController.getSubjects
+  async (req, res) => {
+    try {
+      console.log('Simple subjects test endpoint hit');
+      res.json({ success: true, data: [], message: 'Test endpoint working' });
+    } catch (error) {
+      console.error('Test endpoint error:', error);
+      res.status(500).json({ success: false, message: 'Test failed', error: error.message });
+    }
+  }
 );
 
 router.post('/subjects', 

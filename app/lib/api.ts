@@ -71,7 +71,9 @@ class ApiService {
     endpoint: string,
     options: RequestInit = {}
   ): Promise<ApiResponse<T>> {
-    const url = `${this.baseURL}${endpoint}`;
+    // Remove leading slash from endpoint to avoid double slashes
+    const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
+    const url = `${this.baseURL}/${cleanEndpoint}`;
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
@@ -150,10 +152,19 @@ class ApiService {
         };
       }
 
+      // If response is an array, return it directly as data
+      if (Array.isArray(data)) {
+        return {
+          success: true,
+          message: 'Success',
+          data: data,
+        };
+      }
+      
       return {
         success: true,
         message: data.message || 'Success',
-        data: data.data,
+        data: data.data || data,
         pagination: data.pagination,
       };
     } catch (error) {

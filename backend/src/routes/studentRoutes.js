@@ -29,7 +29,7 @@ router.get('/:id',
 router.put('/:id', 
   authorize(['students:update']), 
   ensureTenantAccess, 
-  studentController.validateStudent, 
+  studentController.validateStudentUpdate, 
   studentController.updateStudent
 );
 

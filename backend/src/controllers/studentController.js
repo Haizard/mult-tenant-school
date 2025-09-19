@@ -6,14 +6,27 @@ const prisma = new PrismaClient();
 
 // Validation rules
 const validateStudent = [
-  body('studentId').notEmpty().withMessage('Student ID is required'),
-  body('dateOfBirth').isISO8601().withMessage('Date of birth must be a valid date'),
-  body('gender').isIn(['MALE', 'FEMALE', 'OTHER']).withMessage('Invalid gender'),
-  body('address').notEmpty().withMessage('Address is required'),
-  body('city').notEmpty().withMessage('City is required'),
-  body('region').notEmpty().withMessage('Region is required'),
-  body('emergencyContact').notEmpty().withMessage('Emergency contact is required'),
-  body('emergencyPhone').notEmpty().withMessage('Emergency phone is required'),
+  body('studentId').optional().notEmpty().withMessage('Student ID cannot be empty'),
+  body('dateOfBirth').optional().isISO8601().withMessage('Date of birth must be a valid date'),
+  body('gender').optional().isIn(['MALE', 'FEMALE', 'OTHER']).withMessage('Invalid gender'),
+  body('firstName').optional().notEmpty().withMessage('First name cannot be empty'),
+  body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
+  body('email').optional().isEmail().withMessage('Invalid email format'),
+  body('address').optional(),
+  body('city').optional(),
+  body('region').optional(),
+  body('emergencyContact').optional(),
+  body('emergencyPhone').optional(),
+];
+
+const validateStudentUpdate = [
+  body('studentId').optional().notEmpty().withMessage('Student ID cannot be empty'),
+  body('dateOfBirth').optional().isISO8601().withMessage('Date of birth must be a valid date'),
+  body('gender').optional().isIn(['MALE', 'FEMALE', 'OTHER']).withMessage('Invalid gender'),
+  body('firstName').optional().notEmpty().withMessage('First name cannot be empty'),
+  body('lastName').optional().notEmpty().withMessage('Last name cannot be empty'),
+  body('email').optional().isEmail().withMessage('Invalid email format'),
+  body('status').optional().isIn(['ACTIVE', 'INACTIVE', 'SUSPENDED', 'GRADUATED', 'TRANSFERRED', 'DROPPED']).withMessage('Invalid status'),
 ];
 
 const validateEnrollment = [
@@ -254,27 +267,24 @@ const createStudent = async (req, res) => {
         tenantId: req.tenantId,
         userId: user.id,
         studentId,
-        admissionNumber,
+        admissionNumber: admissionNumber || null,
         admissionDate: admissionDate ? new Date(admissionDate) : null,
         dateOfBirth: new Date(dateOfBirth),
         gender,
         nationality: nationality || 'Tanzanian',
-        religion,
-        bloodGroup,
-        address,
-        city,
-        region,
-        postalCode,
-        emergencyContact,
-        emergencyPhone,
-        emergencyRelation,
-        medicalInfo,
-        previousSchool,
-        previousGrade,
-        transportMode,
-        transportRoute,
-        specialNeeds,
-        hobbies
+        religion: religion || null,
+        bloodGroup: bloodGroup || null,
+        address: address || null,
+        city: city || null,
+        region: region || null,
+        postalCode: postalCode || null,
+        emergencyContact: emergencyContact || null,
+        emergencyPhone: emergencyPhone || null,
+        medicalInfo: medicalInfo || null,
+        previousSchool: previousSchool || null,
+        previousGrade: previousGrade || null,
+        transportMode: transportMode || null,
+        transportRoute: transportRoute || null
       },
       include: {
         tenant: true,
@@ -298,10 +308,27 @@ const createStudent = async (req, res) => {
     });
   } catch (error) {
     console.error('Create student error:', error);
+    console.error('Error message:', error.message);
+    console.error('Error code:', error.code);
+    console.error('Error stack:', error.stack);
+    console.error('Request body:', req.body);
+    console.error('Tenant ID:', req.tenantId);
+    
+    // Check if it's a Prisma error
+    if (error.code) {
+      console.error('Prisma error code:', error.code);
+      console.error('Prisma error meta:', error.meta);
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Failed to create student',
-      error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      error: error.message || 'Internal server error',
+      details: error.stack,
+      prismaError: error.code ? {
+        code: error.code,
+        meta: error.meta
+      } : undefined
     });
   }
 };
@@ -412,6 +439,9 @@ const updateStudent = async (req, res) => {
       where: {
         id: id,
         tenantId: req.tenantId
+      },
+      include: {
+        user: true
       }
     });
 
@@ -440,37 +470,91 @@ const updateStudent = async (req, res) => {
       }
     }
 
-    // Convert date strings to Date objects
-    if (updateData.dateOfBirth) {
-      updateData.dateOfBirth = new Date(updateData.dateOfBirth);
-    }
-    if (updateData.admissionDate) {
-      updateData.admissionDate = new Date(updateData.admissionDate);
+    // Check if new email conflicts (if email is being updated)
+    if (updateData.email && updateData.email !== existingStudent.user.email) {
+      const emailConflict = await prisma.user.findFirst({
+        where: {
+          email: updateData.email,
+          tenantId: req.tenantId,
+          id: { not: existingStudent.userId }
+        }
+      });
+
+      if (emailConflict) {
+        return res.status(409).json({
+          success: false,
+          message: 'User with this email already exists in this tenant'
+        });
+      }
     }
 
-    // Update student
-    const student = await prisma.student.update({
-      where: { id },
-      data: updateData,
-      include: {
-        tenant: true,
-        user: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
-            phone: true,
-            status: true
+    // Separate user data from student data
+    const { firstName, lastName, email, phone, specialNeeds, hobbies, emergencyRelation, ...rawStudentData } = updateData;
+    
+    // Filter out any undefined or non-existent fields
+    const studentData = {};
+    const allowedFields = [
+      'studentId', 'admissionNumber', 'admissionDate', 'dateOfBirth', 'gender',
+      'nationality', 'religion', 'bloodGroup', 'address', 'city', 'region',
+      'postalCode', 'phone', 'emergencyContact', 'emergencyPhone', 'medicalInfo',
+      'previousSchool', 'previousGrade', 'transportMode', 'transportRoute', 'status'
+    ];
+    
+    allowedFields.forEach(field => {
+      if (rawStudentData[field] !== undefined) {
+        studentData[field] = rawStudentData[field];
+      }
+    });
+    
+    // Convert date strings to Date objects
+    if (studentData.dateOfBirth) {
+      studentData.dateOfBirth = new Date(studentData.dateOfBirth);
+    }
+    if (studentData.admissionDate) {
+      studentData.admissionDate = new Date(studentData.admissionDate);
+    }
+
+    // Use transaction to update both user and student
+    const result = await prisma.$transaction(async (tx) => {
+      // Update user data if provided
+      if (firstName || lastName || email || phone !== undefined) {
+        await tx.user.update({
+          where: { id: existingStudent.userId },
+          data: {
+            ...(firstName && { firstName }),
+            ...(lastName && { lastName }),
+            ...(email && { email }),
+            ...(phone !== undefined && { phone })
+          }
+        });
+      }
+
+      // Update student data
+      const student = await tx.student.update({
+        where: { id },
+        data: studentData,
+        include: {
+          tenant: true,
+          user: {
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              email: true,
+              phone: true,
+              status: true
+            }
           }
         }
-      }
+      });
+
+      return student;
     });
 
     res.json({
       success: true,
       message: 'Student updated successfully',
-      data: student
+      data: result
     });
   } catch (error) {
     console.error('Update student error:', error);
@@ -819,6 +903,7 @@ module.exports = {
   updateStudent,
   deleteStudent,
   validateStudent,
+  validateStudentUpdate,
   
   // Enrollment management
   getStudentEnrollments,

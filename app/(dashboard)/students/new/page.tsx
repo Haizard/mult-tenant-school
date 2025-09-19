@@ -163,6 +163,14 @@ export default function NewStudentPage() {
 
   useEffect(() => {
     loadUsers();
+    // Generate a default student ID if empty
+    if (!formData.studentId) {
+      const timestamp = Date.now().toString().slice(-6);
+      setFormData(prev => ({
+        ...prev,
+        studentId: `STU${timestamp}`
+      }));
+    }
   }, []);
 
   const loadUsers = async () => {
@@ -263,9 +271,22 @@ export default function NewStudentPage() {
       router.push('/students');
     } catch (error: any) {
       console.error('Error creating student:', error);
+      
+      let errorMessage = 'Failed to create student';
+      
+      if (error.message) {
+        if (error.message.includes('email already exists')) {
+          errorMessage = 'A user with this email already exists. Please use a different email address.';
+        } else if (error.message.includes('Student with this ID already exists')) {
+          errorMessage = 'A student with this ID already exists. Please use a different student ID.';
+        } else {
+          errorMessage = error.message;
+        }
+      }
+      
       toast({
         title: 'Error',
-        description: error.message || 'Failed to create student',
+        description: errorMessage,
         variant: 'destructive'
       });
     } finally {

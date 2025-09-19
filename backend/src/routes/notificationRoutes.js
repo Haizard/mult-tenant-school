@@ -1,8 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { authenticate } = require('../middleware/auth');
-const { authorize } = require('../middleware/authorize');
-const { ensureTenantAccess } = require('../middleware/tenantAccess');
+const { authenticateToken, authorize, ensureTenantAccess } = require('../middleware/auth');
 const {
   getNotifications,
   markAsRead,
@@ -14,7 +12,7 @@ const {
 } = require('../controllers/notificationController');
 
 // Apply middleware to all routes
-router.use(authenticate);
+router.use(authenticateToken);
 router.use(ensureTenantAccess);
 
 // Routes
