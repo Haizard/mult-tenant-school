@@ -38,6 +38,13 @@ interface TeacherStatsProps {
 }
 
 function TeacherStats({ stats }: TeacherStatsProps) {
+  const colorClasses = {
+    purple: { bg: 'bg-purple-100', text: 'text-purple-600' },
+    green: { bg: 'bg-green-100', text: 'text-green-600' },
+    pink: { bg: 'bg-pink-100', text: 'text-pink-600' },
+    blue: { bg: 'bg-blue-100', text: 'text-blue-600' }
+  };
+
   const statItems = [
     { label: 'Total Teachers', value: stats.total, icon: UserCheck, color: 'purple' },
     { label: 'Male Teachers', value: stats.male, icon: User, color: 'green' },
@@ -51,8 +58,8 @@ function TeacherStats({ stats }: TeacherStatsProps) {
         <Card key={index}>
           <div className="p-6">
             <div className="flex items-center">
-              <div className={`p-2 rounded-lg bg-${item.color}-100`}>
-                <item.icon className={`h-6 w-6 text-${item.color}-600`} />
+              <div className={`p-2 rounded-lg ${colorClasses[item.color].bg}`}>
+                <item.icon className={`h-6 w-6 ${colorClasses[item.color].text}`} />
               </div>
               <div className="ml-4">
                 <p className="text-sm font-medium text-gray-600">{item.label}</p>

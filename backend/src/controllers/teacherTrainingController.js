@@ -66,7 +66,17 @@ const createTraining = async (req, res) => {
 const updateTraining = async (req, res) => {
   try {
     const { id } = req.params;
-    const updateData = req.body;
+    const updateData = { ...req.body };
+    const tenantId = req.tenantId;
+    
+    // Verify the training belongs to this tenant
+    const existingTraining = await prisma.teacherTraining.findFirst({
+      where: { id, tenantId }
+    });
+    
+    if (!existingTraining) {
+      return res.status(404).json({ message: 'Training record not found' });
+    }
 
     if (updateData.startDate) updateData.startDate = new Date(updateData.startDate);
     if (updateData.endDate) updateData.endDate = new Date(updateData.endDate);
@@ -74,7 +84,7 @@ const updateTraining = async (req, res) => {
     if (updateData.cost) updateData.cost = parseFloat(updateData.cost);
 
     const training = await prisma.teacherTraining.update({
-      where: { id },
+      where: { id, tenantId },
       data: updateData
     });
 

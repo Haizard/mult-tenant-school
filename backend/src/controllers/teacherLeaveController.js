@@ -73,8 +73,17 @@ const updateLeaveStatus = async (req, res) => {
     const { status, rejectedReason, coverageNotes } = req.body;
     const tenantId = req.tenantId;
 
+    // First verify the leave belongs to this tenant
+    const existingLeave = await prisma.teacherLeave.findFirst({
+      where: { id, tenantId }
+    });
+    
+    if (!existingLeave) {
+      return res.status(404).json({ message: 'Leave request not found' });
+    }
+    
     const leave = await prisma.teacherLeave.update({
-      where: { id },
+      where: { id, tenantId },
       data: {
         status,
         approvedBy: status === 'APPROVED' ? req.user.id : null,

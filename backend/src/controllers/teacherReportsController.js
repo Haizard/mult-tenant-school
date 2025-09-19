@@ -24,10 +24,10 @@ const getTeacherDemographics = async (req, res) => {
         female: teachers.filter(t => t.gender === 'FEMALE').length
       },
       byExperience: {
-        '0-2': teachers.filter(t => t.experience <= 2).length,
-        '3-5': teachers.filter(t => t.experience >= 3 && t.experience <= 5).length,
-        '6-10': teachers.filter(t => t.experience >= 6 && t.experience <= 10).length,
-        '10+': teachers.filter(t => t.experience > 10).length
+        '0-2': teachers.filter(t => t.experience !== null && t.experience <= 2).length,
+        '3-5': teachers.filter(t => t.experience !== null && t.experience >= 3 && t.experience <= 5).length,
+        '6-10': teachers.filter(t => t.experience !== null && t.experience >= 6 && t.experience <= 10).length,
+        '10+': teachers.filter(t => t.experience !== null && t.experience > 10).length
       },
       byQualification: teachers.reduce((acc, t) => {
         const qual = t.qualification || 'Not Specified';
@@ -126,8 +126,8 @@ const getWorkloadAnalysis = async (req, res) => {
 
     const analysis = {
       teachers: workload,
-      averageSubjects: workload.reduce((sum, t) => sum + t.subjects, 0) / workload.length,
-      averageClasses: workload.reduce((sum, t) => sum + t.classes, 0) / workload.length,
+      averageSubjects: workload.length > 0 ? workload.reduce((sum, t) => sum + t.subjects, 0) / workload.length : 0,
+      averageClasses: workload.length > 0 ? workload.reduce((sum, t) => sum + t.classes, 0) / workload.length : 0,
       overloaded: workload.filter(t => t.workloadScore > 8),
       underutilized: workload.filter(t => t.workloadScore < 3)
     };

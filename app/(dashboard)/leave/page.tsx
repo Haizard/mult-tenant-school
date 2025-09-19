@@ -1,10 +1,10 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/app/components/ui/Card';
-import { Button } from '@/app/components/ui/Button';
-import { DataTable } from '@/app/components/ui/DataTable';
-import { Badge } from '@/app/components/ui/Badge';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/Card';
+import { Button } from '@/components/ui/Button';
+import { DataTable } from '@/components/ui/DataTable';
+import { Badge } from '@/components/ui/Badge';
 import { Calendar, Clock, Users, AlertTriangle, Plus, Filter } from 'lucide-react';
 import { leaveService, LeaveRequest, LeaveType, LeaveStatus } from '@/lib/leaveService';
 import { useToast } from '@/hooks/use-toast';

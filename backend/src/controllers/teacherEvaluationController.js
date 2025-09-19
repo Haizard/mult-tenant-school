@@ -1,6 +1,22 @@
 const { PrismaClient } = require('@prisma/client');
 
-const prisma = new PrismaClient();
+// Singleton pattern to prevent multiple instances
+const prisma = global.prisma || new PrismaClient();
+
+if (process.env.NODE_ENV !== 'production') {
+  global.prisma = prisma;
+}
+
+function validateRating(value, fieldName, required = false) {
+  if (value === null || value === undefined) {
+    return required ? (() => { throw new Error(`${fieldName} is required`); })() : null;
+  }
+  const parsed = parseFloat(value);
+  if (isNaN(parsed) || parsed < 0 || parsed > 5) {
+    throw new Error(`${fieldName} must be a number between 0 and 5`);
+  }
+  return parsed;
+}
 
 // Get teacher evaluations
 const getEvaluations = async (req, res) => {
@@ -48,11 +64,11 @@ const createEvaluation = async (req, res) => {
         evaluatorId,
         evaluationType,
         period,
-        overallRating: parseFloat(overallRating),
-        teachingSkills: teachingSkills ? parseFloat(teachingSkills) : null,
-        classroomManagement: classroomManagement ? parseFloat(classroomManagement) : null,
-        studentEngagement: studentEngagement ? parseFloat(studentEngagement) : null,
-        professionalism: professionalism ? parseFloat(professionalism) : null,
+        overallRating: validateRating(overallRating, 'overallRating', true),
+        teachingSkills: validateRating(teachingSkills, 'teachingSkills'),
+        classroomManagement: validateRating(classroomManagement, 'classroomManagement'),
+        studentEngagement: validateRating(studentEngagement, 'studentEngagement'),
+        professionalism: validateRating(professionalism, 'professionalism'),
         comments,
         recommendations
       }
@@ -75,7 +91,7 @@ const updateEvaluation = async (req, res) => {
       data: {
         ...updateData,
         status,
-        overallRating: updateData.overallRating ? parseFloat(updateData.overallRating) : undefined
+        overallRating: updateData.overallRating ? validateRating(updateData.overallRating, 'overallRating') : undefined
       }
     });
 

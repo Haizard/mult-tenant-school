@@ -1,4 +1,23 @@
-import { apiClient } from './apiClient';
+import { ApiService } from './apiService';
+
+const apiClient = new ApiService();
+
+export enum LeaveType {
+  SICK = 'SICK',
+  PERSONAL = 'PERSONAL',
+  FAMILY_EMERGENCY = 'FAMILY_EMERGENCY',
+  MEDICAL_APPOINTMENT = 'MEDICAL_APPOINTMENT',
+  RELIGIOUS = 'RELIGIOUS',
+  VACATION = 'VACATION',
+  OTHER = 'OTHER'
+}
+
+export enum LeaveStatus {
+  PENDING = 'PENDING',
+  APPROVED = 'APPROVED',
+  REJECTED = 'REJECTED',
+  CANCELLED = 'CANCELLED'
+}
 
 export interface LeaveRequest {
   id: string;
@@ -37,23 +56,6 @@ export interface LeaveRequest {
     lastName: string;
     email: string;
   };
-}
-
-export enum LeaveType {
-  SICK = 'SICK',
-  PERSONAL = 'PERSONAL',
-  FAMILY_EMERGENCY = 'FAMILY_EMERGENCY',
-  MEDICAL_APPOINTMENT = 'MEDICAL_APPOINTMENT',
-  RELIGIOUS = 'RELIGIOUS',
-  VACATION = 'VACATION',
-  OTHER = 'OTHER'
-}
-
-export enum LeaveStatus {
-  PENDING = 'PENDING',
-  APPROVED = 'APPROVED',
-  REJECTED = 'REJECTED',
-  CANCELLED = 'CANCELLED'
 }
 
 export interface LeaveRequestParams {
@@ -95,72 +97,46 @@ class LeaveService {
   private baseUrl = '/api/leave';
 
   async getLeaveRequests(params: LeaveRequestParams = {}) {
-    try {
-      const queryParams = new URLSearchParams();
-      
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, value.toString());
-        }
-      });
+    const queryParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, value.toString());
+      }
+    });
 
-      const response = await apiClient.get(`${this.baseUrl}?${queryParams.toString()}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching leave requests:', error);
-      throw error;
-    }
+    const response = await apiClient.get(`${this.baseUrl}?${queryParams.toString()}`);
+    return response;
   }
 
   async createLeaveRequest(data: CreateLeaveRequestData) {
-    try {
-      const response = await apiClient.post(this.baseUrl, data);
-      return response.data;
-    } catch (error) {
-      console.error('Error creating leave request:', error);
-      throw error;
-    }
+    const response = await apiClient.post(this.baseUrl, data);
+    return response;
   }
 
   async updateLeaveRequest(id: string, data: UpdateLeaveRequestData) {
-    try {
-      const response = await apiClient.put(`${this.baseUrl}/${id}`, data);
-      return response.data;
-    } catch (error) {
-      console.error('Error updating leave request:', error);
-      throw error;
-    }
+    const response = await apiClient.put(`${this.baseUrl}/${id}`, data);
+    return response;
   }
 
   async deleteLeaveRequest(id: string) {
-    try {
-      const response = await apiClient.delete(`${this.baseUrl}/${id}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error deleting leave request:', error);
-      throw error;
-    }
+    const response = await apiClient.delete(`${this.baseUrl}/${id}`);
+    return response;
   }
 
   async getLeaveStats(params: { startDate?: string; endDate?: string } = {}) {
-    try {
-      const queryParams = new URLSearchParams();
-      
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null) {
-          queryParams.append(key, value.toString());
-        }
-      });
+    const queryParams = new URLSearchParams();
+    
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        queryParams.append(key, value.toString());
+      }
+    });
 
-      const response = await apiClient.get(`${this.baseUrl}/stats?${queryParams.toString()}`);
-      return response.data;
-    } catch (error) {
-      console.error('Error fetching leave statistics:', error);
-      throw error;
-    }
+    const response = await apiClient.get(`${this.baseUrl}/stats?${queryParams.toString()}`);
+    return response;
   }
 
-  // Helper methods
   getLeaveTypeLabel(type: LeaveType): string {
     const labels: Record<LeaveType, string> = {
       [LeaveType.SICK]: 'Sick Leave',
@@ -189,7 +165,7 @@ class LeaveService {
     const end = new Date(endDate);
     const diffTime = Math.abs(end.getTime() - start.getTime());
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-    return diffDays + 1; // Include both start and end dates
+    return diffDays + 1;
   }
 }
 
