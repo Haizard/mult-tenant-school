@@ -33,7 +33,7 @@ export async function POST(request: NextRequest) {
     const authHeader = request.headers.get('authorization');
     const body = await request.json();
     
-    console.log('Creating user via API route:', body);
+    console.log('Creating user via API route');
     
     const response = await fetch(`${BACKEND_URL}/api/users`, {
       method: 'POST',
@@ -46,7 +46,7 @@ export async function POST(request: NextRequest) {
 
     const data = await response.json();
     
-    console.log('Backend response:', { status: response.status, data });
+    console.log('Backend response status:', response.status);
     
     return NextResponse.json(data, { status: response.status });
   } catch (error) {

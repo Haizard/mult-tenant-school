@@ -767,7 +767,6 @@ model StudentEnrollment {
   class        Class?       @relation(fields: [classId], references: [id])
   course       Course?      @relation(fields: [courseId], references: [id])
   subject      Subject?     @relation(fields: [subjectId], references: [id])
-  user         User         @relation(fields: [studentId], references: [id])
 
   @@unique([tenantId, studentId, academicYearId, classId, courseId, subjectId])
 }
@@ -800,7 +799,6 @@ model StudentAcademicRecord {
   academicYear AcademicYear @relation(fields: [academicYearId], references: [id])
   class        Class?       @relation(fields: [classId], references: [id])
   subject      Subject?     @relation(fields: [subjectId], references: [id])
-  user         User         @relation(fields: [studentId], references: [id])
 
   @@unique([tenantId, studentId, academicYearId, classId, subjectId, term])
 }
@@ -828,7 +826,6 @@ model HealthRecord {
   // Relationships
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [studentId], references: [id])
 
   @@index([tenantId, studentId])
 }
@@ -857,7 +854,6 @@ model StudentDocument {
   // Relationships
   tenant  Tenant  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   student Student @relation(fields: [studentId], references: [id], onDelete: Cascade)
-  user    User    @relation(fields: [studentId], references: [id])
 
   @@index([tenantId, studentId])
 }
@@ -883,7 +879,6 @@ model Attendance {
   student Student  @relation(fields: [studentId], references: [id], onDelete: Cascade)
   class   Class?   @relation(fields: [classId], references: [id])
   subject Subject? @relation(fields: [subjectId], references: [id])
-  user    User     @relation(fields: [studentId], references: [id])
 
   @@unique([tenantId, studentId, date, period])
   @@index([tenantId, date])

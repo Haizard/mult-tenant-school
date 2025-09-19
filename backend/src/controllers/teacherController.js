@@ -230,8 +230,9 @@ const createTeacher = async (req, res) => {
       });
     }
 
-    // Hash password
-    const hashedPassword = await bcrypt.hash(password || 'teacher123', 12);
+    // Generate secure random password if not provided
+    const defaultPassword = password || crypto.randomBytes(12).toString('base64');
+    const hashedPassword = await bcrypt.hash(defaultPassword, 12);
 
 
 

@@ -1,6 +1,7 @@
 const { PrismaClient } = require('@prisma/client');
 const { body, validationResult } = require('express-validator');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 
 const prisma = new PrismaClient();
 
@@ -247,7 +248,10 @@ const createStudent = async (req, res) => {
     }
 
     // Create user first
-    const defaultPassword = await bcrypt.hash('student123', 12);
+    // Generate a secure random password or use environment variable
+    const defaultPassword = process.env.DEFAULT_STUDENT_PASSWORD 
+      ? await bcrypt.hash(process.env.DEFAULT_STUDENT_PASSWORD, 12)
+      : await bcrypt.hash(crypto.randomBytes(12).toString('hex'), 12);
     
     const user = await prisma.user.create({
       data: {

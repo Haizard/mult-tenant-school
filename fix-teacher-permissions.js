@@ -72,9 +72,7 @@ async function fixTeacherPermissions() {
     }
 
     console.log('🎉 Successfully fixed teacher permissions for School Admin!');
-    console.log('📧 You can now use these School Admin credentials:');
-    console.log('   Email: admin@schoolsystem.com');
-    console.log('   Password: admin123');
+    console.log('📧 School Admin permissions have been updated. Please use your configured admin credentials.');
 
   } catch (error) {
     console.error('❌ Error fixing permissions:', error);

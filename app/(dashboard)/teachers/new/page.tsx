@@ -65,10 +65,10 @@ export default function NewTeacherPage() {
     e.preventDefault();
     
     // Basic validation
-    if (!formData.firstName || !formData.lastName || !formData.email || !formData.dateOfBirth || !formData.gender) {
+    if (!formData.firstName || !formData.lastName || !formData.email || !formData.password || !formData.dateOfBirth || !formData.gender) {
       toast({
         title: 'Validation Error',
-        description: 'Please fill in all required fields',
+        description: 'Please fill in all required fields including password',
         variant: 'destructive'
       });
       return;
@@ -77,13 +77,7 @@ export default function NewTeacherPage() {
     try {
       setLoading(true);
       
-      // Generate default password if not provided
-      const teacherData = {
-        ...formData,
-        password: formData.password || 'teacher123' // Default password
-      };
-
-      await teacherService.createTeacher(teacherData);
+      await teacherService.createTeacher(formData);
       
       toast({
         title: 'Success',
@@ -454,17 +448,18 @@ export default function NewTeacherPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Password (Optional)
+                    Password *
                   </label>
                   <Input
                     type="password"
                     name="password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    placeholder="Leave blank for default password"
+                    placeholder="Enter secure password"
+                    required
                   />
                   <p className="text-xs text-gray-500 mt-1">
-                    If left blank, default password "teacher123" will be used
+                    Password must be secure and will be used for teacher login
                   </p>
                 </div>
               </div>

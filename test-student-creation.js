@@ -12,8 +12,8 @@ async function testStudentCreation() {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({ 
-        email: 'superadmin@system.com', 
-        password: 'superadmin123' 
+        email: process.env.TEST_ADMIN_EMAIL || 'superadmin@system.com', 
+        password: process.env.TEST_ADMIN_PASSWORD || 'superadmin123' 
       }),
     });
 

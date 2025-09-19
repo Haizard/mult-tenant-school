@@ -25,9 +25,17 @@ const getLeaveRequests = async (req, res) => {
     if (studentId) where.studentId = studentId;
     if (leaveType) where.leaveType = leaveType;
     if (startDate || endDate) {
-      where.startDate = {};
-      if (startDate) where.startDate.gte = new Date(startDate);
-      if (endDate) where.startDate.lte = new Date(endDate);
+      where.OR = [];
+      if (startDate && endDate) {
+        // Find leaves that overlap with the date range
+        where.OR.push(
+          { startDate: { lte: new Date(endDate) }, endDate: { gte: new Date(startDate) } }
+        );
+      } else if (startDate) {
+        where.endDate = { gte: new Date(startDate) };
+      } else if (endDate) {
+        where.startDate = { lte: new Date(endDate) };
+      }
     }
 
     const [leaveRequests, total] = await Promise.all([
@@ -436,6 +444,114 @@ const createLeaveNotification = async (leaveRequest, type) => {
     });
   } catch (error) {
     console.error('Error creating notification:', error);
+  }
+};
+
+module.exports = {
+  getLeaveRequests,
+  createLeaveRequest,
+  updateLeaveRequest,
+  deleteLeaveRequest,
+  getLeaveStats
+};
+ount({ where: { ...where, status: 'APPROVED' } }),
+      prisma.leaveRequest.count({ where: { ...where, status: 'REJECTED' } }),
+      prisma.leaveRequest.count({ where: { ...where, isEmergency: true } }),
+      prisma.leaveRequest.groupBy({
+        by: ['leaveType'],
+        where,
+        _count: { leaveType: true }
+      })
+    ]);
+
+    const stats = {
+      total: totalRequests,
+      pending: pendingRequests,
+      approved: approvedRequests,
+      rejected: rejectedRequests,
+      emergency: emergencyRequests,
+      byType: leaveTypeStats.reduce((acc, stat) => {
+        acc[stat.leaveType] = stat._count.leaveType;
+        return acc;
+      }, {})
+    };
+
+    res.json({
+      success: true,
+      data: stats
+    });
+  } catch (error) {
+    console.error('Error fetching leave statistics:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to fetch leave statistics',
+      error: error.message
+    });
+  }
+};
+
+// Helper function to create notifications
+const createLeaveNotification = async (leaveRequest, type) => {
+  try {
+    // Get administrators for the tenant
+    const adminUsers = await prisma.user.findMany({
+      where: {
+        tenantId: leaveRequest.tenantId,
+        userRoles: {
+          some: {
+            role: {
+              name: {
+                in: ['ADMIN', 'SUPER_ADMIN', 'PRINCIPAL']
+              }
+            }
+          }
+        }
+      }
+    });
+
+    const notifications = [];
+    let title, message;
+
+    switch (type) {
+      case 'LEAVE_REQUEST':
+        title = 'New Leave Request';
+        message = `${leaveRequest.student.firstName} ${leaveRequest.student.lastName} has submitted a leave request`;
+        // Send to administrators
+        adminUsers.forEach(admin => {
+          notifications.push({
+            tenantId: leaveRequest.tenantId,
+            userId: admin.id,
+            type,
+            title,
+            message,
+            data: { leaveRequestId: leaveRequest.id }
+          });
+        });
+        break;
+      
+      case 'LEAVE_APPROVED':
+      case 'LEAVE_REJECTED':
+        title = type === 'LEAVE_APPROVED' ? 'Leave Request Approved' : 'Leave Request Rejected';
+        message = `Your leave request has been ${type === 'LEAVE_APPROVED' ? 'approved' : 'rejected'}`;
+        // Send to requester
+        notifications.push({
+          tenantId: leaveRequest.tenantId,
+          userId: leaveRequest.requestedBy,
+          type,
+          title,
+          message,
+          data: { leaveRequestId: leaveRequest.id }
+        });
+        break;
+    }
+
+    if (notifications.length > 0) {
+      await prisma.notification.createMany({
+        data: notifications
+      });
+    }
+  } catch (error) {
+    console.error('Error creating leave notification:', error);
   }
 };
 

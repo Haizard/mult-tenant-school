@@ -16,12 +16,12 @@ router.use(authenticateToken);
 router.use(ensureTenantAccess);
 
 // Routes
-router.get('/', getNotifications);
-router.get('/stats', getNotificationStats);
-router.put('/:id/read', markAsRead);
-router.put('/read-all', markAllAsRead);
-router.delete('/:id', deleteNotification);
-router.post('/', authorize(['parents:create', 'parents:update']), createNotification);
+router.get('/', authorize(['notifications:read', 'notifications:manage']), getNotifications);
+router.get('/stats', authorize(['notifications:read', 'notifications:manage']), getNotificationStats);
+router.put('/:id/read', authorize(['notifications:update', 'notifications:manage']), markAsRead);
+router.put('/read-all', authorize(['notifications:update', 'notifications:manage']), markAllAsRead);
+router.delete('/:id', authorize(['notifications:delete', 'notifications:manage']), deleteNotification);
+router.post('/', authorize(['notifications:create', 'notifications:manage']), createNotification);
 router.post('/attendance-alert', authorize(['attendance:manage']), sendAttendanceAlert);
 
 module.exports = router;

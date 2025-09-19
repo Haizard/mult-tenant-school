@@ -32,9 +32,9 @@ export interface Teacher {
   };
   subjects?: Array<{
     id: string;
-    subject_name: string;
-    subject_level: string;
-    subject_type: string;
+    subjectName: string;
+    subjectLevel: string;
+    subjectType: string;
   }>;
 }
 

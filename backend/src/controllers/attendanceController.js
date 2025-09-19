@@ -1,4 +1,5 @@
 const { PrismaClient } = require('@prisma/client');
+const { startOfDay, parseISO } = require('date-fns');
 const prisma = new PrismaClient();
 
 // Get all attendance records for a tenant
@@ -10,7 +11,7 @@ const getAttendanceRecords = async (req, res) => {
     // Build filter conditions
     const where = {
       tenantId,
-      ...(date && { date: new Date(date) }),
+      ...(date && { date: startOfDay(parseISO(date)) }),
       ...(studentId && { studentId }),
       ...(classId && { classId }),
       ...(subjectId && { subjectId }),
@@ -112,95 +113,99 @@ const markAttendance = async (req, res) => {
       });
     }
 
-    const results = [];
-    const errors = [];
+    const { results, errors } = await prisma.$transaction(async (tx) => {
+      const results = [];
+      const errors = [];
 
-    for (const attendance of attendanceData) {
-      try {
-        const { studentId, classId, subjectId, date, status, period, reason, notes } = attendance;
+      for (const attendance of attendanceData) {
+        try {
+          const { studentId, classId, subjectId, date, status, period, reason, notes } = attendance;
 
-        // Validate required fields
-        if (!studentId || !date || !status) {
-          errors.push({
-            studentId,
-            error: 'Student ID, date, and status are required'
-          });
-          continue;
-        }
-
-        // Check if student exists in tenant
-        const student = await prisma.student.findFirst({
-          where: {
-            tenantId,
-            studentId
+          // Validate required fields
+          if (!studentId || !date || !status) {
+            errors.push({
+              studentId,
+              error: 'Student ID, date, and status are required'
+            });
+            continue;
           }
-        });
 
-        if (!student) {
-          errors.push({
-            studentId,
-            error: 'Student not found in this tenant'
+          // Check if student exists in tenant
+          const student = await tx.student.findFirst({
+            where: {
+              tenantId,
+              studentId
+            }
           });
-          continue;
-        }
 
-        // Create or update attendance record
-        const attendanceRecord = await prisma.attendance.upsert({
-          where: {
-            tenantId_studentId_date_period: {
+          if (!student) {
+            errors.push({
+              studentId,
+              error: 'Student not found in this tenant'
+            });
+            continue;
+          }
+
+          // Create or update attendance record
+          const attendanceRecord = await tx.attendance.upsert({
+            where: {
+              tenantId_studentId_date_period: {
+                tenantId,
+                studentId: student.id,
+                date: startOfDay(parseISO(date)),
+                period: period || 'FULL_DAY'
+              }
+            },
+            update: {
+              status,
+              reason,
+              notes,
+              updatedAt: new Date()
+            },
+            create: {
               tenantId,
               studentId: student.id,
-              date: new Date(date),
-              period: period || 'FULL_DAY'
-            }
-          },
-          update: {
-            status,
-            reason,
-            notes,
-            updatedAt: new Date()
-          },
-          create: {
-            tenantId,
-            studentId: student.id,
-            classId,
-            subjectId,
-            date: new Date(date),
-            status,
-            period: period || 'FULL_DAY',
-            reason,
-            notes,
-            markedBy: user.id
-          },
-          include: {
-            student: {
-              include: {
-                user: {
-                  select: {
-                    firstName: true,
-                    lastName: true
+              classId,
+              subjectId,
+              date: startOfDay(parseISO(date)),
+              status,
+              period: period || 'FULL_DAY',
+              reason,
+              notes,
+              markedBy: user.id
+            },
+            include: {
+              student: {
+                include: {
+                  user: {
+                    select: {
+                      firstName: true,
+                      lastName: true
+                    }
                   }
                 }
               }
             }
-          }
-        });
+          });
 
-        results.push({
-          id: attendanceRecord.id,
-          studentName: `${attendanceRecord.student.user.firstName} ${attendanceRecord.student.user.lastName}`,
-          studentId: attendanceRecord.student.studentId,
-          status: attendanceRecord.status,
-          date: attendanceRecord.date
-        });
+          results.push({
+            id: attendanceRecord.id,
+            studentName: `${attendanceRecord.student.user.firstName} ${attendanceRecord.student.user.lastName}`,
+            studentId: attendanceRecord.student.studentId,
+            status: attendanceRecord.status,
+            date: attendanceRecord.date
+          });
 
-      } catch (error) {
-        errors.push({
-          studentId: attendance.studentId,
-          error: error.message
-        });
+        } catch (error) {
+          errors.push({
+            studentId: attendance.studentId,
+            error: error.message
+          });
+        }
       }
-    }
+
+      return { results, errors };
+    });
 
     res.status(201).json({
       success: true,
@@ -333,7 +338,7 @@ const getAttendanceStats = async (req, res) => {
     const { tenantId } = req;
     const { date, classId, subjectId } = req.query;
 
-    const targetDate = date ? new Date(date) : new Date();
+    const targetDate = date ? startOfDay(parseISO(date)) : startOfDay(new Date());
     
     // Build filter conditions
     const where = {

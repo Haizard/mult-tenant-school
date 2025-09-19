@@ -73,7 +73,7 @@ export interface CreateLeaveRequestData {
   endDate: string;
   reason: string;
   description?: string;
-  supportingDocs?: string[];
+  supportingDocs?: string;
   isEmergency?: boolean;
 }
 
