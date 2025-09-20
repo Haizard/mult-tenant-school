@@ -52,7 +52,7 @@ export default function EditTeacherPage() {
     licenseExpiry: ''
   });
 
-  const mapTeacherToFormData = useCallback((data: Teacher): UpdateTeacherData => ({
+  const mapTeacherToFormData = (data: Teacher): UpdateTeacherData => ({
     id: data.id,
     firstName: data.user.firstName,
     lastName: data.user.lastName,
@@ -76,31 +76,31 @@ export default function EditTeacherPage() {
     previousSchool: data.previousSchool || '',
     teachingLicense: data.teachingLicense || '',
     licenseExpiry: data.licenseExpiry ? data.licenseExpiry.split('T')[0] : ''
-  }), []);
-
-  const loadTeacherCallback = useCallback(async (id: string) => {
-    try {
-      setLoading(true);
-      const data = await teacherService.getTeacher(id);
-      setTeacher(data);
-      setFormData(mapTeacherToFormData(data));
-    } catch (error: any) {
-      console.error('Error loading teacher:', error);
-      toast({
-        title: 'Error',
-        description: error.message || 'Failed to load teacher',
-        variant: 'destructive'
-      });
-    } finally {
-      setLoading(false);
-    }
-  }, [toast, mapTeacherToFormData]);
+  });
 
   useEffect(() => {
-    if (params.id) {
-      loadTeacherCallback(params.id as string);
-    }
-  }, [params.id, loadTeacherCallback]);
+    const loadTeacher = async () => {
+      if (!params.id) return;
+      
+      try {
+        setLoading(true);
+        const data = await teacherService.getTeacher(params.id as string);
+        setTeacher(data);
+        setFormData(mapTeacherToFormData(data));
+      } catch (error: any) {
+        console.error('Error loading teacher:', error);
+        toast({
+          title: 'Error',
+          description: error.message || 'Failed to load teacher',
+          variant: 'destructive'
+        });
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadTeacher();
+  }, [params.id]);
 
 
 

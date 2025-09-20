@@ -7,7 +7,10 @@ const { authenticateToken, authorize, ensureTenantAccess } = require('../middlew
 router.use(authenticateToken);
 
 // Create audit log entry (public endpoint for logging)
-router.post('/', auditController.createAuditLog);
+router.post('/', 
+  ensureTenantAccess,
+  auditController.createAuditLog
+);
 
 // Get audit logs with filtering (requires audit logs read permission)
 router.get('/', 

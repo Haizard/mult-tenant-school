@@ -5,6 +5,7 @@ import Button from '../ui/Button';
 import StatusBadge from '../ui/StatusBadge';
 import DataTable from '../ui/DataTable';
 import { useAuth } from '../../contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 interface SchoolUser {
   id: string;
@@ -19,6 +20,7 @@ interface SchoolUser {
 
 const TenantAdminDashboard = () => {
   const { user } = useAuth();
+  const router = useRouter();
   const [schoolUsers, setSchoolUsers] = useState<SchoolUser[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
@@ -262,7 +264,7 @@ const TenantAdminDashboard = () => {
           <p className="text-gray-600 mt-1">Manage your school's users and academic programs</p>
         </div>
         <Button 
-          onClick={() => window.location.href = '/users/create'} 
+          onClick={() => router.push('/users/create')} 
           className="flex items-center"
         >
           <FaPlus className="mr-2" />
@@ -295,7 +297,7 @@ const TenantAdminDashboard = () => {
           <Button 
             variant="secondary" 
             className="flex flex-col items-center p-4 h-auto"
-            onClick={() => window.location.href = '/users'}
+            onClick={() => router.push('/users')}
           >
             <FaUsers className="text-2xl mb-2 text-blue-600" />
             <span className="text-sm">User Management</span>
@@ -303,7 +305,7 @@ const TenantAdminDashboard = () => {
           <Button 
             variant="secondary" 
             className="flex flex-col items-center p-4 h-auto"
-            onClick={() => window.location.href = '/academic'}
+            onClick={() => router.push('/academic')}
           >
             <FaBook className="text-2xl mb-2 text-green-600" />
             <span className="text-sm">Academic Programs</span>
@@ -311,7 +313,7 @@ const TenantAdminDashboard = () => {
           <Button 
             variant="secondary" 
             className="flex flex-col items-center p-4 h-auto"
-            onClick={() => window.location.href = '/schedule'}
+            onClick={() => router.push('/schedule')}
           >
             <FaCalendarAlt className="text-2xl mb-2 text-purple-600" />
             <span className="text-sm">Schedule Management</span>
@@ -319,7 +321,7 @@ const TenantAdminDashboard = () => {
           <Button 
             variant="secondary" 
             className="flex flex-col items-center p-4 h-auto"
-            onClick={() => window.location.href = '/reports'}
+            onClick={() => router.push('/reports')}
           >
             <FaChartLine className="text-2xl mb-2 text-orange-600" />
             <span className="text-sm">Reports & Analytics</span>

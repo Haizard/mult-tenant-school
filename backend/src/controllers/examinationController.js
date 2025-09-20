@@ -196,13 +196,19 @@ const getExaminationById = async (req, res) => {
         grades: {
           include: {
             student: {
+          select: {
+            id: true,
+            studentId: true,
+            user: {
               select: {
                 id: true,
                 firstName: true,
                 lastName: true,
                 email: true,
               }
-            },
+            }
+          }
+        },
             subject: {
               select: {
                 id: true,
@@ -510,9 +516,15 @@ const getGrades = async (req, res) => {
         student: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+            studentId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            }
           }
         },
         subject: {
@@ -579,9 +591,15 @@ const getGradeById = async (req, res) => {
         student: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+            studentId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            }
           }
         },
         subject: {
@@ -710,9 +728,15 @@ const createGrade = async (req, res) => {
         student: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+            studentId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            }
           }
         },
         subject: {
@@ -825,9 +849,15 @@ const updateGrade = async (req, res) => {
         student: {
           select: {
             id: true,
-            firstName: true,
-            lastName: true,
-            email: true,
+            studentId: true,
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            }
           }
         },
         subject: {
@@ -1054,9 +1084,14 @@ const exportGrades = async (req, res) => {
       include: {
         student: {
           select: {
-            firstName: true,
-            lastName: true,
-            email: true,
+            studentId: true,
+            user: {
+              select: {
+                firstName: true,
+                lastName: true,
+                email: true,
+              }
+            }
           }
         },
         examination: {
@@ -1083,8 +1118,8 @@ const exportGrades = async (req, res) => {
       },
       orderBy: [
         { examination: { startDate: 'desc' } },
-        { student: { lastName: 'asc' } },
-        { student: { firstName: 'asc' } }
+        { student: { user: { lastName: 'asc' } } },
+        { student: { user: { firstName: 'asc' } } }
       ]
     });
 
@@ -1107,8 +1142,8 @@ const exportGrades = async (req, res) => {
       ];
 
       const csvRows = grades.map(grade => [
-        `${grade.student.firstName} ${grade.student.lastName}`,
-        grade.student.email,
+        `${grade.student.user.firstName} ${grade.student.user.lastName}`,
+        grade.student.user.email,
         grade.examination.examName,
         grade.subject.subjectName,
         grade.rawMarks,

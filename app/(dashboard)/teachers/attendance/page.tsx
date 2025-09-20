@@ -43,11 +43,16 @@ export default function TeacherAttendancePage() {
       setAttendance(attendanceData);
       setTeachers(teachersData);
     } catch (error: any) {
+      const isAuthError = error.message?.includes('Invalid token') || error.message?.includes('Unauthorized');
       toast({
-        title: 'Error',
-        description: 'Failed to load data',
+        title: isAuthError ? 'Authentication Required' : 'Error',
+        description: isAuthError ? 'Please log in again to access this page' : 'Failed to load data',
         variant: 'destructive'
       });
+      
+      if (isAuthError) {
+        window.location.href = '/login';
+      }
     } finally {
       setLoading(false);
     }

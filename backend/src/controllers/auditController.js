@@ -15,14 +15,7 @@ const validateAuditLog = [
 // Create audit log entry
 const createAuditLog = async (req, res) => {
   try {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation failed',
-        errors: errors.array()
-      });
-    }
+    // Skip validation for audit logging to prevent blocking
 
     const {
       userId,

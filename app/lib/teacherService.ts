@@ -99,7 +99,12 @@ class TeacherService {
   async getTeacher(id: string): Promise<Teacher> {
     try {
       const response = await apiService.get(`${this.baseUrl}/${id}`);
-      return (response as any)?.data;
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to fetch teacher');
+      }
+      
+      return response.data;
     } catch (error: any) {
       console.error('Error fetching teacher:', error);
       throw new Error(error.message || 'Failed to fetch teacher');
@@ -122,7 +127,12 @@ class TeacherService {
   async updateTeacher(id: string, data: Partial<UpdateTeacherData>): Promise<Teacher> {
     try {
       const response = await apiService.put(`${this.baseUrl}/${id}`, data);
-      return (response as any)?.data;
+      
+      if (!response.success) {
+        throw new Error(response.message || 'Failed to update teacher');
+      }
+      
+      return response.data;
     } catch (error: any) {
       console.error('Error updating teacher:', error);
       throw new Error(error.message || 'Failed to update teacher');

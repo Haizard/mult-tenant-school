@@ -1,6 +1,9 @@
 // API Configuration and Base Service
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
 
+console.log('API Service initialized with base URL:', API_BASE_URL);
+console.log('Environment NEXT_PUBLIC_API_URL:', process.env.NEXT_PUBLIC_API_URL);
+
 export interface ApiResponse<T = any> {
   success: boolean;
   message: string;
@@ -75,6 +78,13 @@ class ApiService {
     const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
     const url = `${this.baseURL}/${cleanEndpoint}`;
     
+    console.log('API Service Debug:', {
+      baseURL: this.baseURL,
+      endpoint,
+      cleanEndpoint,
+      finalUrl: url
+    });
+    
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',
       ...options.headers as Record<string, string>,
@@ -95,9 +105,14 @@ class ApiService {
     });
 
     try {
+      // Test basic connectivity first
+      console.log('Testing connectivity to:', url);
+      
       const response = await fetch(url, {
         ...options,
         headers,
+        mode: 'cors', // Explicitly set CORS mode
+        credentials: 'include', // Include credentials for CORS
       });
 
       console.log('API Response:', {
@@ -168,7 +183,23 @@ class ApiService {
         pagination: data.pagination,
       };
     } catch (error) {
-      console.error('API Request Error:', error);
+      console.error('API Request Error Details:', {
+        error,
+        errorName: error instanceof Error ? error.name : 'Unknown',
+        errorMessage: error instanceof Error ? error.message : 'Unknown error',
+        url,
+        baseURL: this.baseURL
+      });
+      
+      // More specific error handling
+      if (error instanceof TypeError && error.message.includes('Failed to fetch')) {
+        return {
+          success: false,
+          message: 'Cannot connect to server. Please check if the backend is running on port 5000.',
+          error: 'CONNECTION_REFUSED',
+        };
+      }
+      
       return {
         success: false,
         message: 'Network error occurred',

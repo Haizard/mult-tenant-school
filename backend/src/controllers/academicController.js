@@ -34,12 +34,9 @@ const validateAcademicYear = [
 
 const validateClass = [
   body('className').notEmpty().withMessage('Class name is required'),
-  body('classCode').notEmpty().withMessage('Class code is required'),
-  body('academicLevel').isIn(['PRIMARY', 'O_LEVEL', 'A_LEVEL', 'UNIVERSITY']).withMessage('Invalid academic level'),
-  body('academicYearId').notEmpty().withMessage('Academic year is required'),
-  body('capacity').isInt({ min: 1, max: 100 }).withMessage('Capacity must be between 1 and 100'),
-  body('teacherId').notEmpty().withMessage('Class teacher is required'),
-  body('subjectIds').isArray({ min: 1 }).withMessage('At least one subject is required'),
+  body('classCode').optional().isString(),
+  body('capacity').optional().isInt({ min: 1, max: 100 }).withMessage('Capacity must be between 1 and 100'),
+  body('description').optional().isString(),
 ];
 
 // Course Management
@@ -380,7 +377,6 @@ const deleteCourse = async (req, res) => {
 const getSubjects = async (req, res) => {
   try {
     console.log('getSubjects called with tenantId:', req.tenantId);
-    console.log('Query params:', req.query);
     
     const { page = 1, limit = 10, search, status, subjectLevel, subjectType } = req.query;
     const skip = (page - 1) * limit;
@@ -388,8 +384,6 @@ const getSubjects = async (req, res) => {
     const where = {
       tenantId: req.tenantId
     };
-    
-    console.log('Where clause:', where);
 
     if (search) {
       where.OR = [
@@ -410,8 +404,6 @@ const getSubjects = async (req, res) => {
     if (subjectType) {
       where.subjectType = subjectType;
     }
-
-    console.log('About to query subjects...');
     
     const [subjects, total] = await Promise.all([
       prisma.subject.findMany({
@@ -419,7 +411,12 @@ const getSubjects = async (req, res) => {
         skip: parseInt(skip),
         take: parseInt(limit),
         include: {
-          tenant: true,
+          tenant: {
+            select: {
+              id: true,
+              name: true
+            }
+          },
           createdByUser: {
             select: {
               id: true,
@@ -435,26 +432,12 @@ const getSubjects = async (req, res) => {
               lastName: true,
               email: true
             }
-          },
-          teacherSubjects: {
-            include: {
-              teacher: {
-                select: {
-                  id: true,
-                  firstName: true,
-                  lastName: true,
-                  email: true
-                }
-              }
-            }
           }
         },
         orderBy: { createdAt: 'desc' }
       }),
       prisma.subject.count({ where })
     ]);
-    
-    console.log('Query successful, found subjects:', subjects.length);
 
     res.json({
       success: true,
@@ -468,6 +451,7 @@ const getSubjects = async (req, res) => {
     });
   } catch (error) {
     console.error('Get subjects error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to get subjects',
@@ -638,6 +622,7 @@ const updateSubject = async (req, res) => {
 const getSubjectById = async (req, res) => {
   try {
     const { id } = req.params;
+    console.log('Getting subject by ID:', id, 'for tenant:', req.tenantId);
 
     const subject = await prisma.subject.findFirst({
       where: { 
@@ -645,7 +630,12 @@ const getSubjectById = async (req, res) => {
         tenantId: req.tenantId
       },
       include: {
-        tenant: true,
+        tenant: {
+          select: {
+            id: true,
+            name: true
+          }
+        },
         createdByUser: {
           select: {
             id: true,
@@ -665,11 +655,15 @@ const getSubjectById = async (req, res) => {
         teacherSubjects: {
           include: {
             teacher: {
-              select: {
-                id: true,
-                firstName: true,
-                lastName: true,
-                email: true
+              include: {
+                user: {
+                  select: {
+                    id: true,
+                    firstName: true,
+                    lastName: true,
+                    email: true
+                  }
+                }
               }
             }
           }
@@ -678,18 +672,36 @@ const getSubjectById = async (req, res) => {
     });
 
     if (!subject) {
+      console.log('Subject not found for ID:', id);
       return res.status(404).json({
         success: false,
         message: 'Subject not found'
       });
     }
 
+    // Transform the data to match the expected frontend format
+    const transformedSubject = {
+      ...subject,
+      teacherSubjects: subject.teacherSubjects.map(ts => ({
+        id: ts.id,
+        teacher: {
+          id: ts.teacher.user.id,
+          firstName: ts.teacher.user.firstName,
+          lastName: ts.teacher.user.lastName,
+          email: ts.teacher.user.email
+        },
+        assignedAt: ts.assignedAt
+      }))
+    };
+
+    console.log('Subject found successfully');
     res.json({
       success: true,
-      data: subject
+      data: transformedSubject
     });
   } catch (error) {
     console.error('Get subject by ID error:', error);
+    console.error('Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Failed to get subject',
@@ -757,11 +769,15 @@ const getTeacherSubjects = async (req, res) => {
       where,
       include: {
         teacher: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
           }
         },
         subject: true
@@ -769,9 +785,25 @@ const getTeacherSubjects = async (req, res) => {
       orderBy: { assignedAt: 'desc' }
     });
 
+    // Transform the data to match expected format
+    const transformedData = teacherSubjects.map(ts => ({
+      id: ts.id,
+      teacherId: ts.teacherId,
+      subjectId: ts.subjectId,
+      assignedAt: ts.assignedAt,
+      assignedBy: ts.assignedBy,
+      teacher: {
+        id: ts.teacher.user.id,
+        firstName: ts.teacher.user.firstName,
+        lastName: ts.teacher.user.lastName,
+        email: ts.teacher.user.email
+      },
+      subject: ts.subject
+    }));
+
     res.json({
       success: true,
-      data: teacherSubjects
+      data: transformedData
     });
   } catch (error) {
     console.error('Get teacher subjects error:', error);
@@ -797,10 +829,20 @@ const assignTeacherToSubject = async (req, res) => {
     const { teacherId, subjectId } = req.body;
 
     // Check if teacher exists and belongs to tenant
-    const teacher = await prisma.user.findFirst({
+    const teacher = await prisma.teacher.findFirst({
       where: { 
         id: teacherId,
         tenantId: req.tenantId
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            email: true
+          }
+        }
       }
     });
 
@@ -852,21 +894,41 @@ const assignTeacherToSubject = async (req, res) => {
       },
       include: {
         teacher: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
+          include: {
+            user: {
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                email: true
+              }
+            }
           }
         },
         subject: true
       }
     });
 
+    // Transform the response to match expected format
+    const transformedAssignment = {
+      id: assignment.id,
+      teacherId: assignment.teacherId,
+      subjectId: assignment.subjectId,
+      assignedAt: assignment.assignedAt,
+      assignedBy: assignment.assignedBy,
+      teacher: {
+        id: assignment.teacher.user.id,
+        firstName: assignment.teacher.user.firstName,
+        lastName: assignment.teacher.user.lastName,
+        email: assignment.teacher.user.email
+      },
+      subject: assignment.subject
+    };
+
     res.status(201).json({
       success: true,
       message: 'Teacher assigned to subject successfully',
-      data: assignment
+      data: transformedAssignment
     });
   } catch (error) {
     console.error('Assign teacher to subject error:', error);
@@ -1161,15 +1223,6 @@ const getClasses = async (req, res) => {
         take: parseInt(limit),
         include: {
           tenant: true,
-          academicYear: true,
-          teacher: {
-            select: {
-              id: true,
-              firstName: true,
-              lastName: true,
-              email: true
-            }
-          },
           createdByUser: {
             select: {
               id: true,
@@ -1184,11 +1237,6 @@ const getClasses = async (req, res) => {
               firstName: true,
               lastName: true,
               email: true
-            }
-          },
-          classSubjects: {
-            include: {
-              subject: true
             }
           }
         },
@@ -1228,15 +1276,6 @@ const getClassById = async (req, res) => {
       },
       include: {
         tenant: true,
-        academicYear: true,
-        teacher: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        },
         createdByUser: {
           select: {
             id: true,
@@ -1251,11 +1290,6 @@ const getClassById = async (req, res) => {
             firstName: true,
             lastName: true,
             email: true
-          }
-        },
-        classSubjects: {
-          include: {
-            subject: true
           }
         }
       }
@@ -1293,50 +1327,20 @@ const createClass = async (req, res) => {
       });
     }
 
-    const { className, classCode, academicLevel, academicYearId, capacity, teacherId, subjectIds, description } = req.body;
+    const { className, classCode, capacity, description } = req.body;
 
-    // Check if class code already exists in tenant
+    // Check if class name already exists in tenant
     const existingClass = await prisma.class.findFirst({
       where: { 
         tenantId: req.tenantId,
-        classCode: classCode
+        className: className
       }
     });
 
     if (existingClass) {
       return res.status(409).json({
         success: false,
-        message: 'Class with this code already exists in this tenant'
-      });
-    }
-
-    // Check if academic year exists
-    const academicYear = await prisma.academicYear.findFirst({
-      where: {
-        id: academicYearId,
-        tenantId: req.tenantId
-      }
-    });
-
-    if (!academicYear) {
-      return res.status(404).json({
-        success: false,
-        message: 'Academic year not found'
-      });
-    }
-
-    // Check if teacher exists
-    const teacher = await prisma.user.findFirst({
-      where: {
-        id: teacherId,
-        tenantId: req.tenantId
-      }
-    });
-
-    if (!teacher) {
-      return res.status(404).json({
-        success: false,
-        message: 'Teacher not found'
+        message: 'Class with this name already exists in this tenant'
       });
     }
 
@@ -1345,10 +1349,7 @@ const createClass = async (req, res) => {
       data: {
         className,
         classCode,
-        academicLevel,
-        academicYearId,
-        capacity,
-        teacherId,
+        capacity: capacity || 30,
         description,
         tenantId: req.tenantId,
         createdBy: req.user.id,
@@ -1356,15 +1357,6 @@ const createClass = async (req, res) => {
       },
       include: {
         tenant: true,
-        academicYear: true,
-        teacher: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        },
         createdByUser: {
           select: {
             id: true,
@@ -1375,17 +1367,6 @@ const createClass = async (req, res) => {
         }
       }
     });
-
-    // Add subjects to class if provided
-    if (subjectIds && subjectIds.length > 0) {
-      await prisma.classSubject.createMany({
-        data: subjectIds.map(subjectId => ({
-          classId: classData.id,
-          subjectId: subjectId,
-          tenantId: req.tenantId
-        }))
-      });
-    }
 
     res.status(201).json({
       success: true,
@@ -1414,7 +1395,7 @@ const updateClass = async (req, res) => {
     }
 
     const { id } = req.params;
-    const { className, classCode, academicLevel, academicYearId, capacity, teacherId, subjectIds, description, status } = req.body;
+    const { className, classCode, capacity, description, status } = req.body;
 
     // Check if class exists and belongs to tenant
     const existingClass = await prisma.class.findFirst({
@@ -1431,20 +1412,20 @@ const updateClass = async (req, res) => {
       });
     }
 
-    // Check if new class code conflicts
-    if (classCode !== existingClass.classCode) {
-      const codeConflict = await prisma.class.findFirst({
+    // Check if new class name conflicts
+    if (className !== existingClass.className) {
+      const nameConflict = await prisma.class.findFirst({
         where: { 
           tenantId: req.tenantId,
-          classCode: classCode,
+          className: className,
           id: { not: id }
         }
       });
 
-      if (codeConflict) {
+      if (nameConflict) {
         return res.status(409).json({
           success: false,
-          message: 'Class with this code already exists in this tenant'
+          message: 'Class with this name already exists in this tenant'
         });
       }
     }
@@ -1455,25 +1436,13 @@ const updateClass = async (req, res) => {
       data: {
         className,
         classCode,
-        academicLevel,
-        academicYearId,
         capacity,
-        teacherId,
         description,
         status,
         updatedBy: req.user.id
       },
       include: {
         tenant: true,
-        academicYear: true,
-        teacher: {
-          select: {
-            id: true,
-            firstName: true,
-            lastName: true,
-            email: true
-          }
-        },
         updatedByUser: {
           select: {
             id: true,
@@ -1485,27 +1454,7 @@ const updateClass = async (req, res) => {
       }
     });
 
-    // Update subjects if provided
-    if (subjectIds) {
-      // Remove existing subjects
-      await prisma.classSubject.deleteMany({
-        where: {
-          classId: id,
-          tenantId: req.tenantId
-        }
-      });
-
-      // Add new subjects
-      if (subjectIds.length > 0) {
-        await prisma.classSubject.createMany({
-          data: subjectIds.map(subjectId => ({
-            classId: id,
-            subjectId: subjectId,
-            tenantId: req.tenantId
-          }))
-        });
-      }
-    }
+    // Note: Subject assignments can be handled separately
 
     res.json({
       success: true,

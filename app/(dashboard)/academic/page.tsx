@@ -13,7 +13,7 @@ export default function AcademicPage() {
   const router = useRouter();
   const { user } = useAuth();
   
-  // Check user permissions - Academic features are Tenant Admin only
+  // Check user permissions - Academic features are for Tenant Admin
   const canManageAcademic = user?.roles?.some(role => 
     role.name === 'Tenant Admin'
   ) || false;

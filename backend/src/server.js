@@ -10,8 +10,11 @@ const PORT = process.env.PORT || 5000;
 // Middleware
 app.use(helmet()); // Security headers
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
-  credentials: true
+  origin: [process.env.FRONTEND_URL || 'http://localhost:3000', 'http://127.0.0.1:3000'],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  optionsSuccessStatus: 200
 }));
 app.use(morgan('combined')); // Logging
 app.use(express.json({ limit: '10mb' }));
@@ -73,6 +76,7 @@ app.use('/api/academic', academicRoutes);
 app.use('/api/examinations', examinationRoutes);
 app.use('/api/schedules', scheduleRoutes);
 app.use('/api/audit', auditRoutes);
+app.use('/api/audit-logs', auditRoutes);
 app.use('/api/students', studentRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/teacher-attendance', teacherAttendanceRoutes);

@@ -55,11 +55,17 @@ export default function TeacherReportsPage() {
       setPerformance(performanceData);
       setWorkload(workloadData);
     } catch (error: any) {
+      const isAuthError = error.message?.includes('401') || error.message?.includes('Unauthorized');
       toast({
-        title: 'Error',
-        description: 'Failed to load reports',
+        title: isAuthError ? 'Authentication Required' : 'Error',
+        description: isAuthError ? 'Please log in again to access reports' : 'Failed to load reports',
         variant: 'destructive'
       });
+      
+      if (isAuthError) {
+        // Redirect to login or refresh page
+        window.location.href = '/login';
+      }
     } finally {
       setLoading(false);
     }

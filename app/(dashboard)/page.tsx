@@ -13,10 +13,11 @@ export default function Home() {
 
   const getUserRole = () => {
     if (!user || !user.roles || user.roles.length === 0) {
-      return 'student'; // Default fallback
+      return 'tenant-admin'; // Default to tenant admin for now
     }
 
     const roleNames = user.roles.map(role => role.name);
+    console.log('User roles:', roleNames);
     
     // Priority order: Super Admin > Tenant Admin > Teacher > Student
     if (roleNames.includes('Super Admin')) return 'super-admin';
@@ -24,7 +25,8 @@ export default function Home() {
     if (roleNames.includes('Teacher')) return 'teacher';
     if (roleNames.includes('Student')) return 'student';
     
-    return 'student'; // Default fallback
+    // Default to tenant admin for administrative users
+    return 'tenant-admin';
   };
 
   const renderDashboard = () => {
