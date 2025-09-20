@@ -1,10 +1,9 @@
-
 class ApiService {
   private baseURL: string;
   private token: string | null = null;
 
   constructor() {
-    this.baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+    this.baseURL = '/api';
     this.token = this.getStoredToken();
   }
 

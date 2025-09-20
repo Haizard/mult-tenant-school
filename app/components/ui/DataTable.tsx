@@ -2,10 +2,14 @@ import React, { useState } from 'react';
 import { FaSort, FaSortUp, FaSortDown, FaSearch, FaFilter } from 'react-icons/fa';
 
 interface Column {
-  key: string;
-  label: string;
+  key?: string;
+  accessorKey?: string;
+  header: string;
+  label?: string;
   sortable?: boolean;
   render?: (value: any, row: any, rowIndex?: number) => React.ReactNode;
+  cell?: ({ row }: { row: { original: any } }) => React.ReactNode;
+  id?: string;
 }
 
 interface DataTableProps {
@@ -16,6 +20,7 @@ interface DataTableProps {
   pagination?: boolean;
   pageSize?: number;
   className?: string;
+  loading?: boolean;
 }
 
 const DataTable = ({
@@ -26,6 +31,7 @@ const DataTable = ({
   pagination = true,
   pageSize = 10,
   className = '',
+  loading = false,
 }: DataTableProps) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'asc' | 'desc' } | null>(null);
@@ -72,6 +78,14 @@ const DataTable = ({
     });
   };
 
+  const getColumnKey = (column: Column) => {
+    return column.accessorKey || column.key || column.id || '';
+  };
+
+  const getColumnHeader = (column: Column) => {
+    return column.header || column.label || '';
+  };
+
   const getSortIcon = (key: string) => {
     if (sortConfig?.key !== key) return <FaSort className="text-gray-400" />;
     return sortConfig.direction === 'asc' ? (
@@ -112,37 +126,60 @@ const DataTable = ({
         <table className="w-full">
           <thead>
             <tr className="border-b border-glass-border">
-              {columns.map((column) => (
-                <th
-                  key={column.key}
-                  className={`text-left py-3 px-4 font-semibold text-text-primary ${
-                    column.sortable ? 'cursor-pointer hover:text-accent-purple' : ''
-                  }`}
-                  onClick={() => column.sortable && handleSort(column.key)}
-                >
-                  <div className="flex items-center gap-2">
-                    {column.label}
-                    {column.sortable && getSortIcon(column.key)}
-                  </div>
-                </th>
-              ))}
+              {columns.map((column, index) => {
+                const columnKey = getColumnKey(column);
+                const columnHeader = getColumnHeader(column);
+                return (
+                  <th
+                    key={columnKey || index}
+                    className={`text-left py-3 px-4 font-semibold text-text-primary ${
+                      column.sortable ? 'cursor-pointer hover:text-accent-purple' : ''
+                    }`}
+                    onClick={() => column.sortable && columnKey && handleSort(columnKey)}
+                  >
+                    <div className="flex items-center gap-2">
+                      {columnHeader}
+                      {column.sortable && columnKey && getSortIcon(columnKey)}
+                    </div>
+                  </th>
+                );
+              })}
             </tr>
           </thead>
           <tbody>
-            {paginatedData.map((row, index) => (
-              <tr
-                key={index}
-                className="border-b border-glass-border hover:bg-glass-white/50 transition-colors duration-200"
-              >
-                {columns.map((column) => (
-                  <td key={column.key} className="py-4 px-4 text-text-secondary">
-                    {column.render
-                      ? column.render(row?.[column.key], row, index)
-                      : row?.[column.key] || '-'}
-                  </td>
-                ))}
+            {loading ? (
+              <tr>
+                <td colSpan={columns.length} className="py-8 px-4 text-center text-text-secondary">
+                  Loading...
+                </td>
               </tr>
-            ))}
+            ) : paginatedData.length === 0 ? (
+              <tr>
+                <td colSpan={columns.length} className="py-8 px-4 text-center text-text-secondary">
+                  No data available
+                </td>
+              </tr>
+            ) : (
+              paginatedData.map((row, index) => (
+                <tr
+                  key={index}
+                  className="border-b border-glass-border hover:bg-glass-white/50 transition-colors duration-200"
+                >
+                  {columns.map((column, colIndex) => {
+                    const columnKey = getColumnKey(column);
+                    return (
+                      <td key={columnKey || colIndex} className="py-4 px-4 text-text-secondary">
+                        {column.cell
+                          ? column.cell({ row: { original: row } })
+                          : column.render
+                          ? column.render(row?.[columnKey], row, index)
+                          : row?.[columnKey] || '-'}
+                      </td>
+                    );
+                  })}
+                </tr>
+              ))
+            )}
           </tbody>
         </table>
       </div>

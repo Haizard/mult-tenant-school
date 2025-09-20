@@ -1,27 +1,27 @@
-
 import { NextRequest, NextResponse } from 'next/server';
-
-const BACKEND_URL = process.env.BACKEND_URL || 'http://localhost:5000';
+import { prisma } from '@/lib/prisma';
 
 export async function GET(request: NextRequest) {
   try {
-    const authHeader = request.headers.get('authorization');
-    
-    const response = await fetch(`${BACKEND_URL}/api/students`, {
-      method: 'GET',
-      headers: {
-        'Authorization': authHeader || '',
-        'Content-Type': 'application/json',
+    const students = await prisma.student.findMany({
+      include: {
+        user: true
       },
+      orderBy: {
+        user: {
+          firstName: 'asc'
+        }
+      }
     });
 
-    const data = await response.json();
-    
-    return NextResponse.json(data, { status: response.status });
+    return NextResponse.json({
+      success: true,
+      data: students
+    });
   } catch (error) {
     console.error('Error fetching students:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch students' },
+      { success: false, error: 'Failed to fetch students', details: error.message },
       { status: 500 }
     );
   }

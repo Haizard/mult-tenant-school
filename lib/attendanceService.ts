@@ -1,4 +1,4 @@
-import { ApiService } from './apiService';
+import { apiService } from './apiService';
 
 interface AttendanceRecord {
   id: string;
@@ -58,10 +58,10 @@ interface AttendanceStatsResponse {
 }
 
 class AttendanceService {
-  private apiService: ApiService;
+  private apiService = apiService;
 
   constructor() {
-    this.apiService = new ApiService();
+    // Use shared API service instance
   }
 
   async getAttendanceRecords(params?: {

@@ -10,6 +10,7 @@ import RoleGuard from '../../components/RoleGuard';
 import { useAuth } from '../../contexts/AuthContext';
 import { attendanceService, AttendanceRecord } from '../../../lib/attendanceService';
 import { useToast } from '../../../hooks/use-toast';
+import MarkAttendanceModal from '../../components/attendance/MarkAttendanceModal';
 
 const AttendancePage = () => {
   const { user } = useAuth();
@@ -24,6 +25,7 @@ const AttendancePage = () => {
     SICK: 0
   });
   const [selectedDate, setSelectedDate] = useState(attendanceService.getTodayDate());
+  const [showMarkAttendanceModal, setShowMarkAttendanceModal] = useState(false);
 
   useEffect(() => {
     loadAttendanceData();
@@ -106,12 +108,12 @@ const AttendancePage = () => {
   };
 
   const handleMarkAttendance = () => {
-    // TODO: Implement attendance marking modal/form
-    toast({
-      title: 'Feature Coming Soon',
-      description: 'Attendance marking interface will be available soon',
-      variant: 'default'
-    });
+    setShowMarkAttendanceModal(true);
+  };
+
+  const handleMarkAttendanceSuccess = () => {
+    loadAttendanceData();
+    loadAttendanceStats();
   };
 
   const handleEditAttendance = async (recordId: string) => {
@@ -374,6 +376,14 @@ const AttendancePage = () => {
             pageSize={10}
           />
         </Card>
+
+        {/* Mark Attendance Modal */}
+        <MarkAttendanceModal
+          isOpen={showMarkAttendanceModal}
+          onClose={() => setShowMarkAttendanceModal(false)}
+          onSuccess={handleMarkAttendanceSuccess}
+          selectedDate={selectedDate}
+        />
       </div>
     </RoleGuard>
   );

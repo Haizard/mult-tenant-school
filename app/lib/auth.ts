@@ -1,5 +1,6 @@
 // Authentication Service and JWT Token Management
 import { apiService } from './api';
+import { apiService as attendanceApiService } from '../../lib/apiService';
 
 export interface User {
   id: string;
@@ -50,6 +51,11 @@ class AuthService {
 
   constructor() {
     this.loadUserFromStorage();
+    // Sync token with attendance API service
+    const token = apiService.getToken();
+    if (token) {
+      attendanceApiService.setToken(token);
+    }
   }
 
   private loadUserFromStorage(): void {
@@ -79,6 +85,7 @@ class AuthService {
     }
     this.currentUser = null;
     apiService.setToken(null);
+    attendanceApiService.setToken(null);
   }
 
   public async login(credentials: LoginCredentials): Promise<AuthResponse> {
@@ -90,6 +97,7 @@ class AuthService {
         
         // Save token and user data
         apiService.setToken(token);
+        attendanceApiService.setToken(token);
         this.saveUserData(user);
         
         return { user, token };
@@ -111,6 +119,7 @@ class AuthService {
         
         // Save token and user data
         apiService.setToken(token);
+        attendanceApiService.setToken(token);
         this.saveUserData(user);
         
         return { user, token };
