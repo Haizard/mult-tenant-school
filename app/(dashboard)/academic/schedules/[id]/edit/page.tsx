@@ -6,6 +6,7 @@ import { FaCalendarAlt, FaClock, FaUsers, FaBook, FaSave, FaArrowLeft } from 're
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
+import { scheduleService } from '@/lib/services/scheduleService';
 
 interface ScheduleFormData {
   title: string;
@@ -49,27 +50,37 @@ const EditSchedulePage = () => {
     const loadSchedule = async () => {
       setLoading(true);
       try {
-        // In a real app, this would be an API call
-        // For now, using sample data
-        const sampleSchedule = {
-          title: 'Mathematics Class - Algebra',
-          type: 'CLASS' as const,
-          subject: 'Mathematics',
-          teacher: 'John Smith',
-          class: 'Grade 10A',
-          startTime: '08:00',
-          endTime: '09:00',
-          date: '2024-01-15',
-          location: 'Room 101',
-          status: 'ACTIVE' as const,
-          description: 'Introduction to quadratic equations. Students will learn the basic concepts and solve practice problems.',
-          recurring: true,
-        };
+        const response = await scheduleService.getScheduleById(scheduleId);
         
-        await new Promise(resolve => setTimeout(resolve, 500)); // Simulate API delay
-        setFormData(sampleSchedule);
+        if (response.success && response.data) {
+          const schedule = response.data;
+          
+          // Convert datetime objects to separate date and time values
+          const startDateTime = new Date(schedule.startTime);
+          const endDateTime = new Date(schedule.endTime);
+          const scheduleDate = new Date(schedule.date);
+          
+          setFormData({
+            title: schedule.title,
+            type: schedule.type,
+            subject: schedule.subject?.subjectName || '',
+            teacher: schedule.teacher ? `${schedule.teacher.firstName} ${schedule.teacher.lastName}` : '',
+            class: '', // This would need to be mapped from classId if available
+            startTime: startDateTime.toTimeString().slice(0, 5), // HH:MM format
+            endTime: endDateTime.toTimeString().slice(0, 5), // HH:MM format
+            date: scheduleDate.toISOString().split('T')[0], // YYYY-MM-DD format
+            location: schedule.location || '',
+            status: schedule.status,
+            description: schedule.description || '',
+            recurring: schedule.recurring,
+          });
+        } else {
+          console.error('Failed to load schedule:', response.message);
+          alert('Failed to load schedule. Please try again.');
+        }
       } catch (error) {
         console.error('Failed to load schedule:', error);
+        alert('Failed to load schedule. Please try again.');
       } finally {
         setLoading(false);
       }
@@ -93,14 +104,27 @@ const EditSchedulePage = () => {
     setSaving(true);
 
     try {
-      // TODO: Implement actual API call to update schedule
-      console.log('Updating schedule:', formData);
+      // Convert form data to API format
+      const scheduleData = {
+        title: formData.title,
+        type: formData.type,
+        startTime: `${formData.date}T${formData.startTime}:00`,
+        endTime: `${formData.date}T${formData.endTime}:00`,
+        date: formData.date,
+        location: formData.location,
+        status: formData.status,
+        description: formData.description,
+        recurring: formData.recurring
+      };
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      const response = await scheduleService.updateSchedule(scheduleId, scheduleData);
       
-      // Navigate back to schedule details
-      router.push(`/academic/schedules/${scheduleId}`);
+      if (response.success) {
+        console.log('Schedule updated successfully');
+        router.push(`/academic/schedules/${scheduleId}`);
+      } else {
+        throw new Error(response.message || 'Failed to update schedule');
+      }
     } catch (error) {
       console.error('Failed to update schedule:', error);
       alert('Failed to update schedule. Please try again.');

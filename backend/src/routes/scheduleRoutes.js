@@ -1,5 +1,5 @@
 const express = require('express');
-const { authenticateToken, authorize } = require('../middleware/auth');
+const { authenticateToken, authorize, ensureTenantAccess } = require('../middleware/auth');
 const {
   getSchedules,
   getScheduleById,
@@ -18,12 +18,12 @@ const router = express.Router();
 router.use(authenticateToken);
 
 // Schedule CRUD routes
-router.get('/', authorize(['schedules:read']), getSchedules);
-router.get('/stats', authorize(['schedules:read']), getScheduleStats);
-router.get('/export', authorize(['schedules:read']), exportSchedules);
-router.get('/:id', authorize(['schedules:read']), getScheduleById);
-router.post('/', authorize(['schedules:create']), validateSchedule, createSchedule);
-router.put('/:id', authorize(['schedules:update']), validateScheduleUpdate, updateSchedule);
-router.delete('/:id', authorize(['schedules:delete']), deleteSchedule);
+router.get('/', authorize(['schedules:read']), ensureTenantAccess, getSchedules);
+router.get('/stats', authorize(['schedules:read']), ensureTenantAccess, getScheduleStats);
+router.get('/export', authorize(['schedules:read']), ensureTenantAccess, exportSchedules);
+router.get('/:id', authorize(['schedules:read']), ensureTenantAccess, getScheduleById);
+router.post('/', authorize(['schedules:create']), ensureTenantAccess, validateSchedule, createSchedule);
+router.put('/:id', authorize(['schedules:update']), ensureTenantAccess, validateScheduleUpdate, updateSchedule);
+router.delete('/:id', authorize(['schedules:delete']), ensureTenantAccess, deleteSchedule);
 
 module.exports = router;

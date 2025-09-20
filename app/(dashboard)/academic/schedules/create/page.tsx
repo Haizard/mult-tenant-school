@@ -6,6 +6,7 @@ import { FaCalendarAlt, FaSave, FaArrowLeft } from 'react-icons/fa';
 import Card from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { useAuth } from '@/contexts/AuthContext';
+import { scheduleService } from '@/lib/services/scheduleService';
 
 interface ScheduleFormData {
   title: string;
@@ -55,14 +56,31 @@ const CreateSchedulePage = () => {
     setSaving(true);
 
     try {
-      // TODO: Implement actual API call to create schedule
       console.log('Creating schedule:', formData);
       
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      // Convert form data to API format
+      const scheduleData = {
+        title: formData.title,
+        type: formData.type,
+        startTime: `${formData.date}T${formData.startTime}:00`,
+        endTime: `${formData.date}T${formData.endTime}:00`,
+        date: formData.date,
+        location: formData.location,
+        status: formData.status,
+        description: formData.description,
+        recurring: formData.recurring
+      };
       
-      // Navigate back to schedules list
-      router.push('/academic/schedules');
+      console.log('Schedule data being sent:', scheduleData);
+      
+      const response = await scheduleService.createSchedule(scheduleData);
+      
+      if (response.success) {
+        console.log('Schedule created successfully');
+        router.push('/academic/schedules');
+      } else {
+        throw new Error(response.message || 'Failed to create schedule');
+      }
     } catch (error) {
       console.error('Failed to create schedule:', error);
       alert('Failed to create schedule. Please try again.');

@@ -246,8 +246,12 @@ const getScheduleById = async (req, res) => {
 // Create new schedule
 const createSchedule = async (req, res) => {
   try {
+    console.log('Creating schedule with data:', req.body);
+    console.log('User tenant ID:', req.tenantId);
+    
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
+      console.log('Validation errors:', errors.array());
       return res.status(400).json({
         success: false,
         message: 'Validation failed',
