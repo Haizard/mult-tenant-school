@@ -172,6 +172,12 @@ export default function StudentsPage() {
               <div className="p-3 rounded-xl bg-gradient-to-r from-accent-purple to-accent-purple-light shadow-purple-glow">
                 <Users className="h-8 w-8 text-white" />
               </div>
+              <Link href="/students/enrollments">
+                <Button variant="secondary" className="flex items-center">
+                  <GraduationCap className="h-4 w-4 mr-2" />
+                  Manage Enrollments
+                </Button>
+              </Link>
               <Link href="/students/new">
                 <Button variant="primary" className="flex items-center">
                   <Plus className="h-4 w-4 mr-2" />
@@ -360,6 +366,11 @@ export default function StudentsPage() {
                             <Link href={`/students/${student.id}`}>
                               <Button variant="ghost" size="sm">
                                 <Eye className="h-4 w-4" />
+                              </Button>
+                            </Link>
+                            <Link href={`/students/enrollments/create?studentId=${student.id}`}>
+                              <Button variant="ghost" size="sm" title="Enroll Student">
+                                <GraduationCap className="h-4 w-4 text-blue-600" />
                               </Button>
                             </Link>
                             <Link href={`/students/${student.id}/edit`}>

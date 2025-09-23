@@ -7,6 +7,21 @@
                 "firebase-tools@latest",
                 "experimental:mcp"
             ]
+        },
+        "context7": {
+            "command": "npx",
+            "args": [
+                "-y",
+                "@upstash/context7-mcp@latest",
+                "--transport",
+                "stdio"
+            ]
+        },
+        "fetch": {
+            "command": "C:\\Users\\HAIZARD\\.trae\\tools\\uv\\latest\\uvx.exe",
+            "args": [
+                "mcp-server-fetch"
+            ]
         }
     }
 }

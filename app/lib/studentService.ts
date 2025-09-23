@@ -252,6 +252,7 @@ export interface StudentFilters {
   status?: string;
   gender?: string;
   classId?: string;
+  academicYearId?: string;
   page?: number;
   limit?: number;
 }
@@ -284,6 +285,7 @@ class StudentService {
     if (filters.status) params.append('status', filters.status);
     if (filters.gender) params.append('gender', filters.gender);
     if (filters.classId) params.append('classId', filters.classId);
+    if (filters.academicYearId) params.append('academicYearId', filters.academicYearId);
     if (filters.page) params.append('page', filters.page.toString());
     if (filters.limit) params.append('limit', filters.limit.toString());
 

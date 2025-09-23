@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Card } from '@/components/ui/Card';
+import { Card, CardContent } from '@/components/ui/Card';
 import Button from '@/components/ui/Button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +25,13 @@ import {
   DropdownMenuItem, 
   DropdownMenuTrigger 
 } from '@/components/ui/dropdown-menu';
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
 import { studentService, StudentEnrollment } from '@/lib/studentService';
 import { useToast } from '@/hooks/use-toast';
 import { format } from 'date-fns';
@@ -115,7 +122,7 @@ export default function EnrollmentsPage() {
               </Button>
               <Button 
                 variant="primary"
-                onClick={() => window.location.href = '/students/enrollments/new'}
+                onClick={() => window.location.href = '/students/enrollments/create'}
               >
                 <Plus className="h-4 w-4 mr-2" />
                 New Enrollment
@@ -126,7 +133,7 @@ export default function EnrollmentsPage() {
 
         {/* Statistics Cards - Match system style */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card variant="gradient" glow="blue">
+          <Card className="bg-gradient-to-r from-blue-50 to-blue-100 border-blue-200 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Total Enrollments</p>
@@ -139,7 +146,7 @@ export default function EnrollmentsPage() {
             </div>
           </Card>
           
-          <Card variant="gradient" glow="green">
+          <Card className="bg-gradient-to-r from-green-50 to-green-100 border-green-200 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Active Enrollments</p>
@@ -154,7 +161,7 @@ export default function EnrollmentsPage() {
             </div>
           </Card>
           
-          <Card variant="gradient" glow="purple">
+          <Card className="bg-gradient-to-r from-purple-50 to-purple-100 border-purple-200 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Course Enrollments</p>
@@ -169,7 +176,7 @@ export default function EnrollmentsPage() {
             </div>
           </Card>
           
-          <Card variant="gradient" glow="orange">
+          <Card className="bg-gradient-to-r from-orange-50 to-orange-100 border-orange-200 shadow-lg">
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-gray-600">Subject Enrollments</p>
@@ -187,12 +194,12 @@ export default function EnrollmentsPage() {
 
         {/* Filters and Search - Match system style */}
         <Card>
-          <div className="p-6">
+          <CardContent className="p-6">
             <div className="mb-6">
               <h2 className="text-xl font-semibold text-gray-900 mb-2">Enrollment Directory</h2>
               <p className="text-gray-600">Search and filter enrollments by various criteria</p>
             </div>
-          <div className="flex flex-col sm:flex-row gap-4 mb-6">
+            <div className="flex flex-col sm:flex-row gap-4 mb-6">
             <div className="flex-1">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
@@ -257,7 +264,7 @@ export default function EnrollmentsPage() {
                 </p>
                 {!searchTerm && !statusFilter && !typeFilter && (
                   <Button asChild>
-                    <Link href="/students/enrollments/new">
+                    <Link href="/students/enrollments/create">
                       <Plus className="h-4 w-4 mr-2" />
                       New Enrollment
                     </Link>
@@ -343,6 +350,7 @@ export default function EnrollmentsPage() {
           </div>
         </CardContent>
       </Card>
+      </div>
     </div>
   );
 }

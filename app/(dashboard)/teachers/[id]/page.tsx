@@ -117,6 +117,14 @@ export default function TeacherDetailPage() {
     if (!selectedSubject || !teacher) return;
     
     try {
+      // Validate the assignment first
+      const validation = await academicService.validateTeacherSubjectAssignment(teacher.id, selectedSubject);
+      
+      if (!validation.isValid) {
+        const proceed = confirm(`Warning: ${validation.reason}\n\nDo you want to proceed anyway?`);
+        if (!proceed) return;
+      }
+      
       await teacherService.assignSubjectToTeacher({
         teacherId: teacher.id,
         subjectId: selectedSubject
@@ -124,7 +132,9 @@ export default function TeacherDetailPage() {
       
       toast({
         title: 'Success',
-        description: 'Subject assigned successfully'
+        description: validation.isValid 
+          ? 'Subject assigned successfully' 
+          : 'Subject assigned successfully (with warning)'
       });
       
       setShowSubjectModal(false);

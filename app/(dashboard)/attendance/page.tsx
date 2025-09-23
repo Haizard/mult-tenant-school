@@ -1,31 +1,53 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { FaClipboardList, FaUserCheck, FaUserTimes, FaCalendarAlt, FaChalkboardTeacher, FaUserGraduate, FaPlus, FaEdit, FaTrash } from 'react-icons/fa';
-import { Card } from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import StatusBadge from '../../components/ui/StatusBadge';
-import DataTable from '../../components/ui/DataTable';
-import RoleGuard from '../../components/RoleGuard';
-import { useAuth } from '../../contexts/AuthContext';
-import { attendanceService, AttendanceRecord } from '../../../lib/attendanceService';
-import { useToast } from '../../../hooks/use-toast';
-import MarkAttendanceModal from '../../components/attendance/MarkAttendanceModal';
+import { useState, useEffect } from "react";
+import {
+  FaClipboardList,
+  FaUserCheck,
+  FaUserTimes,
+  FaCalendarAlt,
+  FaChalkboardTeacher,
+  FaUserGraduate,
+  FaPlus,
+  FaEdit,
+  FaTrash,
+  FaChartBar,
+  FaCalendarDay,
+} from "react-icons/fa";
+import { Card } from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import StatusBadge from "../../components/ui/StatusBadge";
+import DataTable from "../../components/ui/DataTable";
+import RoleGuard from "../../components/RoleGuard";
+import { useAuth } from "../../contexts/AuthContext";
+import {
+  attendanceService,
+  AttendanceRecord,
+} from "../../../lib/attendanceService";
+import { useToast } from "../../../hooks/use-toast";
+import MarkAttendanceModal from "../../components/attendance/MarkAttendanceModal";
+import AttendanceReports from "../../components/attendance/AttendanceReports";
+import AttendanceCalendar from "../../components/attendance/AttendanceCalendar";
 
 const AttendancePage = () => {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [attendanceRecords, setAttendanceRecords] = useState<AttendanceRecord[]>([]);
+  const [attendanceRecords, setAttendanceRecords] = useState<
+    AttendanceRecord[]
+  >([]);
   const [isLoading, setIsLoading] = useState(false);
   const [attendanceStats, setAttendanceStats] = useState({
     PRESENT: 0,
     ABSENT: 0,
     LATE: 0,
     EXCUSED: 0,
-    SICK: 0
+    SICK: 0,
   });
-  const [selectedDate, setSelectedDate] = useState(attendanceService.getTodayDate());
+  const [selectedDate, setSelectedDate] = useState(
+    attendanceService.getTodayDate(),
+  );
   const [showMarkAttendanceModal, setShowMarkAttendanceModal] = useState(false);
+  const [activeTab, setActiveTab] = useState("overview");
 
   useEffect(() => {
     loadAttendanceData();
@@ -38,24 +60,24 @@ const AttendancePage = () => {
       const response = await attendanceService.getAttendanceRecords({
         date: selectedDate,
         page: 1,
-        limit: 50
+        limit: 50,
       });
-      
+
       if (response.success) {
         setAttendanceRecords(response.data || []);
       } else {
         toast({
-          title: 'Error',
-          description: 'Failed to load attendance records',
-          variant: 'destructive'
+          title: "Error",
+          description: "Failed to load attendance records",
+          variant: "destructive",
         });
       }
     } catch (error: any) {
-      console.error('Error loading attendance:', error);
+      console.error("Error loading attendance:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to load attendance records',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message || "Failed to load attendance records",
+        variant: "destructive",
       });
       setAttendanceRecords([]);
     } finally {
@@ -66,41 +88,41 @@ const AttendancePage = () => {
   const loadAttendanceStats = async () => {
     try {
       const response = await attendanceService.getAttendanceStats({
-        date: selectedDate
+        date: selectedDate,
       });
-      
+
       if (response.success) {
         setAttendanceStats(response.data.stats);
       }
     } catch (error) {
-      console.error('Error loading attendance stats:', error);
+      console.error("Error loading attendance stats:", error);
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PRESENT':
-        return 'success';
-      case 'ABSENT':
-        return 'error';
-      case 'LATE':
-        return 'warning';
-      case 'EXCUSED':
-        return 'info';
+      case "PRESENT":
+        return "success";
+      case "ABSENT":
+        return "error";
+      case "LATE":
+        return "warning";
+      case "EXCUSED":
+        return "info";
       default:
-        return 'default';
+        return "default";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'PRESENT':
+      case "PRESENT":
         return <FaUserCheck className="text-green-500" />;
-      case 'ABSENT':
+      case "ABSENT":
         return <FaUserTimes className="text-red-500" />;
-      case 'LATE':
+      case "LATE":
         return <FaUserTimes className="text-yellow-500" />;
-      case 'EXCUSED':
+      case "EXCUSED":
         return <FaUserCheck className="text-blue-500" />;
       default:
         return <FaUserTimes className="text-gray-500" />;
@@ -120,45 +142,45 @@ const AttendancePage = () => {
     try {
       // TODO: Implement edit modal/form
       toast({
-        title: 'Feature Coming Soon',
-        description: 'Edit attendance interface will be available soon',
-        variant: 'default'
+        title: "Feature Coming Soon",
+        description: "Edit attendance interface will be available soon",
+        variant: "default",
       });
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to edit attendance',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message || "Failed to edit attendance",
+        variant: "destructive",
       });
     }
   };
 
   const handleDeleteAttendance = async (recordId: string) => {
-    if (!confirm('Are you sure you want to delete this attendance record?')) {
+    if (!confirm("Are you sure you want to delete this attendance record?")) {
       return;
     }
 
     try {
       await attendanceService.deleteAttendance(recordId);
       toast({
-        title: 'Success',
-        description: 'Attendance record deleted successfully',
-        variant: 'success'
+        title: "Success",
+        description: "Attendance record deleted successfully",
+        variant: "success",
       });
       loadAttendanceData(); // Reload data
     } catch (error: any) {
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to delete attendance record',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message || "Failed to delete attendance record",
+        variant: "destructive",
       });
     }
   };
 
   const columns = [
     {
-      key: 'studentName',
-      label: 'Student',
+      key: "studentName",
+      label: "Student",
       sortable: true,
       render: (value: string, row: AttendanceRecord) => (
         <div className="flex items-center">
@@ -168,49 +190,49 @@ const AttendancePage = () => {
             <p className="text-sm text-text-secondary">{row.studentId}</p>
           </div>
         </div>
-      )
+      ),
     },
     {
-      key: 'class',
-      label: 'Class',
+      key: "class",
+      label: "Class",
       sortable: true,
       render: (value: string) => (
         <span className="text-sm text-text-primary">{value}</span>
-      )
+      ),
     },
     {
-      key: 'subject',
-      label: 'Subject',
+      key: "subject",
+      label: "Subject",
       sortable: true,
       render: (value: string) => (
         <span className="text-sm text-text-primary">{value}</span>
-      )
+      ),
     },
     {
-      key: 'teacher',
-      label: 'Teacher',
+      key: "teacher",
+      label: "Teacher",
       sortable: true,
       render: (value: string) => (
         <div className="flex items-center">
           <FaChalkboardTeacher className="text-green-500 mr-2" />
           <span className="text-sm text-text-primary">{value}</span>
         </div>
-      )
+      ),
     },
     {
-      key: 'date',
-      label: 'Date',
+      key: "date",
+      label: "Date",
       sortable: true,
       render: (value: string) => (
         <div className="flex items-center">
           <FaCalendarAlt className="text-purple-500 mr-2" />
           <span className="text-sm text-text-primary">{value}</span>
         </div>
-      )
+      ),
     },
     {
-      key: 'status',
-      label: 'Status',
+      key: "status",
+      label: "Status",
       sortable: true,
       render: (value: string) => (
         <div className="flex items-center gap-2">
@@ -219,19 +241,19 @@ const AttendancePage = () => {
             {value}
           </StatusBadge>
         </div>
-      )
+      ),
     },
     {
-      key: 'notes',
-      label: 'Notes',
+      key: "notes",
+      label: "Notes",
       sortable: false,
       render: (value: string) => (
-        <span className="text-sm text-text-secondary">{value || '-'}</span>
-      )
+        <span className="text-sm text-text-secondary">{value || "-"}</span>
+      ),
     },
     {
-      key: 'actions',
-      label: 'Actions',
+      key: "actions",
+      label: "Actions",
       sortable: false,
       render: (value: any, row: AttendanceRecord) => (
         <div className="flex items-center gap-2">
@@ -250,25 +272,160 @@ const AttendancePage = () => {
             <FaTrash className="text-sm" />
           </button>
         </div>
-      )
-    }
+      ),
+    },
   ];
 
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case "overview":
+        return (
+          <>
+            {/* Date Selector */}
+            <Card className="p-4">
+              <div className="flex items-center gap-4">
+                <label className="text-sm font-medium text-gray-700">
+                  Select Date:
+                </label>
+                <input
+                  type="date"
+                  value={selectedDate}
+                  onChange={(e) => setSelectedDate(e.target.value)}
+                  className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                />
+                <Button
+                  onClick={() =>
+                    setSelectedDate(attendanceService.getTodayDate())
+                  }
+                >
+                  Today
+                </Button>
+              </div>
+            </Card>
+
+            {/* Stats Cards */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+              <Card className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
+                    <FaUserCheck className="text-2xl text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Present Today</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {attendanceStats.PRESENT}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-xl">
+                    <FaUserTimes className="text-2xl text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Absent Today</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {attendanceStats.ABSENT}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl">
+                    <FaClipboardList className="text-2xl text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Late Today</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {attendanceStats.LATE}
+                    </p>
+                  </div>
+                </div>
+              </Card>
+
+              <Card className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
+                    <FaCalendarAlt className="text-2xl text-white" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-gray-600">Attendance Rate</p>
+                    <p className="text-2xl font-bold text-gray-900">
+                      {attendanceService.calculateAttendanceRate(
+                        attendanceStats,
+                      )}
+                      %
+                    </p>
+                  </div>
+                </div>
+              </Card>
+            </div>
+
+            {/* Attendance Table */}
+            <Card className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h2 className="text-xl font-bold text-text-primary">
+                  Attendance Records
+                </h2>
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-text-secondary">Showing</span>
+                  <select className="glass-input px-3 py-1 text-sm">
+                    <option value="10">10</option>
+                    <option value="25">25</option>
+                    <option value="50">50</option>
+                    <option value="100">100</option>
+                  </select>
+                  <span className="text-sm text-text-secondary">per page</span>
+                </div>
+              </div>
+
+              <DataTable
+                data={attendanceRecords}
+                columns={columns}
+                searchable={true}
+                filterable={true}
+                pagination={true}
+                pageSize={10}
+              />
+            </Card>
+          </>
+        );
+      case "reports":
+        return <AttendanceReports />;
+      case "calendar":
+        return <AttendanceCalendar onDateSelect={setSelectedDate} />;
+      default:
+        return null;
+    }
+  };
+
   return (
-    <RoleGuard allowedRoles={['Tenant Admin', 'Teacher', 'Student']}>
+    <RoleGuard allowedRoles={["Tenant Admin", "Teacher", "Student"]}>
       <div className="space-y-6">
         {/* Header Section */}
         <div className="glass-card p-6 bg-gradient-to-r from-accent-purple/10 to-accent-blue/10 border-accent-purple/30">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-text-primary mb-2">Attendance Management</h1>
-              <p className="text-text-secondary">Track and manage student attendance records</p>
+              <h1 className="text-3xl font-bold text-text-primary mb-2">
+                Attendance Management
+              </h1>
+              <p className="text-text-secondary">
+                Track and manage student attendance records
+              </p>
             </div>
             <div className="flex items-center gap-4">
               <StatusBadge status="info" size="lg">
                 {attendanceRecords.length} Total Records
               </StatusBadge>
-              <Button variant="primary" size="md" onClick={handleMarkAttendance}>
+              <Button
+                variant="primary"
+                size="md"
+                onClick={handleMarkAttendance}
+              >
                 <FaPlus className="mr-2" />
                 Mark Attendance
               </Button>
@@ -276,106 +433,47 @@ const AttendancePage = () => {
           </div>
         </div>
 
-        {/* Date Selector */}
-        <Card className="p-4">
-          <div className="flex items-center gap-4">
-            <label className="text-sm font-medium text-gray-700">Select Date:</label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <Button onClick={() => setSelectedDate(attendanceService.getTodayDate())}>
-              Today
-            </Button>
-          </div>
-        </Card>
-
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-green-500 to-green-600 rounded-xl">
-                <FaUserCheck className="text-2xl text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Present Today</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {attendanceStats.PRESENT}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-red-500 to-red-600 rounded-xl">
-                <FaUserTimes className="text-2xl text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Absent Today</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {attendanceStats.ABSENT}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl">
-                <FaClipboardList className="text-2xl text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Late Today</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {attendanceStats.LATE}
-                </p>
-              </div>
-            </div>
-          </Card>
-
-          <Card className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl">
-                <FaCalendarAlt className="text-2xl text-white" />
-              </div>
-              <div>
-                <p className="text-sm text-gray-600">Attendance Rate</p>
-                <p className="text-2xl font-bold text-gray-900">
-                  {attendanceService.calculateAttendanceRate(attendanceStats)}%
-                </p>
-              </div>
-            </div>
-          </Card>
-        </div>
-
-        {/* Attendance Table */}
+        {/* Navigation Tabs */}
         <Card className="p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h2 className="text-xl font-bold text-text-primary">Attendance Records</h2>
-            <div className="flex items-center gap-2">
-              <span className="text-sm text-text-secondary">Showing</span>
-              <select className="glass-input px-3 py-1 text-sm">
-                <option value="10">10</option>
-                <option value="25">25</option>
-                <option value="50">50</option>
-                <option value="100">100</option>
-              </select>
-              <span className="text-sm text-text-secondary">per page</span>
-            </div>
+          <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <button
+              onClick={() => setActiveTab("overview")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "overview"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <FaClipboardList />
+              Overview
+            </button>
+            <button
+              onClick={() => setActiveTab("reports")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "reports"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <FaChartBar />
+              Reports & Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab("calendar")}
+              className={`flex items-center gap-2 px-4 py-2 rounded-md text-sm font-medium transition-colors ${
+                activeTab === "calendar"
+                  ? "bg-white text-blue-600 shadow-sm"
+                  : "text-gray-600 hover:text-gray-900"
+              }`}
+            >
+              <FaCalendarDay />
+              Calendar View
+            </button>
           </div>
-
-          <DataTable
-            data={attendanceRecords}
-            columns={columns}
-            searchable={true}
-            filterable={true}
-            pagination={true}
-            pageSize={10}
-          />
         </Card>
+
+        {/* Tab Content */}
+        {renderTabContent()}
 
         {/* Mark Attendance Modal */}
         <MarkAttendanceModal

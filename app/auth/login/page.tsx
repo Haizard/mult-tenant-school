@@ -1,13 +1,20 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { FaSignInAlt, FaEye, FaEyeSlash, FaGraduationCap, FaLock, FaUser } from 'react-icons/fa';
-import Card from '../../components/ui/Card';
-import Button from '../../components/ui/Button';
-import StatusBadge from '../../components/ui/StatusBadge';
-import { useAuth } from '../../contexts/AuthContext';
-import { notificationService } from '../../lib/notifications';
-import { errorHandler } from '../../lib/errorHandler';
+import { useState } from "react";
+import {
+  FaSignInAlt,
+  FaEye,
+  FaEyeSlash,
+  FaGraduationCap,
+  FaLock,
+  FaUser,
+} from "react-icons/fa";
+import Card from "../../components/ui/Card";
+import Button from "../../components/ui/Button";
+import StatusBadge from "../../components/ui/StatusBadge";
+import { useAuth } from "../../contexts/AuthContext";
+import { notificationService } from "../../lib/notifications";
+import { errorHandler } from "../../lib/errorHandler";
 
 interface LoginFormData {
   email: string;
@@ -24,9 +31,9 @@ interface LoginErrors {
 export default function LoginPage() {
   const { login } = useAuth();
   const [formData, setFormData] = useState<LoginFormData>({
-    email: '',
-    password: '',
-    rememberMe: false
+    email: "",
+    password: "",
+    rememberMe: false,
   });
 
   const [errors, setErrors] = useState<LoginErrors>({});
@@ -38,65 +45,67 @@ export default function LoginPage() {
 
     // Email validation
     if (!formData.email) {
-      newErrors.email = 'Email is required';
+      newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email is invalid';
+      newErrors.email = "Email is invalid";
     }
 
     // Password validation
     if (!formData.password) {
-      newErrors.password = 'Password is required';
+      newErrors.password = "Password is required";
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleInputChange = (field: keyof LoginFormData, value: string | boolean) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    
+  const handleInputChange = (
+    field: keyof LoginFormData,
+    value: string | boolean,
+  ) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+
     // Clear error when user starts typing
     if (errors[field as keyof LoginErrors]) {
-      setErrors(prev => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     if (!validateForm()) {
       return;
     }
 
     setIsLoading(true);
-    
+
     try {
       await login(formData.email, formData.password, formData.rememberMe);
-      
-      notificationService.success('Login successful! Welcome back.');
-      
+
+      notificationService.success("Login successful! Welcome back.");
+
       // Redirect to dashboard
-      window.location.href = '/';
-      
+      window.location.href = "/";
     } catch (error) {
-      console.error('Login error:', error);
-      errorHandler.handleApiError(error, 'Login failed');
-      setErrors({ general: 'Invalid email or password' });
+      console.error("Login error:", error);
+      errorHandler.handleApiError(error, "Login failed");
+      setErrors({ general: "Invalid email or password" });
     } finally {
       setIsLoading(false);
     }
   };
 
-  const handleDemoLogin = (role: 'admin' | 'teacher' | 'student') => {
+  const handleDemoLogin = (role: "admin" | "teacher" | "student") => {
     const demoCredentials = {
-      admin: { email: 'admin@schoolsystem.com', password: 'admin123' },
-      teacher: { email: 'teacher1@schoolsystem.com', password: 'teacher123' },
-      student: { email: 'student1@schoolsystem.com', password: 'student123' }
+      admin: { email: "admin@schoolsystem.com", password: "admin123" },
+      teacher: { email: "teacher1@schoolsystem.com", password: "teacher123" },
+      student: { email: "student1@schoolsystem.com", password: "student123" },
     };
 
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      ...demoCredentials[role]
+      ...demoCredentials[role],
     }));
   };
 
@@ -115,30 +124,34 @@ export default function LoginPage() {
         {/* Login Form */}
         <Card variant="strong" glow="purple">
           <div className="text-center mb-6">
-            <h2 className="text-2xl font-bold text-text-primary mb-2">Welcome Back</h2>
+            <h2 className="text-2xl font-bold text-text-primary mb-2">
+              Welcome Back
+            </h2>
             <p className="text-text-secondary">Sign in to your account</p>
           </div>
 
           {/* Demo Login Buttons */}
           <div className="mb-6">
-            <p className="text-sm text-text-secondary mb-3">Quick Demo Access:</p>
+            <p className="text-sm text-text-secondary mb-3">
+              Quick Demo Access:
+            </p>
             <div className="grid grid-cols-3 gap-2">
               <button
-                onClick={() => handleDemoLogin('admin')}
+                onClick={() => handleDemoLogin("admin")}
                 className="glass-button p-2 text-xs hover:bg-accent-purple/10 hover:text-accent-purple transition-colors"
               >
                 <FaUser className="mx-auto mb-1" />
                 Admin
               </button>
               <button
-                onClick={() => handleDemoLogin('teacher')}
+                onClick={() => handleDemoLogin("teacher")}
                 className="glass-button p-2 text-xs hover:bg-accent-blue/10 hover:text-accent-blue transition-colors"
               >
                 <FaUser className="mx-auto mb-1" />
                 Teacher
               </button>
               <button
-                onClick={() => handleDemoLogin('student')}
+                onClick={() => handleDemoLogin("student")}
                 className="glass-button p-2 text-xs hover:bg-accent-green/10 hover:text-accent-green transition-colors"
               >
                 <FaUser className="mx-auto mb-1" />
@@ -151,7 +164,9 @@ export default function LoginPage() {
             {/* General Error */}
             {errors.general && (
               <div className="glass-card p-4 bg-red-500/10 border-red-500/30">
-                <p className="text-red-500 text-sm text-center">{errors.general}</p>
+                <p className="text-red-500 text-sm text-center">
+                  {errors.general}
+                </p>
               </div>
             )}
 
@@ -165,8 +180,8 @@ export default function LoginPage() {
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => handleInputChange('email', e.target.value)}
-                  className={`glass-input w-full pl-10 pr-4 ${errors.email ? 'border-red-500' : ''}`}
+                  onChange={(e) => handleInputChange("email", e.target.value)}
+                  className={`glass-input w-full pl-10 pr-4 ${errors.email ? "border-red-500" : ""}`}
                   placeholder="Enter your email"
                 />
               </div>
@@ -183,10 +198,12 @@ export default function LoginPage() {
               <div className="relative">
                 <FaLock className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
                 <input
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={formData.password}
-                  onChange={(e) => handleInputChange('password', e.target.value)}
-                  className={`glass-input w-full pl-10 pr-10 ${errors.password ? 'border-red-500' : ''}`}
+                  onChange={(e) =>
+                    handleInputChange("password", e.target.value)
+                  }
+                  className={`glass-input w-full pl-10 pr-10 ${errors.password ? "border-red-500" : ""}`}
                   placeholder="Enter your password"
                 />
                 <button
@@ -208,7 +225,9 @@ export default function LoginPage() {
                 <input
                   type="checkbox"
                   checked={formData.rememberMe}
-                  onChange={(e) => handleInputChange('rememberMe', e.target.checked)}
+                  onChange={(e) =>
+                    handleInputChange("rememberMe", e.target.checked)
+                  }
                   className="w-4 h-4 text-accent-purple rounded"
                 />
                 <span className="text-sm text-text-primary">Remember me</span>
@@ -246,7 +265,7 @@ export default function LoginPage() {
           {/* Footer */}
           <div className="mt-6 text-center">
             <p className="text-sm text-text-secondary">
-              Don't have an account?{' '}
+              Don&apos;t have an account?{" "}
               <button className="text-accent-purple hover:text-accent-purple-light transition-colors">
                 Contact Administrator
               </button>

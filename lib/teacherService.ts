@@ -70,6 +70,16 @@ class TeacherService {
     }
   }
 
+  async getTeachers(): Promise<Teacher[]> {
+    try {
+      const response = await apiClient.get(this.baseUrl);
+      return response.data || response;
+    } catch (error) {
+      console.error('Error fetching teachers:', error);
+      throw error;
+    }
+  }
+
   async updateTeacher(id: string, data: UpdateTeacherData): Promise<Teacher> {
     try {
       const response = await apiClient.put(`${this.baseUrl}/${id}`, data);

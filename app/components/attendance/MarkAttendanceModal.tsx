@@ -1,17 +1,35 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import { FaTimes, FaUserCheck, FaUserTimes, FaClock, FaExclamationTriangle, FaHeartbeat } from 'react-icons/fa';
-import Button from '../ui/Button';
-import { Card } from '../ui/Card';
-import { attendanceService, AttendanceData } from '../../../lib/attendanceService';
-import { useToast } from '../../../hooks/use-toast';
+import { useState, useEffect } from "react";
+import {
+  FaTimes,
+  FaUserCheck,
+  FaUserTimes,
+  FaClock,
+  FaExclamationTriangle,
+  FaHeartbeat,
+} from "react-icons/fa";
+import Button from "../ui/Button";
+import { Card } from "../ui/Card";
+import {
+  attendanceService,
+  AttendanceData,
+} from "../../../lib/attendanceService";
+import { useToast } from "../../../hooks/use-toast";
+import { apiService } from "../../../lib/apiService";
 
 interface Student {
   id: string;
+  studentId: string;
   name: string;
   email: string;
   class: string;
+  className?: string;
+  user?: {
+    firstName: string;
+    lastName: string;
+    email: string;
+  };
 }
 
 interface MarkAttendanceModalProps {
@@ -21,10 +39,17 @@ interface MarkAttendanceModalProps {
   selectedDate: string;
 }
 
-const MarkAttendanceModal = ({ isOpen, onClose, onSuccess, selectedDate }: MarkAttendanceModalProps) => {
+const MarkAttendanceModal = ({
+  isOpen,
+  onClose,
+  onSuccess,
+  selectedDate,
+}: MarkAttendanceModalProps) => {
   const { toast } = useToast();
   const [students, setStudents] = useState<Student[]>([]);
-  const [attendanceData, setAttendanceData] = useState<Record<string, string>>({});
+  const [attendanceData, setAttendanceData] = useState<Record<string, string>>(
+    {},
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -37,25 +62,85 @@ const MarkAttendanceModal = ({ isOpen, onClose, onSuccess, selectedDate }: MarkA
   const loadStudents = async () => {
     setIsLoading(true);
     try {
-      const mockStudents: Student[] = [
-        { id: '1', name: 'John Doe', email: 'john@example.com', class: 'Grade 10A' },
-        { id: '2', name: 'Jane Smith', email: 'jane@example.com', class: 'Grade 10A' },
-        { id: '3', name: 'Mike Johnson', email: 'mike@example.com', class: 'Grade 10A' },
-        { id: '4', name: 'Sarah Wilson', email: 'sarah@example.com', class: 'Grade 10A' },
-        { id: '5', name: 'David Brown', email: 'david@example.com', class: 'Grade 10A' },
-      ];
-      setStudents(mockStudents);
-      
-      const initialData: Record<string, string> = {};
-      mockStudents.forEach(student => {
-        initialData[student.id] = 'PRESENT';
-      });
-      setAttendanceData(initialData);
+      // Get students from API
+      const response = await apiService.get("/students");
+
+      if (response.success && response.data) {
+        const formattedStudents: Student[] = response.data.map(
+          (student: any) => ({
+            id: student.id,
+            studentId: student.studentId,
+            name: student.user
+              ? `${student.user.firstName} ${student.user.lastName}`
+              : "Unknown Student",
+            email: student.user?.email || "",
+            class:
+              student.class?.className ||
+              student.className ||
+              "No Class Assigned",
+          }),
+        );
+
+        setStudents(formattedStudents);
+
+        const initialData: Record<string, string> = {};
+        formattedStudents.forEach((student) => {
+          initialData[student.id] = "PRESENT";
+        });
+        setAttendanceData(initialData);
+      } else {
+        // Fallback to mock data if API fails
+        const mockStudents: Student[] = [
+          {
+            id: "1",
+            studentId: "ST001",
+            name: "John Doe",
+            email: "john@example.com",
+            class: "Grade 10A",
+          },
+          {
+            id: "2",
+            studentId: "ST002",
+            name: "Jane Smith",
+            email: "jane@example.com",
+            class: "Grade 10A",
+          },
+          {
+            id: "3",
+            studentId: "ST003",
+            name: "Mike Johnson",
+            email: "mike@example.com",
+            class: "Grade 10A",
+          },
+          {
+            id: "4",
+            studentId: "ST004",
+            name: "Sarah Wilson",
+            email: "sarah@example.com",
+            class: "Grade 10A",
+          },
+          {
+            id: "5",
+            studentId: "ST005",
+            name: "David Brown",
+            email: "david@example.com",
+            class: "Grade 10A",
+          },
+        ];
+        setStudents(mockStudents);
+
+        const initialData: Record<string, string> = {};
+        mockStudents.forEach((student) => {
+          initialData[student.id] = "PRESENT";
+        });
+        setAttendanceData(initialData);
+      }
     } catch (error) {
+      console.error("Error loading students:", error);
       toast({
-        title: 'Error',
-        description: 'Failed to load students',
-        variant: 'destructive'
+        title: "Error",
+        description: "Failed to load students",
+        variant: "destructive",
       });
     } finally {
       setIsLoading(false);
@@ -63,37 +148,38 @@ const MarkAttendanceModal = ({ isOpen, onClose, onSuccess, selectedDate }: MarkA
   };
 
   const handleStatusChange = (studentId: string, status: string) => {
-    setAttendanceData(prev => ({
+    setAttendanceData((prev) => ({
       ...prev,
-      [studentId]: status
+      [studentId]: status,
     }));
   };
 
   const handleSubmit = async () => {
     setIsSubmitting(true);
     try {
-      const attendanceRecords: AttendanceData[] = students.map(student => ({
-        studentId: student.id,
+      const attendanceRecords: AttendanceData[] = students.map((student) => ({
+        studentId: student.studentId || student.id,
         date: selectedDate,
         status: attendanceData[student.id] as any,
-        period: '1',
+        period: "FULL_DAY",
       }));
 
       await attendanceService.markAttendance(attendanceRecords);
-      
+
       toast({
-        title: 'Success',
-        description: 'Attendance marked successfully',
-        variant: 'success'
+        title: "Success",
+        description: `Attendance marked successfully for ${students.length} students`,
+        variant: "success",
       });
-      
+
       onSuccess();
       onClose();
     } catch (error: any) {
+      console.error("Error marking attendance:", error);
       toast({
-        title: 'Error',
-        description: error.message || 'Failed to mark attendance',
-        variant: 'destructive'
+        title: "Error",
+        description: error.message || "Failed to mark attendance",
+        variant: "destructive",
       });
     } finally {
       setIsSubmitting(false);
@@ -102,15 +188,15 @@ const MarkAttendanceModal = ({ isOpen, onClose, onSuccess, selectedDate }: MarkA
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case 'PRESENT':
+      case "PRESENT":
         return <FaUserCheck className="text-green-500" />;
-      case 'ABSENT':
+      case "ABSENT":
         return <FaUserTimes className="text-red-500" />;
-      case 'LATE':
+      case "LATE":
         return <FaClock className="text-yellow-500" />;
-      case 'EXCUSED':
+      case "EXCUSED":
         return <FaExclamationTriangle className="text-blue-500" />;
-      case 'SICK':
+      case "SICK":
         return <FaHeartbeat className="text-purple-500" />;
       default:
         return <FaUserCheck className="text-gray-500" />;
@@ -119,18 +205,18 @@ const MarkAttendanceModal = ({ isOpen, onClose, onSuccess, selectedDate }: MarkA
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'PRESENT':
-        return 'bg-green-100 border-green-300 text-green-800';
-      case 'ABSENT':
-        return 'bg-red-100 border-red-300 text-red-800';
-      case 'LATE':
-        return 'bg-yellow-100 border-yellow-300 text-yellow-800';
-      case 'EXCUSED':
-        return 'bg-blue-100 border-blue-300 text-blue-800';
-      case 'SICK':
-        return 'bg-purple-100 border-purple-300 text-purple-800';
+      case "PRESENT":
+        return "bg-green-100 border-green-300 text-green-800";
+      case "ABSENT":
+        return "bg-red-100 border-red-300 text-red-800";
+      case "LATE":
+        return "bg-yellow-100 border-yellow-300 text-yellow-800";
+      case "EXCUSED":
+        return "bg-blue-100 border-blue-300 text-blue-800";
+      case "SICK":
+        return "bg-purple-100 border-purple-300 text-purple-800";
       default:
-        return 'bg-gray-100 border-gray-300 text-gray-800';
+        return "bg-gray-100 border-gray-300 text-gray-800";
     }
   };
 
@@ -140,7 +226,9 @@ const MarkAttendanceModal = ({ isOpen, onClose, onSuccess, selectedDate }: MarkA
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
       <Card className="w-full max-w-4xl max-h-[90vh] overflow-hidden">
         <div className="flex items-center justify-between p-6 border-b">
-          <h2 className="text-xl font-bold text-text-primary">Mark Attendance - {selectedDate}</h2>
+          <h2 className="text-xl font-bold text-text-primary">
+            Mark Attendance - {selectedDate}
+          </h2>
           <button
             onClick={onClose}
             className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
@@ -153,39 +241,53 @@ const MarkAttendanceModal = ({ isOpen, onClose, onSuccess, selectedDate }: MarkA
           {isLoading ? (
             <div className="flex items-center justify-center py-8">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
-              <span className="ml-2 text-text-secondary">Loading students...</span>
+              <span className="ml-2 text-text-secondary">
+                Loading students...
+              </span>
             </div>
           ) : (
             <div className="space-y-4">
               {students.map((student) => (
-                <div key={student.id} className="flex items-center justify-between p-4 border rounded-lg">
+                <div
+                  key={student.id}
+                  className="flex items-center justify-between p-4 border rounded-lg"
+                >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
                       <span className="text-blue-600 font-medium">
-                        {student.name.split(' ').map(n => n[0]).join('')}
+                        {student.name
+                          .split(" ")
+                          .map((n) => n[0])
+                          .join("")}
                       </span>
                     </div>
                     <div>
-                      <p className="font-medium text-text-primary">{student.name}</p>
-                      <p className="text-sm text-text-secondary">{student.class}</p>
+                      <p className="font-medium text-text-primary">
+                        {student.name}
+                      </p>
+                      <p className="text-sm text-text-secondary">
+                        {student.class}
+                      </p>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-2">
-                    {['PRESENT', 'ABSENT', 'LATE', 'EXCUSED', 'SICK'].map((status) => (
-                      <button
-                        key={status}
-                        onClick={() => handleStatusChange(student.id, status)}
-                        className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
-                          attendanceData[student.id] === status
-                            ? getStatusColor(status)
-                            : 'bg-white border-gray-300 text-gray-600 hover:bg-gray-50'
-                        }`}
-                      >
-                        {getStatusIcon(status)}
-                        <span className="text-sm font-medium">{status}</span>
-                      </button>
-                    ))}
+                    {["PRESENT", "ABSENT", "LATE", "EXCUSED", "SICK"].map(
+                      (status) => (
+                        <button
+                          key={status}
+                          onClick={() => handleStatusChange(student.id, status)}
+                          className={`flex items-center gap-2 px-3 py-2 rounded-lg border transition-all ${
+                            attendanceData[student.id] === status
+                              ? getStatusColor(status)
+                              : "bg-white border-gray-300 text-gray-600 hover:bg-gray-50"
+                          }`}
+                        >
+                          {getStatusIcon(status)}
+                          <span className="text-sm font-medium">{status}</span>
+                        </button>
+                      ),
+                    )}
                   </div>
                 </div>
               ))}
@@ -197,12 +299,12 @@ const MarkAttendanceModal = ({ isOpen, onClose, onSuccess, selectedDate }: MarkA
           <Button variant="secondary" onClick={onClose} disabled={isSubmitting}>
             Cancel
           </Button>
-          <Button 
-            variant="primary" 
-            onClick={handleSubmit} 
+          <Button
+            variant="primary"
+            onClick={handleSubmit}
             disabled={isLoading || isSubmitting}
           >
-            {isSubmitting ? 'Marking...' : 'Mark Attendance'}
+            {isSubmitting ? "Marking..." : "Mark Attendance"}
           </Button>
         </div>
       </Card>
