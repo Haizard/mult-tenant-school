@@ -18,6 +18,10 @@ import {
   FaGraduationCap,
   FaBuilding,
   FaShieldAlt,
+  FaDollarSign,
+  FaCreditCard,
+  FaReceipt,
+  FaChartLine,
 } from "react-icons/fa";
 import Link from "next/link";
 import { useAuth } from "../contexts/AuthContext";
@@ -168,6 +172,27 @@ const Sidebar = () => {
       href: "/account",
       show: true,
     });
+
+    // Finance management - Finance Staff, Tenant Admin, Super Admin only
+    if (hasAnyRole(["Finance Staff", "Tenant Admin", "Super Admin"])) {
+      items.push({
+        icon: <FaDollarSign />,
+        text: "Finance",
+        href: "/finance",
+        show: true,
+      });
+    }
+
+    // Transport management - Tenant Admin, Transport Staff, Student, Parent
+    if (hasAnyRole(["Tenant Admin", "Transport Staff", "Student", "Parent"])) {
+      items.push({
+        icon: <FaBus />,
+        text: "Transport",
+        href: "/transport",
+        show: true,
+        hasDropdown: true,
+      });
+    }
 
     // School-specific features - Tenant Admin, Teacher, Student only
     if (hasAnyRole(["Tenant Admin", "Teacher", "Student"])) {

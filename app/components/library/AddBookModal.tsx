@@ -66,7 +66,7 @@ export default function AddBookModal({
 
     setFormData((prev) => ({
       ...prev,
-      [name]: type === "number" ? (value ? Number(value) : undefined) : value,
+      [name]: type === "number" ? (value === "" ? undefined : Number(value)) : value,
     }));
   };
 
@@ -82,10 +82,11 @@ export default function AddBookModal({
     setError(null);
 
     try {
-      // Ensure availableCopies matches totalCopies for new books
+      // **FIX: Convert acquisitionDate to full ISO string before sending**
       const bookData = {
         ...formData,
         availableCopies: formData.totalCopies,
+        acquisitionDate: new Date(formData.acquisitionDate).toISOString(),
       };
 
       const newBook = await libraryService.createBook(bookData);

@@ -1,12 +1,22 @@
 // API Configuration and Base Service
-const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || "http://localhost:5000/api";
+// FORCE API to use Next.js routes, ignore environment variable
+const API_BASE_URL = "/api";
 
-console.log("API Service initialized with base URL:", API_BASE_URL);
-console.log(
-  "Environment NEXT_PUBLIC_API_URL:",
-  process.env.NEXT_PUBLIC_API_URL,
-);
+// CRITICAL CACHE BUSTING - Updated API configuration
+const API_VERSION = "v3.0.0-CACHE-BUST-" + Date.now();
+const CACHE_BUST_ID = Math.random().toString(36).substring(7);
+
+console.log("🔥 CACHE BUSTED API Service - Version:", API_VERSION);
+console.log("🔥 Cache Bust ID:", CACHE_BUST_ID);
+console.log("🔥 API Base URL:", API_BASE_URL);
+console.log("🔥 FORCED TO USE /api - IGNORING ENVIRONMENT VARIABLE");
+console.log("🔥 Environment NEXT_PUBLIC_API_URL (IGNORED):", process.env.NEXT_PUBLIC_API_URL);
+
+// Force reload marker
+if (typeof window !== 'undefined') {
+  console.log("🔥 BROWSER DETECTED - If you see localhost:5000 in any requests, HARD REFRESH NOW!");
+  window.__API_CACHE_BUST = CACHE_BUST_ID;
+}
 
 export interface ApiResponse<T = any> {
   success: boolean;
@@ -36,6 +46,29 @@ class ApiService {
   constructor(baseURL: string = API_BASE_URL) {
     this.baseURL = baseURL;
     this.token = this.getStoredToken();
+    
+    // AGGRESSIVE CACHE BUSTING
+    console.log("🔥🔥🔥 API SERVICE CONSTRUCTOR - CACHE BUSTED VERSION 🔥🔥🔥");
+    console.log("🔥 Base URL:", this.baseURL);
+    console.log("🔥 Version:", API_VERSION);
+    console.log("🔥 Cache Bust ID:", CACHE_BUST_ID);
+    
+    if (typeof window !== 'undefined') {
+      console.log("🔥 BROWSER ENVIRONMENT - Checking for cached API service...");
+      
+      // Clear localStorage API cache if any
+      const keysToRemove = [];
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.includes('api_cache')) {
+          keysToRemove.push(key);
+        }
+      }
+      keysToRemove.forEach(key => localStorage.removeItem(key));
+      
+      console.log("🔥 Cleared", keysToRemove.length, "cached API entries");
+      console.log("🔥 If you still see localhost:5000, perform a HARD REFRESH (Ctrl+Shift+R)");
+    }
   }
 
   private getStoredToken(): string | null {
@@ -84,12 +117,23 @@ class ApiService {
       : endpoint;
     const url = `${this.baseURL}/${cleanEndpoint}`;
 
-    console.log("API Service Debug:", {
+    console.log("🔥🔥🔥 API SERVICE REQUEST - CACHE BUSTED 🔥🔥🔥", {
       baseURL: this.baseURL,
       endpoint,
       cleanEndpoint,
       finalUrl: url,
+      version: API_VERSION,
+      cacheBustId: CACHE_BUST_ID,
+      timestamp: new Date().toISOString(),
     });
+    
+    // CRITICAL: Alert if still using localhost:5000
+    if (url.includes('localhost:5000')) {
+      console.error("🚨🚨🚨 CRITICAL ERROR: Still using localhost:5000! 🚨🚨🚨");
+      console.error("🚨 This means your browser is using cached JavaScript!");
+      console.error("🚨 SOLUTION: Perform a HARD REFRESH (Ctrl+Shift+R or Ctrl+F5)");
+      console.error("🚨 Or open an incognito/private window");
+    }
 
     const headers: Record<string, string> = {
       "Content-Type": "application/json",

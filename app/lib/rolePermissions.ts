@@ -178,9 +178,61 @@ export const ROLE_PERMISSIONS: RolePermissions = {
   'Staff': [
     // Staff-specific permissions (e.g., Librarian, Accountant)
     { resource: 'library', action: 'manage', roles: ['Super Admin', 'Tenant Admin', 'Staff'] },
-    { resource: 'finance', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Staff'] },
-    { resource: 'finance', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Staff'] },
     { resource: 'announcements', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher', 'Student', 'Staff'] },
+  ],
+  
+  'Finance Staff': [
+    // Comprehensive finance management permissions
+    { resource: 'finance', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'finance', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff', 'Parent'] },
+    { resource: 'finance', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'finance', action: 'delete', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    
+    // Fee management
+    { resource: 'fees', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'fees', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff', 'Parent'] },
+    { resource: 'fees', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'fees', action: 'delete', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    
+    // Payment processing
+    { resource: 'payments', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'payments', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff', 'Parent'] },
+    { resource: 'payments', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'payments', action: 'delete', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    
+    // Invoice management
+    { resource: 'invoices', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'invoices', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff', 'Parent'] },
+    { resource: 'invoices', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'invoices', action: 'delete', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    
+    // Expense management
+    { resource: 'expenses', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'expenses', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'expenses', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'expenses', action: 'delete', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'expenses', action: 'approve', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    
+    // Budget management
+    { resource: 'budgets', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'budgets', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'budgets', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'budgets', action: 'delete', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    
+    // Refund management
+    { resource: 'refunds', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'refunds', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'refunds', action: 'update', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'refunds', action: 'approve', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'refunds', action: 'process', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    
+    // Financial reports
+    { resource: 'financial_reports', action: 'create', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'financial_reports', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    { resource: 'financial_reports', action: 'export', roles: ['Super Admin', 'Tenant Admin', 'Finance Staff'] },
+    
+    // General announcements
+    { resource: 'announcements', action: 'read', roles: ['Super Admin', 'Tenant Admin', 'Teacher', 'Student', 'Finance Staff'] },
   ]
 };
 

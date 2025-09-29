@@ -1,0 +1,12 @@
+// Report validation limits
+const REPORT_TITLE_MIN = 5;
+const REPORT_TITLE_MAX = 100;
+const REPORT_CONTENT_MIN = 20;
+const REPORT_CONTENT_MAX = 2000;
+
+module.exports = {
+  REPORT_TITLE_MIN,
+  REPORT_TITLE_MAX,
+  REPORT_CONTENT_MIN,
+  REPORT_CONTENT_MAX
+};

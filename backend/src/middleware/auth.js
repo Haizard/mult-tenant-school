@@ -106,7 +106,7 @@ const authorize = (requiredPermissions = []) => {
 
       // Check if user has required permissions
       const userPermissions = req.user.userRoles.flatMap(ur =>
-        ur.role.rolePermissions.map(rp => rp.permission.name)
+        ur.role.rolePermissions.map(rp => `${rp.permission.resource}:${rp.permission.action}`)
       );
 
       const hasPermission = requiredPermissions.every(permission =>
@@ -176,4 +176,3 @@ module.exports = {
   authorize,
   ensureTenantAccess
 };
-

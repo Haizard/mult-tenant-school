@@ -3,8 +3,11 @@ class ApiService {
   private token: string | null = null;
 
   constructor() {
-    this.baseURL = '/api';
-    this.token = this.getStoredToken();
+    // This ensures the backend URL is always correct.
+    this.baseURL = process.env.NEXT_PUBLIC_API_URL || '/api';
+    if (typeof window !== 'undefined') {
+      this.token = localStorage.getItem('auth_token');
+    }
   }
 
   private getStoredToken(): string | null {
@@ -33,37 +36,41 @@ class ApiService {
   }
 
   private async request(endpoint: string, options: RequestInit = {}) {
+    // Construct the full URL, ensuring no double slashes.
+    const url = `${this.baseURL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`;
+
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+      ...options.headers as Record<string, string>,
+    };
+
+    const token = this.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const config: RequestInit = {
+      ...options,
+      headers,
+    };
+
     try {
-      // Remove leading slash from endpoint to avoid double slashes
-      const cleanEndpoint = endpoint.startsWith('/') ? endpoint.slice(1) : endpoint;
-      const url = `${this.baseURL}/${cleanEndpoint}`;
-      
-      const headers: Record<string, string> = {
-        'Content-Type': 'application/json',
-        ...options.headers as Record<string, string>,
-      };
-
-      // Add authentication header if token exists
-      const token = this.getToken();
-      if (token) {
-        headers['Authorization'] = `Bearer ${token}`;
-      }
-      
-      const config: RequestInit = {
-        ...options,
-        headers,
-      };
-
       const response = await fetch(url, config);
-      
+
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+        // Use a more descriptive error message.
+        const errorMessage = errorData.message || errorData.error || `HTTP error! status: ${response.status}`;
+        console.error(`API Error on ${endpoint}:`, errorMessage);
+        throw new Error(errorMessage);
       }
 
-      return await response.json();
+      // Handle cases where the response might be empty.
+      const responseText = await response.text();
+      return responseText ? JSON.parse(responseText) : {};
+
     } catch (error) {
-      console.error('API Error:', error);
+      console.error(`Network or other error on ${endpoint}:`, error);
       throw error;
     }
   }

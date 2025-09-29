@@ -123,10 +123,7 @@ const getCourses = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get courses",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -205,10 +202,7 @@ const createCourse = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to create course",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -294,10 +288,7 @@ const updateCourse = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update course",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -353,10 +344,7 @@ const getCourseById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get course",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -394,10 +382,7 @@ const deleteCourse = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete course",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -522,10 +507,7 @@ const getSubjects = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get subjects",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -603,10 +585,7 @@ const createSubject = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to create subject",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -707,10 +686,7 @@ const updateSubject = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update subject",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -801,10 +777,7 @@ const getSubjectById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get subject",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -842,10 +815,7 @@ const deleteSubject = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete subject",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -912,10 +882,7 @@ const getTeacherSubjects = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get teacher-subject assignments",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1040,10 +1007,7 @@ const assignTeacherToSubject = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to assign teacher to subject",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1081,10 +1045,7 @@ const removeTeacherFromSubject = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to remove teacher from subject",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1111,10 +1072,7 @@ const getAcademicYears = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get academic years",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1184,10 +1142,7 @@ const createAcademicYear = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to create academic year",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1260,10 +1215,7 @@ const updateAcademicYear = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update academic year",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1301,10 +1253,7 @@ const deleteAcademicYear = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete academic year",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1435,10 +1384,7 @@ const getClasses = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get classes",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1504,10 +1450,7 @@ const getClassById = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get class",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1658,14 +1601,11 @@ const createClass = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to create class",
-      error:
-        process.env.NODE_ENV === "development"
-          ? {
-              message: error.message,
-              code: error.code,
-              meta: error.meta,
-            }
-          : "Internal server error",
+      error: {
+        message: error.message,
+        code: error.code,
+        meta: error.meta,
+      },
     });
   }
 };
@@ -1765,10 +1705,7 @@ const updateClass = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update class",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1806,10 +1743,7 @@ const deleteClass = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to delete class",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -1962,10 +1896,7 @@ const updateClassEnrollment = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to update class enrollment",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };
@@ -2034,10 +1965,7 @@ const getClassEnrollmentStats = async (req, res) => {
     res.status(500).json({
       success: false,
       message: "Failed to get class enrollment statistics",
-      error:
-        process.env.NODE_ENV === "development"
-          ? error.message
-          : "Internal server error",
+      error: error.message,
     });
   }
 };

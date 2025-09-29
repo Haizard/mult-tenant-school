@@ -58,7 +58,16 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json();
-    const url = `${process.env.BACKEND_URL}/api/library/circulations/issue`;
+    const action = body.action || 'issue';
+    
+    let url = '';
+    if (action === 'return') {
+      url = `${process.env.BACKEND_URL}/api/library/circulations/return`;
+    } else if (action === 'renew') {
+      url = `${process.env.BACKEND_URL}/api/library/circulations/renew`;
+    } else {
+      url = `${process.env.BACKEND_URL}/api/library/circulations/issue`;
+    }
 
     const response = await fetch(url, {
       method: 'POST',
@@ -72,7 +81,7 @@ export async function POST(request: NextRequest) {
     if (!response.ok) {
       const errorData = await response.json();
       return NextResponse.json(
-        { success: false, message: errorData.message || 'Failed to issue book' },
+        { success: false, message: errorData.message || `Failed to ${action} book` },
         { status: response.status }
       );
     }

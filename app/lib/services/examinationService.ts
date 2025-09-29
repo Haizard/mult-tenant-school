@@ -473,7 +473,7 @@ class ExaminationService {
       // For blob responses, we need to use fetch directly with full URL
       const token = apiService.getToken();
       const baseURL =
-        process.env.NEXT_PUBLIC_BACKEND_URL || "http://localhost:5000/api";
+        process.env.NEXT_PUBLIC_BACKEND_URL || "/api";
       const headers: HeadersInit = {};
 
       if (token) {

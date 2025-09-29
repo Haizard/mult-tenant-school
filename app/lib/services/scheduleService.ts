@@ -214,7 +214,7 @@ class ScheduleService {
 
       // For blob responses, we need to use fetch directly with full URL
       const token = apiService.getToken();
-      const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api';
+      const baseURL = process.env.NEXT_PUBLIC_API_URL || '/api';
       const headers: HeadersInit = {};
       
       if (token) {

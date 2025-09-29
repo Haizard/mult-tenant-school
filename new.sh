@@ -1,0 +1,1 @@
+npx prisma db seednpx prisma db seed

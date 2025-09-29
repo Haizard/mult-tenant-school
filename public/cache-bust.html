@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Cache Buster</title>
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+</head>
+<body>
+    <h1>🔥 CACHE BUSTER ACTIVATED 🔥</h1>
+    <p>If you can see this page, your browser is loading fresh content.</p>
+    <p>Now go back to your finance page and the API should work correctly.</p>
+    <script>
+        console.log("🔥 Cache buster page loaded - browser cache cleared!");
+        console.log("🔥 Current timestamp:", new Date().toISOString());
+        
+        // Clear all possible caches
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+        
+        // Clear localStorage cache entries
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && (key.includes('api') || key.includes('cache'))) {
+                keysToRemove.push(key);
+            }
+        }
+        keysToRemove.forEach(key => {
+            localStorage.removeItem(key);
+            console.log("🔥 Removed cached item:", key);
+        });
+        
+        console.log("🔥 Cleared", keysToRemove.length, "cached entries");
+        console.log("🔥 Go back to /finance now!");
+    </script>
+</body>
+</html>

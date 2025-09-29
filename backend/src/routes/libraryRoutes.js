@@ -21,12 +21,21 @@ const {
   cancelReservation,
 
   // Statistics
-  getLibraryStats
+  getLibraryStats,
+
+  // User Search
+  searchUsers
 } = require('../controllers/libraryController');
 
 // Apply authentication middleware to all routes
 router.use(authenticateToken);
 router.use(ensureTenantAccess);
+
+// User Search Route
+router.get('/users/search', 
+  authorize(['library:manage']), // Or a more specific permission if you prefer
+  searchUsers
+);
 
 // Book Management Routes
 

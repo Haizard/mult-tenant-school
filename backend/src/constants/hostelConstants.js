@@ -1,0 +1,70 @@
+// Hostel Status Constants
+const HOSTEL_STATUS = {
+  ACTIVE: 'ACTIVE',
+  INACTIVE: 'INACTIVE',
+};
+
+// Room Status Constants
+const ROOM_STATUS = {
+  AVAILABLE: 'AVAILABLE',
+  OCCUPIED: 'OCCUPIED',
+  MAINTENANCE: 'MAINTENANCE',
+};
+
+// Assignment Status Constants
+const ASSIGNMENT_STATUS = {
+  ACTIVE: 'ACTIVE',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+};
+
+// Maintenance Status Constants
+const MAINTENANCE_STATUS = {
+  SCHEDULED: 'SCHEDULED',
+  IN_PROGRESS: 'IN_PROGRESS',
+  COMPLETED: 'COMPLETED',
+  CANCELLED: 'CANCELLED',
+};
+
+// Report Status Constants
+const REPORT_STATUS = {
+  GENERATED: 'GENERATED',
+  PROCESSING: 'PROCESSING',
+  FAILED: 'FAILED',
+};
+
+// Maintenance Type Constants
+const MAINTENANCE_TYPE = {
+  CLEANING: 'CLEANING',
+  REPAIR: 'REPAIR',
+  INSPECTION: 'INSPECTION',
+  UPGRADE: 'UPGRADE',
+  EMERGENCY: 'EMERGENCY',
+};
+
+// Priority Constants
+const PRIORITY = {
+  LOW: 'LOW',
+  MEDIUM: 'MEDIUM',
+  HIGH: 'HIGH',
+  URGENT: 'URGENT',
+};
+
+// Report Type Constants
+const REPORT_TYPE = {
+  OCCUPANCY: 'OCCUPANCY',
+  MAINTENANCE: 'MAINTENANCE',
+  FINANCIAL: 'FINANCIAL',
+  UTILIZATION: 'UTILIZATION',
+};
+
+module.exports = {
+  HOSTEL_STATUS,
+  ROOM_STATUS,
+  ASSIGNMENT_STATUS,
+  MAINTENANCE_STATUS,
+  REPORT_STATUS,
+  MAINTENANCE_TYPE,
+  PRIORITY,
+  REPORT_TYPE,
+};
