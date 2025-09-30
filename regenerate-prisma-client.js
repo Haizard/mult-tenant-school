@@ -54,7 +54,7 @@ async function testPrismaClient() {
     const { PrismaClient } = require('@prisma/client');
     const prisma = new PrismaClient();
 
-    console.log('🧪 Testing Prisma client with new fields...');
+    console.log('🧪 Testing Prisma client with new fields and content models...');
 
     // Test that we can access the new fields
     const testTenant = await prisma.tenant.findFirst({
@@ -119,6 +119,25 @@ async function testPrismaClient() {
     });
 
     console.log('🧹 Test class cleaned up');
+
+    // Sanity check: access new content models' delegates and enums
+    if (!prisma.content || !prisma.contentAssignment || !prisma.contentVersion || !prisma.contentUsage) {
+      throw new Error('Missing content model delegates on Prisma client');
+    }
+
+    // Create and remove a lightweight Content record to verify tenant relations
+    const content = await prisma.content.create({
+      data: {
+        tenantId: testTenant.id,
+        title: `Sample Content ${Date.now()}`,
+        contentType: 'DOCUMENT',
+        visibility: 'PRIVATE',
+        createdBy: testUser.id
+      }
+    });
+    console.log(`✅ Created sample Content: ${content.id}`);
+    await prisma.content.delete({ where: { id: content.id } });
+    console.log('🧹 Sample Content cleaned up');
 
     await prisma.$disconnect();
 

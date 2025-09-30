@@ -182,6 +182,7 @@ const routeRegistry = {
   "/api/library": "./routes/libraryRoutes",
   "/api/transport": "./routes/transportRoutes",
   "/api/hostel": "./routes/hostelRoutes",
+  "/api/content": "./routes/contentRoutes",
 };
 
 // Dynamically import and mount routes
