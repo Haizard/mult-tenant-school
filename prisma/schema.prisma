@@ -38,6 +38,10 @@ model Tenant {
   healthRecords          HealthRecord[]
   leaveRequests          LeaveRequest[]
   notifications          Notification[]
+  messages               Message[]
+  announcements          Announcement[]
+  messageTemplates       MessageTemplate[]
+  communicationLogs      CommunicationLog[]
   parents                Parent[]
   parentRelations        ParentStudentRelation[]
   roles                  Role[]
@@ -209,6 +213,14 @@ model User {
   createdInspections     VehicleInspection[] @relation("VehicleInspectionCreator")
   verifiedDriverAttendances DriverAttendance[] @relation("DriverAttendanceVerifier")
   conductedPerformanceEvals DriverPerformance[] @relation("DriverPerformanceEvaluator")
+
+  // Communication Management Relations
+  sentMessages           Message[]           @relation("SentMessages")
+  receivedMessages       Message[]           @relation("ReceivedMessages")
+  authoredAnnouncements  Announcement[]
+  createdTemplates       MessageTemplate[]
+  communicationLogs      CommunicationLog[]
+  receivedCommunications CommunicationLog[]  @relation("CommunicationRecipient")
 
   @@unique([tenantId, email])
 }
@@ -3025,4 +3037,239 @@ enum DriverAttendanceStatus {
   HALF_DAY
   ON_LEAVE
   SICK
+}
+
+// Communication Management Models
+
+model Message {
+  id              String            @id @default(cuid())
+  tenantId        String
+  senderId        String
+  recipientId     String
+  subject         String?
+  content         String
+  messageType     MessageType       @default(DIRECT)
+  priority        MessagePriority   @default(NORMAL)
+  status          MessageStatus     @default(SENT)
+  isRead          Boolean           @default(false)
+  readAt          DateTime?
+  scheduledAt     DateTime?
+  sentAt          DateTime?
+  attachments     Json?             // Array of attachment URLs/metadata
+  metadata        Json?             // Additional message metadata
+  threadId        String?           // For message threading
+  replyToId       String?           // For replies
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  // Relations
+  tenant          Tenant            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  sender          User              @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  recipient       User              @relation("ReceivedMessages", fields: [recipientId], references: [id], onDelete: Cascade)
+  replyTo         Message?          @relation("MessageReplies", fields: [replyToId], references: [id])
+  replies         Message[]         @relation("MessageReplies")
+  communicationLogs CommunicationLog[]
+
+  @@index([tenantId, senderId])
+  @@index([tenantId, recipientId])
+  @@index([tenantId, threadId])
+  @@index([tenantId, isRead])
+  @@index([tenantId, status])
+}
+
+model Announcement {
+  id              String                @id @default(cuid())
+  tenantId        String
+  authorId        String
+  title           String
+  content         String
+  category        AnnouncementCategory  @default(GENERAL)
+  priority        AnnouncementPriority  @default(MEDIUM)
+  targetAudience  TargetAudience        @default(ALL)
+  status          AnnouncementStatus    @default(DRAFT)
+  publishDate     DateTime?
+  expiryDate      DateTime?
+  attachments     Json?                 // Array of attachment URLs/metadata
+  metadata        Json?                 // Additional announcement metadata
+  viewCount       Int                   @default(0)
+  createdAt       DateTime              @default(now())
+  updatedAt       DateTime              @updatedAt
+
+  // Relations
+  tenant          Tenant                @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  author          User                  @relation(fields: [authorId], references: [id], onDelete: Cascade)
+  communicationLogs CommunicationLog[]
+
+  @@index([tenantId, status])
+  @@index([tenantId, category])
+  @@index([tenantId, targetAudience])
+  @@index([tenantId, publishDate])
+}
+
+model MessageTemplate {
+  id              String              @id @default(cuid())
+  tenantId        String
+  createdById     String
+  name            String
+  description     String?
+  subject         String?
+  content         String
+  category        TemplateCategory    @default(GENERAL)
+  variables       Json?               // Template variables for personalization
+  isActive        Boolean             @default(true)
+  usageCount      Int                 @default(0)
+  lastUsedAt      DateTime?
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  // Relations
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdBy       User                @relation(fields: [createdById], references: [id], onDelete: Cascade)
+  communicationLogs CommunicationLog[]
+
+  @@index([tenantId, category])
+  @@index([tenantId, isActive])
+}
+
+model CommunicationLog {
+  id              String              @id @default(cuid())
+  tenantId        String
+  userId          String              // User who initiated the communication
+  communicationType CommunicationType
+  messageId       String?
+  announcementId  String?
+  templateId      String?
+  recipientId     String?
+  recipientType   RecipientType?
+  channel         CommunicationChannel @default(IN_APP)
+  status          CommunicationStatus @default(PENDING)
+  deliveredAt     DateTime?
+  readAt          DateTime?
+  failureReason   String?
+  metadata        Json?               // Additional tracking data
+  createdAt       DateTime            @default(now())
+  updatedAt       DateTime            @updatedAt
+
+  // Relations
+  tenant          Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user            User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  message         Message?            @relation(fields: [messageId], references: [id], onDelete: SetNull)
+  announcement    Announcement?       @relation(fields: [announcementId], references: [id], onDelete: SetNull)
+  template        MessageTemplate?    @relation(fields: [templateId], references: [id], onDelete: SetNull)
+  recipient       User?               @relation("CommunicationRecipient", fields: [recipientId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId, userId])
+  @@index([tenantId, communicationType])
+  @@index([tenantId, status])
+  @@index([tenantId, channel])
+  @@index([tenantId, createdAt])
+}
+
+// Communication Management Enums
+
+enum MessageType {
+  DIRECT
+  BROADCAST
+  ANNOUNCEMENT
+  SYSTEM
+}
+
+enum MessagePriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum MessageStatus {
+  DRAFT
+  SCHEDULED
+  SENT
+  DELIVERED
+  READ
+  FAILED
+}
+
+enum AnnouncementCategory {
+  GENERAL
+  ACADEMIC
+  EVENT
+  URGENT
+  ADMINISTRATIVE
+  SPORTS
+  CULTURAL
+}
+
+enum AnnouncementPriority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TargetAudience {
+  ALL
+  STUDENTS
+  TEACHERS
+  PARENTS
+  STAFF
+  ADMINISTRATORS
+  SPECIFIC_CLASS
+  SPECIFIC_GRADE
+}
+
+enum AnnouncementStatus {
+  DRAFT
+  SCHEDULED
+  PUBLISHED
+  ARCHIVED
+  EXPIRED
+}
+
+enum TemplateCategory {
+  GENERAL
+  ACADEMIC
+  ATTENDANCE
+  EXAMINATION
+  LEAVE
+  EMERGENCY
+  WELCOME
+  REMINDER
+}
+
+enum CommunicationType {
+  MESSAGE
+  ANNOUNCEMENT
+  NOTIFICATION
+  TEMPLATE
+  BULK_MESSAGE
+}
+
+enum RecipientType {
+  INDIVIDUAL
+  GROUP
+  CLASS
+  GRADE
+  ROLE
+  ALL_STUDENTS
+  ALL_TEACHERS
+  ALL_PARENTS
+  ALL_STAFF
+}
+
+enum CommunicationChannel {
+  IN_APP
+  EMAIL
+  SMS
+  PUSH_NOTIFICATION
+  WHATSAPP
+}
+
+enum CommunicationStatus {
+  PENDING
+  SENT
+  DELIVERED
+  READ
+  FAILED
+  CANCELLED
 }

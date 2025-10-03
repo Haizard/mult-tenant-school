@@ -9,85 +9,55 @@ import DataTable from '../../components/ui/DataTable';
 import RoleGuard from '../../components/RoleGuard';
 import RoleBasedButton from '../../components/RoleBasedButton';
 import { useAuth } from '../../contexts/AuthContext';
-
-interface Announcement {
-  id: string;
-  title: string;
-  content: string;
-  author: string;
-  category: 'GENERAL' | 'ACADEMIC' | 'EVENT' | 'URGENT';
-  priority: 'LOW' | 'MEDIUM' | 'HIGH' | 'URGENT';
-  targetAudience: 'ALL' | 'STUDENTS' | 'TEACHERS' | 'PARENTS';
-  publishDate: string;
-  expiryDate?: string;
-  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
-  attachments?: string[];
-}
+import communicationService, { Announcement } from '../../../lib/communicationService';
+import { useToast } from '../../hooks/use-toast';
 
 const AnnouncementsPage = () => {
   const { user } = useAuth();
+  const { toast } = useToast();
   const [announcements, setAnnouncements] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [pagination, setPagination] = useState({
+    page: 1,
+    limit: 10,
+    total: 0,
+    pages: 0
+  });
 
-  // Sample announcements data
-  const sampleAnnouncements: Announcement[] = [
-    {
-      id: '1',
-      title: 'School Sports Day Announcement',
-      content: 'We are excited to announce our annual Sports Day will be held on February 15th, 2024. All students are encouraged to participate.',
-      author: 'Dr. Sarah Johnson',
-      category: 'EVENT',
-      priority: 'MEDIUM',
-      targetAudience: 'ALL',
-      publishDate: '2024-01-20',
-      expiryDate: '2024-02-15',
-      status: 'PUBLISHED',
-      attachments: ['sports_day_schedule.pdf']
-    },
-    {
-      id: '2',
-      title: 'Mathematics Exam Schedule',
-      content: 'The Mathematics mid-term examination will be conducted on January 25th, 2024. Please prepare accordingly.',
-      author: 'John Smith',
-      category: 'ACADEMIC',
-      priority: 'HIGH',
-      targetAudience: 'STUDENTS',
-      publishDate: '2024-01-18',
-      expiryDate: '2024-01-25',
-      status: 'PUBLISHED'
-    },
-    {
-      id: '3',
-      title: 'Parent-Teacher Meeting',
-      content: 'Parent-Teacher meetings are scheduled for January 30th, 2024. Please book your appointment slots.',
-      author: 'Alice Brown',
-      category: 'GENERAL',
-      priority: 'MEDIUM',
-      targetAudience: 'PARENTS',
-      publishDate: '2024-01-19',
-      status: 'PUBLISHED'
-    },
-    {
-      id: '4',
-      title: 'Library Closure Notice',
-      content: 'The school library will be closed for maintenance from February 1st to February 3rd, 2024.',
-      author: 'Michael Davis',
-      category: 'GENERAL',
-      priority: 'LOW',
-      targetAudience: 'ALL',
-      publishDate: '2024-01-21',
-      expiryDate: '2024-02-03',
-      status: 'PUBLISHED'
+  // Load announcements from API
+  const loadAnnouncements = async (page = 1) => {
+    try {
+      setIsLoading(true);
+      const response = await communicationService.getAnnouncements({
+        page,
+        limit: pagination.limit,
+        status: 'PUBLISHED'
+      });
+
+      if (response.success) {
+        setAnnouncements(response.data.announcements);
+        setPagination(response.data.pagination);
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to load announcements',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error loading announcements:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to load announcements',
+        variant: 'destructive'
+      });
+    } finally {
+      setIsLoading(false);
     }
-  ];
+  };
 
   useEffect(() => {
-    // Simulate loading
-    setIsLoading(true);
-    setTimeout(() => {
-      setAnnouncements(sampleAnnouncements);
-      setIsLoading(false);
-    }, 1000);
+    loadAnnouncements();
   }, []);
 
   const getPriorityColor = (priority: string) => {
@@ -134,19 +104,53 @@ const AnnouncementsPage = () => {
   };
 
   const handleCreateAnnouncement = () => {
+    // TODO: Open create announcement modal/form
     console.log('Create new announcement');
   };
 
   const handleEditAnnouncement = (announcementId: string) => {
+    // TODO: Open edit announcement modal/form
     console.log('Edit announcement:', announcementId);
   };
 
-  const handleDeleteAnnouncement = (announcementId: string) => {
-    console.log('Delete announcement:', announcementId);
+  const handleDeleteAnnouncement = async (announcementId: string) => {
+    if (!confirm('Are you sure you want to delete this announcement?')) {
+      return;
+    }
+
+    try {
+      const response = await communicationService.deleteAnnouncement(announcementId);
+      if (response.success) {
+        toast({
+          title: 'Success',
+          description: 'Announcement deleted successfully',
+        });
+        loadAnnouncements(pagination.page);
+      } else {
+        toast({
+          title: 'Error',
+          description: 'Failed to delete announcement',
+          variant: 'destructive'
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting announcement:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete announcement',
+        variant: 'destructive'
+      });
+    }
   };
 
-  const handleViewAnnouncement = (announcementId: string) => {
-    console.log('View announcement:', announcementId);
+  const handleViewAnnouncement = async (announcementId: string) => {
+    try {
+      await communicationService.getAnnouncementById(announcementId);
+      // TODO: Open announcement detail modal/page
+      console.log('View announcement:', announcementId);
+    } catch (error) {
+      console.error('Error viewing announcement:', error);
+    }
   };
 
   const columns = [
@@ -178,10 +182,12 @@ const AnnouncementsPage = () => {
       key: 'author',
       label: 'Author',
       sortable: true,
-      render: (value: string) => (
+      render: (value: any, row: Announcement) => (
         <div className="flex items-center">
           <FaUser className="text-green-500 mr-2" />
-          <span className="text-sm text-text-primary">{value}</span>
+          <span className="text-sm text-text-primary">
+            {row.author ? `${row.author.firstName} ${row.author.lastName}` : 'Unknown'}
+          </span>
         </div>
       )
     },
@@ -210,10 +216,12 @@ const AnnouncementsPage = () => {
       key: 'publishDate',
       label: 'Published',
       sortable: true,
-      render: (value: string) => (
+      render: (value: string | Date) => (
         <div className="flex items-center">
           <FaCalendarAlt className="text-orange-500 mr-2" />
-          <span className="text-sm text-text-primary">{value}</span>
+          <span className="text-sm text-text-primary">
+            {value ? new Date(value).toLocaleDateString() : 'Not published'}
+          </span>
         </div>
       )
     },
