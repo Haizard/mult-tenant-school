@@ -1,0 +1,2 @@
+each school should have its own front site view website with multiple dynamic pages like home, admision, contact, gallery, about us and etc. rember this tenant website their data should be isolated whith tenant id for the sake of data breecing and security.
+
