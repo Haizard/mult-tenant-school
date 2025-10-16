@@ -107,6 +107,11 @@ model Tenant {
   contentAssignments     ContentAssignment[]
   contentVersions        ContentVersion[]
   contentUsages          ContentUsage[]
+
+  // AI Chatbot & Tutoring Relations
+  chatbotConversations   ChatbotConversation[]
+  learningProgress       LearningProgress[]
+  chatbotAnalytics       ChatbotAnalytics[]
 }
 
 model User {
@@ -221,6 +226,11 @@ model User {
   createdTemplates       MessageTemplate[]
   communicationLogs      CommunicationLog[]
   receivedCommunications CommunicationLog[]  @relation("CommunicationRecipient")
+
+  // AI Chatbot & Tutoring Relations
+  chatbotConversations   ChatbotConversation[]
+  learningProgress       LearningProgress[]
+  chatbotAnalytics       ChatbotAnalytics[]
 
   @@unique([tenantId, email])
 }
@@ -3272,4 +3282,161 @@ enum CommunicationStatus {
   READ
   FAILED
   CANCELLED
+}
+
+// ============================================
+// AI CHATBOT & TUTORING SYSTEM MODELS
+// ============================================
+
+model AiTutorProfile {
+  id                    String                  @id @default(cuid())
+  tutorName             String
+  subjectName           String
+  subjectCode           String?
+  expertiseLevel        String                  @default("intermediate") // beginner, intermediate, advanced, expert
+  teachingStyle         String?
+  knowledgeBaseVersion  String?
+  systemPrompt          String?
+  isActive              Boolean                 @default(true)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  createdBy             String?
+
+  // Relations
+  conversations         ChatbotConversation[]
+  knowledgeBase         KnowledgeBase[]
+
+  @@map("ai_tutor_profiles")
+}
+
+model ChatbotConversation {
+  id                    String                  @id @default(cuid())
+  tenantId              String
+  userId                String
+  tutorId               String
+  conversationTitle     String?
+  topic                 String?
+  mode                  String                  @default("learning") // learning, past_paper_solver
+  status                String                  @default("active") // active, archived, completed
+  startedAt             DateTime                @default(now())
+  endedAt               DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  // Relations
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tutor                 AiTutorProfile          @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+  messages              ChatbotMessage[]
+
+  @@index([tenantId, userId])
+  @@index([tenantId, tutorId])
+  @@index([tenantId, status])
+  @@map("chatbot_conversations")
+}
+
+model ChatbotMessage {
+  id                    String                  @id @default(cuid())
+  conversationId        String
+  senderType            String                  // student, ai
+  messageContent        String
+  messageType           String                  @default("text") // text, question, solution, explanation, example
+  metadata              String?                 // JSON string for additional data
+  createdAt             DateTime                @default(now())
+
+  // Relations
+  conversation          ChatbotConversation     @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId])
+  @@map("chatbot_messages")
+}
+
+model PastPaper {
+  id                    String                  @id @default(cuid())
+  subjectName           String
+  subjectCode           String?
+  examYear              Int
+  examSession           String?
+  questionNumber        Int?
+  questionText          String
+  questionType          String?
+  difficultyLevel       String? // easy, medium, hard
+  marks                 Int?
+  officialAnswer        String?
+  solutionExplanation   String?
+  reviewBookReference   String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  @@index([subjectName, examYear])
+  @@map("past_papers")
+}
+
+model LearningProgress {
+  id                    String                  @id @default(cuid())
+  tenantId              String
+  userId                String
+  subjectName           String
+  topic                 String?
+  masteryLevel          Float                   @default(0) // 0-1 scale
+  questionsAnswered     Int                     @default(0)
+  correctAnswers        Int                     @default(0)
+  timeSpentMinutes      Int                     @default(0)
+  lastAccessed          DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  // Relations
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, userId, subjectName, topic])
+  @@index([tenantId, userId])
+  @@map("learning_progress")
+}
+
+model KnowledgeBase {
+  id                    String                  @id @default(cuid())
+  tutorId               String
+  contentType           String // concept, formula, theorem, example, definition
+  contentTitle          String
+  contentBody           String
+  topic                 String?
+  difficultyLevel       String?
+  sourceReference       String?
+  isVerified            Boolean                 @default(false)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+  verifiedBy            String?
+
+  // Relations
+  tutor                 AiTutorProfile          @relation(fields: [tutorId], references: [id], onDelete: Cascade)
+
+  @@index([tutorId, contentType])
+  @@map("knowledge_base")
+}
+
+model ChatbotAnalytics {
+  id                    String                  @id @default(cuid())
+  tenantId              String
+  userId                String
+  tutorId               String
+  totalConversations    Int                     @default(0)
+  totalMessages         Int                     @default(0)
+  totalTimeSpentMinutes Int                     @default(0)
+  averageSessionDurationMinutes Float?
+  topicsCovered         Int                     @default(0)
+  accuracyRate          Float?
+  lastInteraction       DateTime?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  // Relations
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  user                  User                    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tutor                 AiTutorProfile          @relation(fields: [tutorId], references: [id])
+
+  @@unique([tenantId, userId, tutorId])
+  @@index([tenantId, userId])
+  @@map("chatbot_analytics")
 }

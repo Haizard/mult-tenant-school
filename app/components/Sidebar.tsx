@@ -22,6 +22,7 @@ import {
   FaCreditCard,
   FaReceipt,
   FaChartLine,
+  FaGlobe,
 } from "react-icons/fa";
 import Link from "next/link";
 import { useAuth } from "../contexts/AuthContext";
@@ -110,12 +111,20 @@ const Sidebar = () => {
 
     // Tenant Admin specific features
     if (hasRole("Tenant Admin")) {
-      items.push({
-        icon: <FaUsers />,
-        text: "School Users",
-        href: "/users",
-        show: true,
-      });
+      items.push(
+        {
+          icon: <FaGlobe />,
+          text: "Website Management",
+          href: "/website",
+          show: true,
+        },
+        {
+          icon: <FaUsers />,
+          text: "School Users",
+          href: "/users",
+          show: true,
+        }
+      );
     }
 
     // Academic management - Tenant Admin, Teacher, and Student only

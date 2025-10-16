@@ -188,6 +188,8 @@ const routeRegistry = {
   "/api/announcements": "./routes/announcementRoutes",
   "/api/message-templates": "./routes/messageTemplateRoutes",
   "/api/website": "./routes/websiteRoutes",
+  "/api/packages": "./routes/packageRoutes",
+  "/api/chatbot": "./routes/chatbotRoutes",
 };
 
 // Dynamically import and mount routes
