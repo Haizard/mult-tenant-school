@@ -614,47 +614,321 @@ module.exports = {
   // Parent portal
   getChildAcademicRecords,
   getChildAttendance,
-  
-  // Additional methods would be added here...
+  getChildGrades,
+  getChildSchedule,
+  getChildHealthRecords,
+  getParentStatistics,
   updateParentRelation: async (req, res) => {
-    res.status(501).json({
-      success: false,
-      message: 'Parent relation update not implemented yet'
-    });
+    try {
+      const { id, relationId } = req.params;
+      const { relationship, isPrimary, isEmergency, canPickup, notes } = req.body;
+
+      // Verify parent exists
+      const parent = await prisma.parent.findFirst({
+        where: { id, tenantId: req.tenantId }
+      });
+
+      if (!parent) {
+        return res.status(404).json({
+          success: false,
+          message: 'Parent not found'
+        });
+      }
+
+      // Update relation
+      const relation = await prisma.parentStudentRelation.update({
+        where: { id: relationId },
+        data: {
+          relationship: relationship || undefined,
+          isPrimary: isPrimary !== undefined ? isPrimary : undefined,
+          isEmergency: isEmergency !== undefined ? isEmergency : undefined,
+          canPickup: canPickup !== undefined ? canPickup : undefined,
+          notes: notes || undefined
+        },
+        include: {
+          student: { include: { user: true } }
+        }
+      });
+
+      res.json({
+        success: true,
+        message: 'Parent-student relationship updated successfully',
+        data: relation
+      });
+    } catch (error) {
+      console.error('Update parent relation error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to update parent-student relationship',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
   },
-  
+
   deleteParentRelation: async (req, res) => {
-    res.status(501).json({
-      success: false,
-      message: 'Parent relation deletion not implemented yet'
-    });
+    try {
+      const { id, relationId } = req.params;
+
+      // Verify parent exists
+      const parent = await prisma.parent.findFirst({
+        where: { id, tenantId: req.tenantId }
+      });
+
+      if (!parent) {
+        return res.status(404).json({
+          success: false,
+          message: 'Parent not found'
+        });
+      }
+
+      // Delete relation
+      await prisma.parentStudentRelation.delete({
+        where: { id: relationId }
+      });
+
+      res.json({
+        success: true,
+        message: 'Parent-student relationship deleted successfully'
+      });
+    } catch (error) {
+      console.error('Delete parent relation error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to delete parent-student relationship',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
   },
   
   getChildGrades: async (req, res) => {
-    res.status(501).json({
-      success: false,
-      message: 'Child grades not implemented yet'
-    });
+    try {
+      const { id, studentId } = req.params;
+
+      // Verify parent-student relationship
+      const relation = await prisma.parentStudentRelation.findFirst({
+        where: {
+          parentId: id,
+          studentId: studentId,
+          tenantId: req.tenantId
+        }
+      });
+
+      if (!relation) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: No relationship with this student'
+        });
+      }
+
+      const grades = await prisma.grade.findMany({
+        where: {
+          studentId: studentId,
+          tenantId: req.tenantId
+        },
+        include: {
+          examination: {
+            select: {
+              id: true,
+              examName: true,
+              examType: true,
+              examLevel: true,
+              maxMarks: true,
+              startDate: true
+            }
+          },
+          subject: {
+            select: {
+              id: true,
+              subjectName: true,
+              subjectCode: true
+            }
+          }
+        },
+        orderBy: { createdAt: 'desc' }
+      });
+
+      res.json({
+        success: true,
+        data: grades
+      });
+    } catch (error) {
+      console.error('Get child grades error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get child grades',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
   },
-  
+
   getChildSchedule: async (req, res) => {
-    res.status(501).json({
-      success: false,
-      message: 'Child schedule not implemented yet'
-    });
+    try {
+      const { id, studentId } = req.params;
+
+      // Verify parent-student relationship
+      const relation = await prisma.parentStudentRelation.findFirst({
+        where: {
+          parentId: id,
+          studentId: studentId,
+          tenantId: req.tenantId
+        }
+      });
+
+      if (!relation) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: No relationship with this student'
+        });
+      }
+
+      // Get student's class
+      const student = await prisma.student.findFirst({
+        where: { id: studentId, tenantId: req.tenantId },
+        include: {
+          enrollments: {
+            where: { status: 'ACTIVE' },
+            include: { class: true }
+          }
+        }
+      });
+
+      if (!student || !student.enrollments.length) {
+        return res.json({ success: true, data: [] });
+      }
+
+      const classIds = student.enrollments.map(e => e.classId).filter(Boolean);
+
+      const schedule = await prisma.schedule.findMany({
+        where: {
+          tenantId: req.tenantId,
+          classId: { in: classIds },
+          status: 'ACTIVE'
+        },
+        include: {
+          subject: { select: { id: true, subjectName: true } },
+          teacher: { select: { id: true, firstName: true, lastName: true } }
+        },
+        orderBy: { startTime: 'asc' }
+      });
+
+      res.json({
+        success: true,
+        data: schedule
+      });
+    } catch (error) {
+      console.error('Get child schedule error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get child schedule',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
   },
-  
+
   getChildHealthRecords: async (req, res) => {
-    res.status(501).json({
-      success: false,
-      message: 'Child health records not implemented yet'
-    });
+    try {
+      const { id, studentId } = req.params;
+
+      // Verify parent-student relationship
+      const relation = await prisma.parentStudentRelation.findFirst({
+        where: {
+          parentId: id,
+          studentId: studentId,
+          tenantId: req.tenantId
+        }
+      });
+
+      if (!relation) {
+        return res.status(403).json({
+          success: false,
+          message: 'Access denied: No relationship with this student'
+        });
+      }
+
+      const healthRecords = await prisma.healthRecord.findMany({
+        where: {
+          studentId: studentId,
+          tenantId: req.tenantId
+        },
+        orderBy: { recordDate: 'desc' }
+      });
+
+      res.json({
+        success: true,
+        data: healthRecords
+      });
+    } catch (error) {
+      console.error('Get child health records error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get child health records',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
   },
-  
+
   getParentStatistics: async (req, res) => {
-    res.status(501).json({
-      success: false,
-      message: 'Parent statistics not implemented yet'
-    });
+    try {
+      const { id } = req.params;
+
+      // Verify parent exists and belongs to this tenant
+      const parent = await prisma.parent.findFirst({
+        where: {
+          id: id,
+          tenantId: req.tenantId
+        }
+      });
+
+      if (!parent) {
+        return res.status(404).json({
+          success: false,
+          message: 'Parent not found'
+        });
+      }
+
+      // Get parent's children
+      const children = await prisma.parentStudentRelation.findMany({
+        where: {
+          parentId: id,
+          tenantId: req.tenantId
+        },
+        include: {
+          student: {
+            include: {
+              enrollments: true,
+              grades: true,
+              attendance: true,
+              payments: true
+            }
+          }
+        }
+      });
+
+      // Calculate statistics
+      const stats = {
+        totalChildren: children.length,
+        childrenDetails: children.map(rel => ({
+          studentId: rel.student.id,
+          studentName: `${rel.student.firstName} ${rel.student.lastName}`,
+          enrolledClasses: rel.student.enrollments.length,
+          totalGrades: rel.student.grades.length,
+          attendanceRecords: rel.student.attendance.length,
+          totalPayments: rel.student.payments.length,
+          relationship: rel.relationship
+        }))
+      };
+
+      res.json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      console.error('Get parent statistics error:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Failed to get parent statistics',
+        error: process.env.NODE_ENV === 'development' ? error.message : 'Internal server error'
+      });
+    }
   }
 };

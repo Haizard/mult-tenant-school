@@ -190,6 +190,8 @@ const routeRegistry = {
   "/api/website": "./routes/websiteRoutes",
   "/api/packages": "./routes/packageRoutes",
   "/api/chatbot": "./routes/chatbotRoutes",
+  "/api/activities": "./routes/activityRoutes",
+  "/api/health": "./routes/healthRoutes",
 };
 
 // Dynamically import and mount routes

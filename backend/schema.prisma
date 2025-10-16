@@ -124,6 +124,10 @@ model Tenant {
   chatbotConversations   ChatbotConversation[]
   learningProgress       LearningProgress[]
   chatbotAnalytics       ChatbotAnalytics[]
+
+  // Activities & Extracurricular Relations
+  activities             Activity[]
+  studentActivities      StudentActivity[]
 }
 
 model User {
@@ -606,6 +610,9 @@ model Student {
   // Content Management Relations
   contentAssignments ContentAssignment[]
   contentUsages      ContentUsage[]
+
+  // Activities & Extracurricular Relations
+  activities         StudentActivity[]
 
   @@unique([tenantId, studentId])
   @@unique([tenantId, admissionNumber])
@@ -3425,4 +3432,69 @@ model ChatbotAnalytics {
   @@unique([tenantId, userId, tutorId])
   @@index([tenantId, userId])
   @@map("chatbot_analytics")
+}
+
+// ============================================================================
+// ACTIVITIES & EXTRACURRICULAR MANAGEMENT
+// ============================================================================
+
+model Activity {
+  id                    String                  @id @default(cuid())
+  tenantId              String
+  name                  String
+  description           String?
+  type                  String                  // SPORTS, CLUB, CULTURAL, ACADEMIC, ARTS, MUSIC, DEBATE, etc.
+  leaderId              String?
+  maxCapacity           Int?
+  schedule              String?                 // JSON or text description of meeting times
+  status                ActivityStatus          @default(ACTIVE)
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  // Relations
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  leader                User?                   @relation("ActivityLeader", fields: [leaderId], references: [id])
+  students              StudentActivity[]
+
+  @@unique([tenantId, name])
+  @@index([tenantId, status])
+  @@index([leaderId])
+  @@map("activities")
+}
+
+model StudentActivity {
+  id                    String                  @id @default(cuid())
+  tenantId              String
+  studentId             String
+  activityId            String
+  joinDate              DateTime                @default(now())
+  status                ActivityEnrollmentStatus @default(ACTIVE)
+  role                  String?                 // MEMBER, CAPTAIN, VICE_CAPTAIN, TREASURER, SECRETARY, etc.
+  notes                 String?
+  createdAt             DateTime                @default(now())
+  updatedAt             DateTime                @updatedAt
+
+  // Relations
+  tenant                Tenant                  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  student               Student                 @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  activity              Activity                @relation(fields: [activityId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, studentId, activityId])
+  @@index([tenantId, studentId])
+  @@index([tenantId, activityId])
+  @@index([status])
+  @@map("student_activities")
+}
+
+enum ActivityStatus {
+  ACTIVE
+  INACTIVE
+  ARCHIVED
+}
+
+enum ActivityEnrollmentStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+  GRADUATED
 }
