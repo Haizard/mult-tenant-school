@@ -105,6 +105,13 @@ model Tenant {
   hostelAssignments      HostelAssignment[]
   hostelMaintenances     HostelMaintenance[]
   hostelReports          HostelReport[]
+
+  // Website Management Relations
+  websitePages           WebsitePage[]
+  websiteContent         WebsiteContent[]
+  websiteGallery         WebsiteGallery[]
+  websiteSettings        WebsiteSettings?
+  websiteAnalytics       WebsiteAnalytics[]
 }
 
 model User {
@@ -187,6 +194,13 @@ model User {
   assignedContents       ContentAssignment[] @relation("ContentAssignedBy")
   contentVersions        ContentVersion[]    @relation("ContentVersionCreatedBy")
   contentUsages          ContentUsage[]
+
+  // Website Management Relations
+  createdWebsitePages    WebsitePage[]       @relation("WebsitePageCreatedBy")
+  updatedWebsitePages    WebsitePage[]       @relation("WebsitePageUpdatedBy")
+  createdWebsiteContent  WebsiteContent[]    @relation("WebsiteContentCreatedBy")
+  createdWebsiteGallery  WebsiteGallery[]    @relation("WebsiteGalleryCreatedBy")
+  updatedWebsiteSettings WebsiteSettings[]   @relation("WebsiteSettingsUpdatedBy")
 
   @@unique([tenantId, email])
 }
@@ -2958,4 +2972,143 @@ enum HostelReportType {
   ROOM_AVAILABILITY
   FEE_COLLECTION
   CUSTOM
+}
+
+// Website Management Models
+
+model WebsitePage {
+  id                String              @id @default(cuid())
+  tenantId          String
+  pageName          String
+  pageSlug          String
+  pageType          WebsitePageType
+  description       String?
+  isPublished       Boolean             @default(false)
+  publishedAt       DateTime?
+  status            WebsitePageStatus   @default(DRAFT)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  createdBy         String
+  updatedBy         String?
+
+  // Relations
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  createdByUser     User                @relation("WebsitePageCreatedBy", fields: [createdBy], references: [id])
+  updatedByUser     User?               @relation("WebsitePageUpdatedBy", fields: [updatedBy], references: [id])
+  content           WebsiteContent[]
+  gallery           WebsiteGallery[]
+  analytics         WebsiteAnalytics[]
+
+  @@unique([tenantId, pageSlug])
+  @@map("website_pages")
+}
+
+model WebsiteContent {
+  id                String              @id @default(cuid())
+  tenantId          String
+  pageId            String
+  contentType       WebsiteContentType
+  contentData       String              // JSON stored as string for SQLite compatibility
+  versionNumber     Int                 @default(1)
+  isCurrent         Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  createdBy         String
+
+  // Relations
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  page              WebsitePage         @relation(fields: [pageId], references: [id], onDelete: Cascade)
+  createdByUser     User                @relation("WebsiteContentCreatedBy", fields: [createdBy], references: [id])
+
+  @@unique([tenantId, pageId, versionNumber])
+  @@map("website_content")
+}
+
+model WebsiteGallery {
+  id                String              @id @default(cuid())
+  tenantId          String
+  pageId            String?
+  imageUrl          String
+  imageTitle        String?
+  imageDescription  String?
+  imageAltText      String?
+  displayOrder      Int                 @default(0)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  createdBy         String
+
+  // Relations
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  page              WebsitePage?        @relation(fields: [pageId], references: [id], onDelete: SetNull)
+  createdByUser     User                @relation("WebsiteGalleryCreatedBy", fields: [createdBy], references: [id])
+
+  @@map("website_gallery")
+}
+
+model WebsiteSettings {
+  id                String              @id @default(cuid())
+  tenantId          String              @unique
+  websiteTitle      String?
+  websiteDescription String?
+  logoUrl           String?
+  themeColor        String?
+  primaryColor      String?
+  secondaryColor    String?
+  fontFamily        String?
+  contactEmail      String?
+  contactPhone      String?
+  address           String?
+  socialMedia       String?             // JSON stored as string for SQLite compatibility
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  updatedBy         String?
+
+  // Relations
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  updatedByUser     User?               @relation("WebsiteSettingsUpdatedBy", fields: [updatedBy], references: [id])
+
+  @@map("website_settings")
+}
+
+model WebsiteAnalytics {
+  id                String              @id @default(cuid())
+  tenantId          String
+  pageId            String?
+  visitorIp         String?
+  userAgent         String?
+  referrer          String?
+  pageViews         Int                 @default(1)
+  sessionDuration   Int?
+  visitedAt         DateTime            @default(now())
+
+  // Relations
+  tenant            Tenant              @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  page              WebsitePage?        @relation(fields: [pageId], references: [id], onDelete: SetNull)
+
+  @@map("website_analytics")
+}
+
+// Website Management Enums
+
+enum WebsitePageType {
+  HOME
+  ADMISSION
+  CONTACT
+  GALLERY
+  ABOUT
+  CUSTOM
+}
+
+enum WebsitePageStatus {
+  DRAFT
+  PUBLISHED
+  ARCHIVED
+}
+
+enum WebsiteContentType {
+  TEXT
+  IMAGE
+  VIDEO
+  FORM
+  GALLERY
 }
