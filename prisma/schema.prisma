@@ -3305,6 +3305,7 @@ model AiTutorProfile {
   // Relations
   conversations         ChatbotConversation[]
   knowledgeBase         KnowledgeBase[]
+  analytics             ChatbotAnalytics[]
 
   @@map("ai_tutor_profiles")
 }
